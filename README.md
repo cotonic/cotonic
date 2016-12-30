@@ -2,7 +2,7 @@
 
 ## What is Cotonic?
 
-Cotonic is a modern, cooperative, independent, component framework. A tool to organise client side components in robust 
+Cotonic is a modern, cooperative, independent, component framework. A tool to organize client side components in robust 
 independently operating units.
 
 ## How?
