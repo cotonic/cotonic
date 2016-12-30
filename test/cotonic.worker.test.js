@@ -1,5 +1,5 @@
 //
-// HTML Tokenizer Tests.
+// HTML Worker Tests.
 //
 
 "use strict";
