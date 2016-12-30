@@ -28,7 +28,7 @@ The main page
 // Not finalized yet, but something like this
 
 var my_component_topic = cotonic.spawn('component.js')
-cotonic.publish(my_component, {do: "something", target: "x123"});
+cotonic.publish(my_component_topic, {do: "something", target: "x123"});
 
 // The component publishes ui updates to ui composer. The ui composer caches html fragements
 // and uses incrementalDOM efficiently update the existing dom tree.
