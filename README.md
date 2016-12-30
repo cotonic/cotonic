@@ -16,7 +16,7 @@ browser, or IoT device.
 
 Cotonic depends on the Web Worker, so it is supported on IE10 and up.
 
-## Libraries
+## Dependencies:
 
 https://github.com/google/incrementalDOM
 
