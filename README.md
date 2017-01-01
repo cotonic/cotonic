@@ -18,7 +18,7 @@ Cotonic depends on the Web Worker, so it is supported on IE10 and up.
 
 ## Dependencies:
 
-https://github.com/google/incrementalDOM
+https://github.com/google/incrementalDOM, https://github.com/davedoesdev/qlobber
 
 ## Usage
 
@@ -37,7 +37,7 @@ cotonic.publish(my_component_topic, {do: "something", target: "x123"});
 A component
 
 ```javascript
-importScript('cotonic-core.js'); // Load the core library.
+importScript('cotonic.worker.js'); // Load the worker part of the library.
 
 function something(target) {
     cotonic.publish("~pagesession/ui/update", {target: target, htmlsoup: "<span>Soup</span>"});
