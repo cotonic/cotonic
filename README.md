@@ -55,5 +55,10 @@ cotonic.subscribe("~self", function(topic, message) {
 Do you want to help? We are in the early stages of development. All help is welcome. Feel free 
 to ask questions or provide feedback.
 
+## TODO
+
+* Design Worker <-> Page postMessage protocol. Needs to support worker starts, stops, restarts, code upgrades, 
+  error handling and relay pub/sub messages.
+
 
 
