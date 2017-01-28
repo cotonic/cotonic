@@ -51,8 +51,15 @@ var cotonic = cotonic || {};
         }
     }
 
-    function patch(patch, element, HTML) {
-        var tokens = cotonic.tokenizer.tokens(HTML);
+    function patch(patch, element, HTMLorTokens) {
+        var tokens;
+
+        if(Array.isArray(HTMLorTokens)) {
+            tokens = HTMLorTokens;
+        } else {
+            tokens = cotonic.tokenizer.tokens(HTMLorTokens);
+        }
+
         patch(element, function() { render(tokens); });
     }
 
