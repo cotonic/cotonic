@@ -8,7 +8,7 @@ var ui = cotonic.ui;
 
 QUnit.test("Basic render test", function(assert) {
     var i = 0;
-    var counting = "Couting: ";
+    var counting = "Counting:: ";
 
     ui.insert("ui-test-1",  true, "<p>Hello World!</p>", 10);
     ui.renderId("ui-test-1");
