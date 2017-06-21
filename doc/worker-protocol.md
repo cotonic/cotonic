@@ -89,6 +89,16 @@ If a component is detected in HTML, or added to the DOM then the following steps
  * If the composer discovers that a component is removed from the DOM then the `".../unmount"` is called
    with the id of the removed element.
 
+After a component has started, it needs to publish a message to `"components/state"`, with the payload:
+
+    { "topic": "component/...", "state": "started" }
+
+Same just before a component stops:
+
+    { "topic": "component/...", "state": "stopped" }
+
+The id of a component is its main communication topic.
+
 
 ## Binding a component to DOM events
 
