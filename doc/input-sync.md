@@ -4,13 +4,15 @@ Solution direction:
 
  * use CRDT to record value
  * connect CRDT with DOM element
- * record changes by connecting oninput
- * components publish state by posting a CRDT to a topic
+ * record input changes by updating CRDT
+ * CRDT changes are always published
+ * components set state by publishing updated CRDT to a topic
  * components can subscribe to CRDTs
  * on conflict, UI state wins
  
 To decide: name of topic.
-Proposal: id or name of input, within component topic
-`~/input/crdt/<name-or-id>`
 
-If generated id, then id is not used.
+Proposal: name of input, within component topic
+
+`component/.../form/.../<input-name>`
+
