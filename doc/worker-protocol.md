@@ -74,7 +74,7 @@ Commands from the page to the worker:
 
     { "cmd": "unsubscribed", "global-id": "..." }
 
-    { "cmd": "published", "global-id": "...", "payload": { ... } }
+    { "cmd": "published", "global-id": "...", "topic": "...", "payload": { ... } }
 
     { "cmd": "stop" }
 
@@ -84,7 +84,7 @@ If a component is detected in HTML, or added to the DOM then the following steps
 
  * Initial HTML is added to the DOM
  * Web Worker for the component is started (if not already running)
- * Subscription for `"component/.../mount"` and `".../unmount"` are added
+ * Web Worker subscribes to `"component/.../mount"` and `".../unmount"` are added
  * The newly found element-id, including its datasets and the inner-html is published to `".../mount"`
  * If the composer discovers that a component is removed from the DOM then the `".../unmount"` is called
    with the id of the removed element.
@@ -105,8 +105,8 @@ The id of a component is its main communication topic.
 The components are easily bound to Javascript events using attributes like *onclick*.
 Example:
 
-    <a href="" onclick="cotonic.pub('~/my/click')" data-foo="...">...</a>
+    <a href="" id="..." onclick="cotonic.pub('~/my/click')" data-foo="...">...</a>
 
 The page will walk up in the DOM tree to find the nearest component to expand `~`.
-Click event data and the element's dataset is then published to the topic.
+Click event data, the element id, and dataset is then published to the topic.
 
