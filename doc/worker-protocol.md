@@ -108,5 +108,5 @@ Example:
     <a href="" onclick="cotonic.pub('~/my/click')" data-foo="...">...</a>
 
 The page will walk up in the DOM tree to find the nearest component to expand `~`.
-Click event data and the element's dataset is sent published to the topic.
+Click event data and the element's dataset is then published to the topic.
 
