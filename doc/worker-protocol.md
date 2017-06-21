@@ -1,11 +1,11 @@
-# Communication protcol between Web Workers and the page
+# Communication protocol between Web Workers and the page
 
 In cotonic we use multiple processes:
 
  * The page process, which access to the DOM
  * Web Workers, one for every active component
 
-The page thread communicates with the Web Workers via the *window.postMessage* API.
+The page thread communicates with the Web Workers via the `window.postMessage` API.
 This document proposes the communication protocol.
 
 ## Communication is PubSub via a topic tree
@@ -53,7 +53,7 @@ The reply has always a *status* field:
         (whatever results)
     }
 
-The status *ok* means all went well.
+The status `ok` means all went well.
 Any other status signals a problem.
 
 Commands from the worker to the page:
@@ -84,9 +84,9 @@ If a component is detected in HTML, or added to the DOM then the following steps
 
  * Initial HTML is added to the DOM
  * Web Worker for the component is started (if not already running)
- * Subscription for "component/.../mount" and ".../unmount" are added
- * The newly found element-id, including its datasets and the inner-html is published to ".../mount"
- * If the composer discovers that a component is removed from the DOM then the ".../unmount" is called
+ * Subscription for `"component/.../mount"` and `".../unmount"` are added
+ * The newly found element-id, including its datasets and the inner-html is published to `".../mount"`
+ * If the composer discovers that a component is removed from the DOM then the `".../unmount"` is called
    with the id of the removed element.
 
 
@@ -95,8 +95,8 @@ If a component is detected in HTML, or added to the DOM then the following steps
 The components are easily bound to Javascript events using attributes like *onclick*.
 Example:
 
-    <a href="" onclick="pub('~/my/click')" data-pub="...">...</a>
+    <a href="" onclick="cotonic.pub('~/my/click')" data-foo="...">...</a>
 
-The page will walk up in the DOM tree to find the nearest component to expand *~*.
+The page will walk up in the DOM tree to find the nearest component to expand `~`.
 Click event data and the element's dataset is sent published to the topic.
 
