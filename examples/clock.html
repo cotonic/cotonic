@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>SVG Clock</title>
+        <style>
+            #root {
+                margin:auto;
+                max-width:600px;
+                width:100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom.js"></script>
+        <script type="text/javascript" src="../src/cotonic.tokenizer.js"></script>
+        <script type="text/javascript" src="../src/cotonic.idom.js"></script>
+        <script type="text/javascript" src="../src/cotonic.ui.js"></script>
+        <script>
+            var date = new Date();
+            var h = parseInt(date.getHours());
+            h = h > 12 ? h-12: h;
+            var m = parseInt(date.getMinutes());
+            var s = parseInt(date.getSeconds());
+            var second = 6*s;
+            var minute =(m+s/60)*6;
+            var hour = (h+m/60+s/3600)*30;
+
+            var clock = '<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\
+            <g transform="translate(150,150)">\
+                <g>\
+                    <circle fill="none" r="108" stroke="gray" stroke-width="4"></circle>\
+                    <circle fill="none" r="97" stroke="black" stroke-dasharray="4,46.789082" stroke-width="11" transform="rotate(-1.5)"></circle>\
+                    <circle fill="none" r="100" stroke="black" stroke-dasharray="2,8.471976" stroke-width="5" transform="rotate(-.873)"></circle>\
+                </g>\
+                <g id="hands" transform="rotate(' + hour.toString() +'">\
+                    <g id="hour" transform="rotate(199.98333333333335)">\
+                        <line opacity=".5" stroke="blue" stroke-linecap="round" stroke-width="5" y2="75"></line>\
+                        <animateTransform attributeName="transform" by="360" dur="12h" repeatCount="indefinite" type="rotate"></animateTransform>\
+                        <circle r="7"></circle>\
+                    </g>\
+                    <g id="minute" transform="rotate(' + minute.toString() + '">\
+                        <line opacity=".9" stroke="green" stroke-linecap="round" stroke-width="4" y2="93"></line>\
+                        <animateTransform attributeName="transform" by="360" dur="60min" repeatCount="indefinite" type="rotate"></animateTransform>\
+                        <circle fill="red" r="6"></circle>\
+                    </g>\
+                    <g id="second" transform="rotate(' + second.toString() + '">\
+                        <line stroke="red" stroke-linecap="round" stroke-width="2" y1="-20" y2="102"></line>\
+                        <animateTransform attributeName="transform" by="360" dur="60s" repeatCount="indefinite" type="rotate"></animateTransform>\
+                        <circle fill="blue" r="4"></circle>\
+                    </g>\
+                </g>\
+            </g>\
+        </svg>';
+
+        cotonic.ui.insert("root",  true, clock, 10);
+        cotonic.ui.render();
+
+        </script>
+    </body>
+</html>
