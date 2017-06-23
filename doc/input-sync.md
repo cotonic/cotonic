@@ -20,8 +20,20 @@ The state will be recorded and manipulated separately from the DOM updates.
  * components set state by publishing updated CRDT to the DOM-element-CRDT
  * on conflict, DOM state wins
 
+### Connecting a CRDT to an input element
 
-### Input-topic naming
+An input receives a CRDT if (and only if) that element publishes its changes.
+
+    <input oninput="cotonic.publish()" />
+
+The topic can be filled in automatically, and the published value defaults
+to the CRDT, (some) event data, the input element's dataset, and some
+information about the enclosed form.
+
+Another way a CRDT is initialized is by publishing a new CRDT to the
+input element's topic.
+
+### Name of the input element's topic
 
 The name of an input CRDT topic is derived from its placement in the DOM.
 
@@ -33,11 +45,11 @@ And if not within a form:
 
 A topic can also be enforced:
 
-    <input name="foo" data-input-topic="some/topic" />
+    <input name="foo" data-cotonic-topic="some/topic" />
 
 Or a base topic on the form:
 
-    <form name="bar" data-input-topic="hello/world" />
+    <form name="bar" data-cotonic-topic="hello/world" />
 
 The individual values will be placed under this topic, for example: `hello/world/foo`
 (Unless the input defined its own topic, in that case that topic is used).
@@ -56,6 +68,8 @@ Posts of input changes are also buffered but for a shorter period.
 In this way it is possible to subscribe to an input without being swamped.
 
 If a form should be posted on submit then the `onsubmit` event handler
-should be added:
+needs to be added:
 
-    <form name="bar"
+
+    <form onsubmit="cotonic.publish()" ... > ... </form>
+
