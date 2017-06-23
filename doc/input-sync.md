@@ -31,6 +31,31 @@ And if not within a form:
 
     form/undefined/input-name
 
+A topic can also be enforced:
+
+    <input name="foo" data-input-topic="some/topic" />
+
+Or a base topic on the form:
+
+    <form name="bar" data-input-topic="hello/world" />
+
+The individual values will be placed under this topic, for example: `hello/world/foo`
+(Unless the input defined its own topic, in that case that topic is used).
+
 ### Input-topic retained value
 
 The retained value of an input-topic is the current CRDT.
+
+## Input-topic post frequency
+
+Posts of form changes are buffered, so rapid changes are combined
+in a single topic post.
+
+Posts of input changes are also buffered but for a shorter period.
+
+In this way it is possible to subscribe to an input without being swamped.
+
+If a form should be posted on submit then the `onsubmit` event handler
+should be added:
+
+    <form name="bar"
