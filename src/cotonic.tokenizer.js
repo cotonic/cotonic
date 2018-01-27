@@ -1076,9 +1076,15 @@ var cotonic = cotonic || {};
             d = element.textContent;
             element.innerHTML = "";
 
-            /* Array.from is not always available on IE */
-            if (d.split(/(?=(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/).length != 1) {
-                return undefined;
+            /* Array.from not available on IE when it is in Quirks mode */
+            if (Array.from) {
+                if (Array.from(d).length != 1) {
+                    return undefined;
+                }
+            } else {
+                if (d.split(/(?=(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/).length != 1) {
+                    return undefined;
+                }
             }
 
             return d;
