@@ -27,3 +27,7 @@ alter any cryptographic hash.
 
 In order to survive addtion of semantically meaningless characters like whitespace and comments we need to
 define a  canonical form of UBF(A). This would basically be UBF without unneeded whitespace and comments.
+
+## Or use CBOR en COSE?
+
+TODO
