@@ -89,6 +89,10 @@ QUnit.test("Parsing start tokens with attributes", function(assert) {
       assert.deepEqual(tokenizer.tokens('<foo a=a&gt;b>'), 
               [{type: "open", tag: "foo", attributes: ["a", "a>b"]}], 
               "Unquoted attribute with charref");
+
+     assert.deepEqual(tokenizer.tokens('<DD ID="foo">'),
+              [{type: "open", tag: "dd", attributes: ["id", "foo"]}],
+              "Uppercase html tags with uppercase html attributes");
 });
 
 
