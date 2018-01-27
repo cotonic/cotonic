@@ -1061,6 +1061,8 @@ var cotonic = cotonic || {};
     /**
      * Convert a decimal, hex, or html entity to a unicode char
      * Returns undefined on failure.
+     *
+     * Assumes the code can use document. Does not work inside a worker.
      */
     var charref = (function () {
         var element = document.createElement("div");
