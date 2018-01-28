@@ -4,8 +4,15 @@
 
 "use strict";
 
-QUnit.test("Worker", function(assert) {
+QUnit.test("Receive connect from worker", function(assert) {
+    assert.timeout(500);
+
+    var done = assert.async();
     var worker = new Worker("test-worker.js");
 
-    assert.deepEqual([], [], "Worker nothing");
+    worker.onmessage = function(e) {
+        var cmd = e.data.cmd;
+        assert.equal(cmd, "connect");
+        done();
+    }
 });

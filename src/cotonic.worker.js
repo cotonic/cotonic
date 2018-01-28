@@ -110,10 +110,10 @@
     var state; /* disconnected, connecting, connected */
 
     function init(endpoint) {
-        self.state = disconnected;
+        state = disconnected;
 
-        endpoint.addEventListener("message", self.state.onMessage);
-        endpoint.addEventListener("error", self.state.onError);
+        endpoint.addEventListener("message", state.onMessage);
+        endpoint.addEventListener("error", state.onError);
     }
 
     function _onError() {
@@ -130,21 +130,22 @@
         if(state === disconnected) {
 
             /* */
-            self.state = connecting;
+            state = connecting;
             self.postMessage({cmd: "connect", id: id, willTopic: willTopic, willMessage: willMessage});
 
             /* connect timeout */
         } else {
+            console.log("wrong state");
             // wrong state
         }
     }
 
     self.is_connected = function() {
-        return self.state === connected;
+        return state === connected;
     }
 
     self.disconnect = function() {
-        if(self.state !== connected) return;
+        if(state !== connected) return;
     }
 
     self.publish = function(topic, payload) {

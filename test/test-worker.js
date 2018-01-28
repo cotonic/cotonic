@@ -6,7 +6,6 @@
 
 importScripts("../src/cotonic.worker.js");
 
-console.log("worker here");
 
 self.on_connect = function() {
     console.log("connected")
