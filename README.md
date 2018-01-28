@@ -55,6 +55,23 @@ cotonic.subscribe("~self", function(topic, message) {
 Do you want to help? We are in the early stages of development. All help is welcome. Feel free 
 to ask questions or provide feedback.
 
+## Development
+
+Cotonic uses web-workers. Browsers only support web-workers served from http or https. This 
+means that you can't do web-worker development without a working http server. Luckily most
+unix environments have python installed. In order to start start development you can run 
+the start_dev script.
+
+```
+$ ./start_dev.sh
+Serving HTTP on 127.0.0.1 port 6227 ...
+127.0.0.1 - - [28/Jan/2018 07:57:27] "GET /test/ HTTP/1.1" 200 -
+...
+```
+
+This will start a simple python webserver which serves the current working directory, and
+point your browser to the directory with tests.
+
 ## TODO
 
 * Design Worker <-> Page postMessage protocol. Needs to support worker starts, stops, restarts, code upgrades, 
