@@ -1,5 +1,5 @@
 /**
- * Copyright 2016, 2017 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016, 2017, 2018 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,31 +22,19 @@
    message-cmd:
        CONNECT, CONNACK,
 
-       PUBLISH,
-       PUBACK,
-       PUBREC,
-       PUBREL,
-       PUBCOMP,
+       PUBLISH, PUBACK, PUBREC, PUBREL, PUBCOMP,
 
-       SUBSCRIBE,
-       PUBCOMP,
-       SUBSCRIBE,
-       SUBACK,
-       UNSUBSCRIBE,
-       UNSUBACK,
+       SUBSCRIBE, PUBCOMP, SUBSCRIBE, SUBACK, UNSUBSCRIBE, UNSUBACK,
 
-       PINGREQ,
-       PINGRESP,
+       PINGREQ, PINGRESP,
+
        DISCONNECT
 
    message:
-   {cmd:<message-cmd>,
-      payload: <payload>
+       {cmd:<message-cmd>, <payload>}
 
    connect-payload:
-       {client_identifier: <id>,
-            will_topic: <topic>,
-            will_message: <payload>}
+       {client_identifier: <id>, will_topic: <topic>, will_message: <payload>}
   */
 
 "use strict";
@@ -54,117 +42,139 @@
 /* Cotonic worker code */
 
 (function(self) {
-    /* disconnected, connecting, connected */
-    var sub_id = 0;
-    var subscriptions = {}; /* sub_id -> callback */
+    /** Model */
+    var model = {
+        id: undefined,
 
-    /**
-     * Worker states
-     */
+        connected: false,
+        connecting: false,
 
-    /* The worker is not connected to the page */
-    var disconnected = {
-        onMessage: function(e) {},
-        onError: function(e) {}
+        sub_id: 0,
+        subscriptions: {},
+
+        selfClose: self.close
     }
 
-    /* The worker send a connect message and is waiting for response */
-    var connecting = {
-        onMessage: function(e) {
-            var cmd = e.data.cmd;
+    model.present = function(data) {
+        /* State changes happen here */
+        if(state.connected(model)) {
+            // TODO
+        } else if(state.disconnected(model)) {
 
-            if(cmd != "connack") {
-                self.state = disconnected;
+            if(data.cmd == "connect") {
+                model.id = data.id;
+                model.connected = false;
+                model.connecting = true;
+                self.postMessage({cmd: "connect", willTopic: data.willTopic, willMessage: data.willMessage})
             }
 
-            if(self.on_connect) self.on_connec();
+        } else if(state.connecting(model)) {
+            if(data.cmd == "connack") {
+                model.connecting = true;
+                model.connected = false;
+                if(self.on_connect) self.on_connect();
+            } else if(data.connect_timeout) {
+                model.connected = false;
+                model.connecting = false;
+                if(self.on_error) self.on_error("connect_timeout");
+            }
+        } else {
+            // TODO
+        }
+
+        state.render(model);
+    }
+
+    /** View */
+    var view = {};
+
+    view.display = function(representation) {
+        // TODO. Could be used to represent debug information.
+    }
+
+    /** State */
+    var state = {view: view};
+
+    state.representation = function(model) {
+        // TODO, could be debug information.
+        var representation;
+        state.view.display(representation);
+    }
+
+    state.nextAction = function(model) {
+        if(state.connecting(model)) {
+            // We are connecting, trigger a connect timeout
+            actions.connect_timeout({}, model.present);
         }
     }
 
-    /* The worker is connected, we can subscribe and receive messages */
-    var connected = {
-        onMessage: function(e) {
-            var cmd = e.data.cmd;
-
-            if (cmd == "publish") {
-                var sub_info = subscriptions[e.data.id];
-                sub_info.callback(e.data.topic, e.data.payload);
-                return;
-            }
-
-            if(cmd == "suback") {
-                var sub_info = subscriptions[e.data.id];
-                if(sub_info.sub_ack) {
-                    sub_info.sub_ack();
-                    sub_info.sub_ack = undefined;
-                }
-                return;
-            }
-
-            if(cmd == "disconnect") {
-            }
-
-        }
+    state.render = function(model) {
+        state.representation(model);
+        state.nextAction(model);
     }
 
-    var state; /* disconnected, connecting, connected */
+    model.state = state;
 
-    function init(endpoint) {
-        state = disconnected;
-
-        endpoint.addEventListener("message", state.onMessage);
-        endpoint.addEventListener("error", state.onError);
+    state.disconnected = function(model) {
+        return (!model.connected && !model.connecting);
     }
 
-    function _onError() {
+    state.connected = function(model) {
+        return (model.connected && !model.connecting);
     }
 
-    var selfClose = self.close;
+    state.connecting = function(model) {
+        return (!model.connected && model.connecting);
+    }
+
+    /** Actions */
+
+    var actions = {};
+
+    actions.on_message = function(e) {
+        var present = model.present;
+        present(e.data);
+    }
+
+    actions.on_error = function(e) {
+    }
+
+    actions.disconnect = function() {
+    }
+
+    actions.connect = function(data, present) {
+        present = present || model.present;
+        data.cmd = "connect";
+        present(data);
+    }
+
+    actions.connect_timeout = function(data, present) {
+        present = present || model.present;
+        var d = data, p = present;
+
+        setTimeout(function() {
+            d.connect_timeout = true;
+            p(d);
+        }, 1000);
+    }
+
+    /* External api */
+    self.is_connected = function() {
+        return state.connected();
+    }
 
     self.close = function() {
-        self.disconnect();
-        selfClose();
+        actions.close();
     }
 
     self.connect = function(id, willTopic, willMessage) {
-        if(state === disconnected) {
-
-            /* */
-            state = connecting;
-            self.postMessage({cmd: "connect", id: id, willTopic: willTopic, willMessage: willMessage});
-
-            /* connect timeout */
-        } else {
-            console.log("wrong state");
-            // wrong state
-        }
-    }
-
-    self.is_connected = function() {
-        return state === connected;
+        actions.connect({id: id, willTopic: willTopic, willMessage: willMessage});
     }
 
     self.disconnect = function() {
-        if(state !== connected) return;
+        actions.disconnect();
     }
 
-    self.publish = function(topic, payload) {
-        if(!self.is_connected()) throw "not connected"
-
-        self.postMessage({cmd: "publish", topic: topic, payload: payload});
-    }
-
-    self.subscribe = function(topic, callback, sub_ack) {
-        if(!self.is_connected()) throw "not connected"
-
-        var id = sub_id++;
-        subscriptions[id] = {callback: callback, sub_ack: sub_ack};
-
-        self.postMessage({cmd: "subscribe", topic: topic, id: id});
-    }
-
-    self.unsubscribe = function(topic, callback) {
-    }
-
-    init(self);
+    self.addEventListener("message", actions.on_message);
+    self.addEventListener("error", actions.on_error);
 })(self);
