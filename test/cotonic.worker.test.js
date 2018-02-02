@@ -38,3 +38,31 @@ QUnit.test("Connect and connack worker", function(assert) {
         }
     }
 });
+
+QUnit.test("Connect and subscribe worker", function(assert) {
+    assert.timeout(500);
+
+    var done = assert.async();
+    var worker = new Worker("subscribe-worker.js");
+
+    var connected = false;
+    var subscribed = false;
+
+    worker.onmessage = function(e) {
+        var cmd = e.data.cmd;
+
+        if(!connected) {
+            assert.equal(cmd, "connect");
+            connected = true;
+            worker.postMessage({cmd: "connack"})
+            return;
+        }
+
+        if(!subscribed) {
+            assert.equal(cmd, "subscribe");
+            subscribed = true;
+            worker.postMessage({cmd: "suback", sub_id: e.data.id})
+            done();
+        }
+    }
+});

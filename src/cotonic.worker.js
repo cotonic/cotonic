@@ -50,7 +50,8 @@
         connecting: false,
 
         sub_id: 0,
-        subscriptions: {},
+        subscriptions:         {}, // topic -> callback
+        pending_subscriptions: {}, // sub-id -> callback
 
         selfClose: self.close
     }
@@ -58,7 +59,25 @@
     model.present = function(data) {
         /* State changes happen here */
         if(state.connected(model)) {
-            // TODO
+
+            if(data.cmd == "subscribe") {
+                var sub_id = model.sub_id++;
+                self.postMessage({cmd: "subscribe", topic: data.topic, id: sub_id});
+                model.pending_subscriptions[sub_id] = data;
+            }
+
+            if(data.cmd == "suback") {
+                var pending_subscription = model.pending_subscriptions[data.sub_id];
+                if(pending_subscription) {
+                    delete model.pending_subscriptions[data.sub_id];
+
+                    model.subscriptions[pending_subscription.topic] = pending_subscription.callback;
+                    if(pending_subscription.suback_callback) {
+                        setTimeout(pending_subscription.suback_callback, 0);
+                    }
+                }
+            }
+
         } else if(state.disconnected(model)) {
 
             if(data.cmd == "connect") {
@@ -66,13 +85,14 @@
                 model.connected = false;
                 model.connecting = true;
                 self.postMessage({cmd: "connect", willTopic: data.willTopic, willMessage: data.willMessage})
+            } else if(data.cmd == "publish") {
             }
 
         } else if(state.connecting(model)) {
             if(data.cmd == "connack") {
-                model.connecting = true;
-                model.connected = false;
-                if(self.on_connect) self.on_connect();
+                model.connecting = false;
+                model.connected = true;
+                if(self.on_connect) setTimeout(self.on_connect, 0);
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
@@ -148,6 +168,12 @@
         present(data);
     }
 
+    actions.subscribe = function(data, present) {
+        present = present || model.present;
+        data.cmd = "subscribe";
+        present(data);
+    }
+
     actions.connect_timeout = function(data, present) {
         present = present || model.present;
         var d = data, p = present;
@@ -169,6 +195,10 @@
 
     self.connect = function(id, willTopic, willMessage) {
         actions.connect({id: id, willTopic: willTopic, willMessage: willMessage});
+    }
+
+    self.subscribe = function(topic, callback, suback_callback) {
+        actions.subscribe({topic: topic, callback: callback, suback_callback: suback_callback});
     }
 
     self.disconnect = function() {
