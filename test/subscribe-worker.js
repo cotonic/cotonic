@@ -7,8 +7,8 @@
 importScripts("../src/cotonic.worker.js");
 
 self.on_connect = function() {
-    self.subscribe("test/a/b", function(topic, msg) {
-        console.log(topic, msg);
+    self.subscribe("test/a/b", function(msg, params) {
+        console.log(msg, params);
     })
 }
 

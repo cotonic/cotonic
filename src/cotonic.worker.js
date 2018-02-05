@@ -42,6 +42,7 @@
 /* Cotonic worker code */
 
 (function(self) {
+        
     /** Model */
     var model = {
         id: undefined,
@@ -59,14 +60,34 @@
     model.present = function(data) {
         /* State changes happen here */
         if(state.connected(model)) {
+	    // PUBLISH
+	    if(data.cmd == "publish") {
+		if(data.from == "client") {
+		    self.postMessage({cmd: data.cmd, topic: data.topic, payload: data.payload});
+		} else {
+		    // Lookup matching topics, and trigger callbacks
+		    for(var topic in model.subscriptions) {
+			var p = topic.exec(topic, data.topic)
+			if(p !== null) {
+			    try {
+			        mode.subscriptions[topic](data.payload, p._topic = data.topic);
+			    } catch(e) {
+				console.log("Error during callback of: " + topic);
+			    }
+			}
+		    }
+		}
+	    }
 
-            if(data.cmd == "subscribe") {
+	    // SUBSCRIBE
+            if(data.cmd == "subscribe" && data.from == "client") {
                 var sub_id = model.sub_id++;
                 self.postMessage({cmd: "subscribe", topic: data.topic, id: sub_id});
                 model.pending_subscriptions[sub_id] = data;
             }
 
-            if(data.cmd == "suback") {
+	    // SUBACK
+            if(data.cmd == "suback" && data.from == "broker") {
                 var pending_subscription = model.pending_subscriptions[data.sub_id];
                 if(pending_subscription) {
                     delete model.pending_subscriptions[data.sub_id];
@@ -89,7 +110,7 @@
             }
 
         } else if(state.connecting(model)) {
-            if(data.cmd == "connack") {
+            if(data.cmd == "connack" && data.from == "broker") {
                 model.connecting = false;
                 model.connected = true;
                 if(self.on_connect) setTimeout(self.on_connect, 0);
@@ -151,28 +172,25 @@
 
     var actions = {};
 
+    function client_cmd(cmd, data, present) {
+	present = present || model.present;
+	data.from = "client";
+	data.cmd = cmd;
+        present(data);
+    }
+
     actions.on_message = function(e) {
-        var present = model.present;
-        present(e.data);
+	var data = e.data;
+	data.from = "broker";
+        model.present(data);
     }
 
     actions.on_error = function(e) {
     }
 
-    actions.disconnect = function() {
-    }
-
-    actions.connect = function(data, present) {
-        present = present || model.present;
-        data.cmd = "connect";
-        present(data);
-    }
-
-    actions.subscribe = function(data, present) {
-        present = present || model.present;
-        data.cmd = "subscribe";
-        present(data);
-    }
+    actions.disconnect = client_cmd.bind(null, "disconnect");
+    actions.connect = client_cmd.bind(null, "connect");
+    actions.subscribe = client_cmd.bind(null, "subscribe");
 
     actions.connect_timeout = function(data, present) {
         present = present || model.present;
@@ -184,7 +202,7 @@
         }, 1000);
     }
 
-    /* External api */
+    /** External api */
     self.is_connected = function() {
         return state.connected();
     }
