@@ -1,16 +1,35 @@
 # COTONIC
 
-## What is Cotonic?
+*An operating system for your web page.*
 
-Cotonic is a modern, cooperative, independent, component framework. A tool to organize client side components in robust 
-independently operating units.
+## Why do you need this?
 
-## How?
+Today's websites are build by multi-disciplinary teams. A lot of sites
+also include services from other companies. All these components usually
+run inside the same global calling context. This can lead to the following
+problems.
 
-By using modern web api's like web workers we can truly isolate components from each other. By doing this a crash in one
-component can't affect other components. This architecture makes it possible to restart crashed components, or dynamically
-load new versions. The use of true decoupling with pubsub makes it possible to run components on the server, another 
-browser, or IoT device.
+  * **Privacy** problems. All javascript which is loaded on a page has
+    access to all dom-elements on a page. This includes private information like
+    names, date's, financial information and passwords. 
+  * **Isolation** problems. All javascript code on a page runs in the same
+    execution context. They sometimes unintentionally share resources which
+    can lead to crashes.
+	
+This is similar to having a computer without an operating system. In the
+early days of computing every user had the sole use of the entire machine
+for a specific time slot. But today's web pages mix the execution of code
+from different sources in one execution context. In order to let things run
+reliably we need proper isolation and resource sharing primitives which are 
+usually provided by operating systems.
+
+## How are we going to provide isolation?
+
+By using modern web api's like web-workers we can truly isolate components.
+By doing this a crash in one component can never affect other component.
+With this architecture it possible to restart crashed components, and dynamically
+load new versions. The use of true decoupling with makes it possible run components
+on the server, another, or IoT device.
 
 ## Supported Browsers
 
@@ -43,7 +62,7 @@ function something(target) {
     cotonic.publish("~pagesession/ui/update", {target: target, htmlsoup: "<span>Soup</span>"});
 }
 
-cotonic.subscribe("~self", function(topic, message) {
+cotonic.subscribe("~self", function(message, params) {
     if(message.do == "something"))
         something(message.target);
 });
