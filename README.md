@@ -37,7 +37,7 @@ Cotonic depends on the Web Worker, so it is supported on IE10 and up.
 
 ## Dependencies:
 
-https://github.com/google/incrementalDOM, https://github.com/davedoesdev/qlobber
+https://github.com/google/incrementalDOM
 
 ## Usage
 
