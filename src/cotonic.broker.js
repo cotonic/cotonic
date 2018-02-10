@@ -67,7 +67,7 @@ var cotonic = cotonic || {};
 
     function collect_matches(path, trie, matches) {
         if(trie === undefined) return;
-	
+
 	if(path.length === 0) {
 	    if(trie[VALUE] !== null) {
 		matches.push.apply(matches, trie[VALUE])
@@ -78,10 +78,10 @@ var cotonic = cotonic || {};
 	let children = trie[CHILDREN];
 	if(children === null) return;
 
-	path = path.slice(1);
+	let sub_path = path.slice(1);
 
-	collect_matches(path, children[path[0]], matches);
-	collect_matches(path, children["+"], matches);
+	collect_matches(sub_path, children[path[0]], matches);
+	collect_matches(sub_path, children["+"], matches);
 	collect_matches([], children["#"], matches);
     }
 
@@ -170,12 +170,30 @@ var cotonic = cotonic || {};
      * Publish from main page
      */
     function publish(topic, message) {
+	let i = 0;
+	const subscriptions = match(topic);
+
+	if(subscriptions.length === 0) return;
+
+	for(i = 0; i < subscriptions.length; i++) {
+	    let sub = subscriptions[i];
+	    switch(sub.type) {
+	    case "page":
+		let p = cotonic.mqtt.extract(sub.topic, topic);
+		sub.callback(message, p);
+		break;
+	    default:
+		console.log("Unknown subscription", sub);
+	    }
+	}
     }
 
     /** 
      * Subscribe from main page
      */
     function subscribe(topic, callback) {
+        let mqtt_topic = topic;	// TODO, support topic descriptions as in cotonic.mqtt
+	add(mqtt_topic, {type: "page", topic: topic, callback: callback});
     }
 
     cotonic.broker = cotonic.broker || {};
@@ -186,7 +204,7 @@ var cotonic = cotonic || {};
     cotonic.broker._match = match;
     cotonic.broker._remove = remove;
 
-    // External
+    // External API
     cotonic.broker.publish = publish;
     cotonic.broker.subscribe = subscribe;
 }(cotonic));
