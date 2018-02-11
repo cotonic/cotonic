@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>SVG Clock</title>
+        <style>
+            #root {
+                margin:auto;
+                max-width:600px;
+                width:100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root">
+          <!-- The svg can be placed as is.  -->
+          <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g transform="translate(150,150)">
+                <g>
+                    <circle fill="none" r="108" stroke="gray" stroke-width="4"></circle>
+                    <circle fill="none" r="97" stroke="black" stroke-dasharray="4,46.789082" stroke-width="11" transform="rotate(-1.5)"></circle>
+                    <circle fill="none" r="100" stroke="black" stroke-dasharray="2,8.471976" stroke-width="5" transform="rotate(-.873)"></circle>
+                </g>
+                <g id="hands" transform="rotate(180)">
+                    <g id="hour"></g>
+                    <g id="minute"></g>
+                    <g id="second"></g>
+                </g>
+            </g>
+          </svg>
+        </div>
+
+        <script type="text/javascript" src="../lib/incremental-dom.js"></script>
+        <script type="text/javascript" src="../src/cotonic.js"></script>
+        <script type="text/javascript" src="../src/cotonic.tokenizer.js"></script>
+        <script type="text/javascript" src="../src/cotonic.idom.js"></script>
+        <script type="text/javascript" src="../src/cotonic.ui.js"></script>
+	<script type="text/javascript" src="../src/cotonic.mqtt.js"></script>
+        <script type="text/javascript" src="../src/cotonic.broker.js"></script>
+
+
+        <script>
+          cotonic.broker.subscribe("ui/render", function() {
+	      cotonic.ui.render();
+          });
+          cotonic.broker.subscribe("ui/insert", function(msg) {
+              cotonic.ui.insert(msg.id, msg.inner, msg.snippet, msg.priority); 
+          });
+          cotonic.broker.subscribe("ui/update", function(msg) {
+	      cotonic.ui.update(msg.id, msg.snippet);
+          });
+          
+          cotonic.spawn("clock_worker.js");
+        </script>
+    </body>
+</html>

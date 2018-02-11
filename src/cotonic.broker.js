@@ -135,23 +135,20 @@ var cotonic = cotonic || {};
 
     
     /* We assume every message is for the broker. */
-    cotonic.receive = function(data, wid) {
+    cotonic.receive(function(data, wid) {
 	if(!data.cmd) return;
 
 	switch(data.cmd) {
 	case "connect":
-	    handle_connect(wid, data);
-	    break;
+	    return handle_connect(wid, data);
 	case "publish":
-	    handle_publish(wid, data);
-	    break;
+	    return handle_publish(wid, data);
 	case "subscribe":
-	    handle_subscribe(wid, data);
-	    break;
+	    return handle_subscribe(wid, data);
 	default:
 	    console.log("Received unknown command", data.cmd);
 	};
-    }
+    })
 
     function handle_connect(wid, data) {
 	// TODO: Start keep-alive timer
@@ -160,10 +157,11 @@ var cotonic = cotonic || {};
     }
 
     function handle_subscribe(wid, data) {
-	const topic = data.topic;
+	add(data.topic, {type: "worker", wid: wid});
     }
 
     function handle_publish(wid, data) {
+	publish(data.topic, data.message);
     }
 
     /**
@@ -178,6 +176,9 @@ var cotonic = cotonic || {};
 	for(i = 0; i < subscriptions.length; i++) {
 	    let sub = subscriptions[i];
 	    switch(sub.type) {
+	    case "worker":
+		cotonic.send(sub.wid, {cmd: publish, topic: topic, msg: message});
+		break;
 	    case "page":
 		let p = cotonic.mqtt.extract(sub.topic, topic);
 		sub.callback(message, p);

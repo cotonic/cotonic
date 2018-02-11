@@ -28,8 +28,11 @@ var cotonic = cotonic || {};
     function message_from_worker(wid, msg) {
         var data = msg.data;
 
-	if(receive_handler)
+	if(receive_handler) {
 	    receive_handler(data, wid);
+	} else {
+	    console.log("Unhandled message from worker", wid, msg);
+	}
     }
 
     /**
@@ -50,6 +53,8 @@ var cotonic = cotonic || {};
         worker.onmessage = message_from_worker.bind(this, worker_id);
 	worker.onerror = error_from_worker.bind(this, worker_id);
         workers[worker_id] = worker;
+
+	console.log("spawned", url);
 
         return worker_id;
     }

@@ -63,7 +63,7 @@
 	    // PUBLISH
 	    if(data.cmd == "publish") {
 		if(data.from == "client") {
-		    self.postMessage({cmd: data.cmd, topic: data.topic, payload: data.payload});
+		    self.postMessage({cmd: data.cmd, topic: data.topic, message: data.message});
 		} else {
 		    // Lookup matching topics, and trigger callbacks
 		    for(var topic in model.subscriptions) {
@@ -191,6 +191,7 @@
     actions.disconnect = client_cmd.bind(null, "disconnect");
     actions.connect = client_cmd.bind(null, "connect");
     actions.subscribe = client_cmd.bind(null, "subscribe");
+    actions.publish = client_cmd.bind(null, "publish");
 
     actions.connect_timeout = function(data, present) {
         present = present || model.present;
@@ -217,6 +218,10 @@
 
     self.subscribe = function(topic, callback, suback_callback) {
         actions.subscribe({topic: topic, callback: callback, suback_callback: suback_callback});
+    }
+
+    self.publish = function(topic, message) {
+	actions.publish({topic, topic, message: message});
     }
 
     self.disconnect = function() {
