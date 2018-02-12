@@ -1,0 +1,72 @@
+#+TITLE: Cotonic Documentation
+#+AUTHOR: Maas-Maarten Zeeman
+#+EMAIL: mailto:mmzeeman@xs4all.nl
+
+* Introduction
+
+Cotonic is a library which provides an operating system for web
+pages.
+
+* Cotonic (=cotonic=)
+
+Base library
+
+#+NAME: cotonic
+#+BEGIN_SRC
+// Bla
+cotonic.test();
+#+END_SRC
+
+** Broker (=cotonic.broker=)
+
+Provides on page pub/sub capabilities
+
+*** =publish=
+
+*** =subscribe=
+
+
+** MQTT (=cotonic.mqtt=)
+
+Provides MQTT topic matching
+
+*** =matches=
+
+*** =extract=
+
+*** =exec=
+
+*** =fill=
+
+** UI (=cotonic.ui=)
+
+Provides user interface composer
+
+*** =insert=
+
+*** =update=
+
+*** =remove=
+
+*** =render=
+
+*** =renderId=
+
+** Idom (=cotonic.idom=)
+
+Provides interface to incremental dom
+
+*** =patchInner=
+
+*** =patchOuter=
+
+** Tokenizer (=cotonic.tokenizer=)
+
+*** =tokens=
+
+*** =charref=
+
+* Cotonic Worker (=cotonic.worker=)
+
+Web-worker api which must be used inside web-workers.
+
