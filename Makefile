@@ -6,15 +6,21 @@ download = curl --create-dirs --location -f --output $(1) $(2)
 
 ## Deps
 
-lib: lib/incremental-dom.js lib/incremental-dom-min.js
+lib: lib/incremental-dom.js lib/incremental-dom.js.map lib/incremental-dom-min.js lib/incremental-dom-min.js.map
 
 lib/incremental-dom.js:
 	$(call download, "$@", \
 		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom.js")
+lib/incremental-dom.js.map:
+	$(call download, "$@", \
+		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom.js.map")
 
 lib/incremental-dom-min.js:
 	$(call download, "$@", \
 		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom-min.js")
+lib/incremental-dom-min.js.map:
+	$(call download, "$@", \
+		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom-min.js.map")
 
 ## Things needed for testing.
 
