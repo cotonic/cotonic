@@ -44,5 +44,26 @@ There is a shim. https://github.com/axemclion/IndexedDBShim
 
 *** How to authenticate server keys?
 
-The Resurrecting Duckling:Security Issues for Ad-hoc Wireless Networks
+** Papers
+
+*** Resurrecting Duckling
+
+https://www.cl.cam.ac.uk/~fms27/papers/1999-StajanoAnd-duckling.pdf
+
+*** Key Continuity Management
+
+https://simson.net/thesis/pki3.pdf
+
+This is SSH's model.
+
+Under normal operation SSH alerts the *first* time that a new service is
+contacted. After that first contact, however, SSH is silent unless
+the server’s key changes.
+
+*** Overview by NIST
+
 http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-130.pdf
+
+*** Ceremony Design and Analysis
+
+https://eprint.iacr.org/2007/399.pdf
