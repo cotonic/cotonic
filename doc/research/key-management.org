@@ -1,0 +1,48 @@
+* Key Management
+
+* Server Keys
+
+Longer lived keys
+Erlang
+
+
+* Client Side
+
+https://www.owasp.org/index.php/HTML5_Security_Cheat_Sheet
+
+https://pomcor.com/2017/06/02/keys-in-browser/
+https://www.w3.org/TR/WebCryptoAPI/
+https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API
+https://www.w3.org/TR/IndexedDB/
+https://www.boxcryptor.com/en/blog/post/building-an-app-with-webcrypto-in-2016/
+https://gist.github.com/saulshanabrook/b74984677bccd08b028b30d9968623f5
+https://blog.engelke.com/2014/09/19/saving-cryptographic-keys-in-the-browser/
+
+** Questions
+
+*** Where to store keys and attributes.
+
+- sessionStorage, per tab/site storage. When the tab closes, the data is gone.
+- localStorage, per site storage. Data is shared between tabs, and stored on the computer.
+- indexDB, indexed storage of items, queryable. (but partial support in IE11)
+
+
+*** What parts of indexDB is not supported by IE11?
+
+There is a shim. https://github.com/axemclion/IndexedDBShim
+
+*** What happens with the sessionStorage?
+
+- Is it deleted? Was it stored on disk or just memory.
+
+
+*** How fast is key generation?
+
+*** Short lived? 
+
+*** Regenerate often? 
+
+*** How to authenticate server keys?
+
+The Resurrecting Duckling:Security Issues for Ad-hoc Wireless Networks
+http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-130.pdf
