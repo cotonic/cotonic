@@ -1,3 +1,4 @@
+
 * Key Management
 
 * Server Keys
@@ -6,7 +7,10 @@ Longer lived keys
 Erlang
 
 
-* Client Side
+* Client Side,
+
+
+Info on browser crypto.
 
 https://www.owasp.org/index.php/HTML5_Security_Cheat_Sheet
 
@@ -26,7 +30,7 @@ https://blog.engelke.com/2014/09/19/saving-cryptographic-keys-in-the-browser/
 - localStorage, per site storage. Data is shared between tabs, and stored on the computer.
 - indexDB, indexed storage of items, queryable. (but partial support in IE11)
 
-
+  
 *** What parts of indexDB is not supported by IE11?
 
 There is a shim. https://github.com/axemclion/IndexedDBShim
@@ -38,7 +42,30 @@ There is a shim. https://github.com/axemclion/IndexedDBShim
 
 *** How fast is key generation?
 
-*** Short lived? 
+On my iMac (i5, 3.3 Ghz) generating a 2048 bit RSA key costs, 200ish
+microseconds. A 1024 bit key 30-ish.
+
+Also interesting, it is possible to create a key-pair in such a way
+that it is not possible to extract the key so you can re-use the key
+later. This sounds like an interesting way to generate temporary keys.
+
+#+NAME: key-generation
+#+BEGIN_SRC js
+let promise = crypto.subtle.generateKey(
+    {
+        name: "RSA-OAEP",
+        modulusLength: 1024,
+        publicExponent: new Uint8Array([1, 0, 1]),  // 24 bit representation of 65537
+            hash: {name: "SHA-256"}
+        },
+        false,   // <-- can extract private part later.
+        ["encrypt", "decrypt"]
+)
+#+END_SRC
+
+*** Short lived?
+
+
 
 *** Regenerate often? 
 
