@@ -1,5 +1,19 @@
-
 * Key Management
+
+** Conclusion
+   
+There is no off the shelf solution which works for us. We are aiming
+for a distributed setup. This is more suited for a PKI setup instead
+of a simpler key-server solution.
+
+Design Choices:
+
+- PKI
+- /Fast expiration/, short lived certificates, no need for revocation
+  lists.
+- Credential style limitations for sub-CA's with a custom certificate
+  restriction language which we need to design.
+  
 
 * Server Keys
 
@@ -110,8 +124,6 @@ https://fidoalliance.org/download/
 https://www.microsoft.com/en-us/research/project/u-prove/
 
 *** Short lived?
-
-
     
 *** Regenerate often? 
 
