@@ -43,6 +43,11 @@ test/lib/qunit-composite.js:
 	    	"https://cdn.rawgit.com/jquery/qunit-composite/master/qunit-composite.js")
 
 
+cotonic.js: lib
+	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.broker.js > cotonic.js
+
+release: cotonic.js
+
 test: lib testlib
 	./start_dev.sh
 
