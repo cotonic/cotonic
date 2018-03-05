@@ -301,7 +301,7 @@ var cotonic = cotonic || {};
      */
     function serializeSubscribeTopics( v, topics ) {
         for (var i = 0; i < topics.length; i++) {
-            var qos = topics[i].qos || 0,
+            var qos = topics[i].qos || 0;
             var noLocal = topics[i].no_local || false;
             var retainAsPublished = topics[i].retain_as_published || false;
             var retainHandling = topics[i].retain_handling || 0;
@@ -453,7 +453,6 @@ var cotonic = cotonic || {};
                 }
                 self.buf[ self.len++ ] = digit;
             } while ( (number > 0) && ( ++numBytes < 4) );
-            self.buf[ self.len++ ] = byte;
         };
 
         this.appendUTF8 = function ( s ) {
@@ -480,8 +479,12 @@ var cotonic = cotonic || {};
                     self.len = stringToUTF8(b, self.buf, self.len);
                     break;
                 case "object":
-                    // Assume a TypedArray
-                    if (typeof a.BYTES_PER_ELEMENT == "number") {
+                    if (b instanceof binary) {
+                        self.reserve(b.length());
+                        b.copyInto(self.buf, self.len);
+                        self.len += b.length();
+                    } else if (typeof b.BYTES_PER_ELEMENT == "number") {
+                        // Assume a TypedArray
                         var v;
                         if (b.BYTES_PER_ELEMENT == 1) {
                             v = b;
@@ -489,7 +492,9 @@ var cotonic = cotonic || {};
                             v = new Uint8Array( b.buffer );
                         }
                         self.reserve(v.length + 2);
-                        self.appendUint16(v.length);
+                        if (addlen) {
+                            self.appendUint16(v.length);
+                        }
                         for (var i = 0; i < v.length; i++) {
                             self.buf[self.len++] = v[i];
                         }
@@ -503,11 +508,10 @@ var cotonic = cotonic || {};
         }
 
         this.appendProperties = function ( props ) {
-            var b = serializePropeties(props);
+            var b = serializeProperties(props);
 
             self.appendVarint(b.length());
-            self.reserve(b.length());
-            b.copyInto(self.buf, self.len);
+            self.appendBin(b);
         }
 
         this.reserve = function( count ) {
@@ -578,7 +582,7 @@ var cotonic = cotonic || {};
             if (!props.hasOwnProperty(k)) {
                 continue;
             }
-            var p = (PROPS[k] || PROPS.__user);
+            var p = (PROPERTY[k] || PROPERTY.__user);
             b.append1(p[0]);
             switch (p[1]) {
                 case "bool":
