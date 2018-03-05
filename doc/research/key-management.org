@@ -26,14 +26,26 @@ https://blog.engelke.com/2014/09/19/saving-cryptographic-keys-in-the-browser/
 
 *** Where to store keys and attributes.
 
-- sessionStorage, per tab/site storage. When the tab closes, the data is gone.
-- localStorage, per site storage. Data is shared between tabs, and stored on the computer.
-- indexDB, indexed storage of items, queryable. (but partial support in IE11)
+- sessionStorage, per tab/site storage. When the tab closes, the data
+  is gone.
+- localStorage, per site storage. Data is shared between tabs, and
+  stored on the computer.
+- indexDB, indexed storage of items, queryable. (but partial support
+  in IE11)
 
+Private keys can be generated in such a way that they can't be
+exported by javascript code. These kind of keys can be stored in the
+indexedDB, sessionStorage and localStorage because they support the
+structured clone algorithm. I've looked up Firefox' implementation.
+They support this by dumping the private key to a PKCS8 blob. This
+blob is not protected. When it is stored on disk it possible to find
+it easily. It is however protected from the javascript side.
   
 *** What parts of indexDB is not supported by IE11?
 
 There is a shim. https://github.com/axemclion/IndexedDBShim
+
+And here explanation: https://gist.github.com/nolanlawson/a841ee23436410f37168
 
 *** What happens with the sessionStorage?
 
@@ -63,10 +75,44 @@ let promise = crypto.subtle.generateKey(
 )
 #+END_SRC
 
+*** Standards
+
+**** JWS - JSON Web Signature
+
+**** JWE - JSON Web Encryption
+
+**** JWT - JSON Web Token. Looks nice. Uses a three part datastructure.
+
+- Header
+- Claims
+- JWS (Json web signature)
+
+hhhh.cccc.gggg
+
+Everything base64url encoded.
+
+Data is signed only, so don't include sensitive data.
+
+In practice the tokens are used from server to client, and as bearer
+token. You only have to present the token, not proof something.
+
+**** FIDO Alliance
+
+Cooperation between industry users. Doing work on authentication with
+smartcards and F2A devices. 
+
+Specifications
+
+https://fidoalliance.org/download/
+
+**** Microsoft
+
+https://www.microsoft.com/en-us/research/project/u-prove/
+
 *** Short lived?
 
 
-
+    
 *** Regenerate often? 
 
 *** How to authenticate server keys?
