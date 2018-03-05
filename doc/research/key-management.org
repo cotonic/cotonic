@@ -140,3 +140,18 @@ http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-130.pdf
 *** Ceremony Design and Analysis
 
 https://eprint.iacr.org/2007/399.pdf
+
+*** Understanding Trust Management Systems
+    
+Mathematical framework for ex- pressing trust management systems.  he
+framework makes it easier to understand existing systems and to
+compare them to one another, as well as to design new systems. The
+framework defines the semantics of a trust management en- gine via a
+least fixpoint in a lattice, which, in some situa- tions, leads to an
+efficient implementation.
+
+https://pdfs.semanticscholar.org/53f5/2937613ff2b58e8eebc29c7994424ac7eada.pdf
+
+*** Trust Structures - Denotational and Operational Semantics
+
+https://users-cs.au.dk/krukow/research/publications/online_papers/krukow-nielsen_DTM.pdf
