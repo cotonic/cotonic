@@ -72,8 +72,12 @@ var cotonic = cotonic || {};
         shared_subscription_available:     [ 0x2A, "bool" ]
     };
 
+    // Filled in from PROPERTY by the init code
+    var PROPERTY_DECODE = [];
+
     //MQTT proto/version for v5          4    M    Q    T    T    5
     var MqttProtoIdentifierv5 = [0x00,0x04,0x4d,0x51,0x54,0x54,0x05];
+
 
     /******************************************************************/
     /*********************** Encoder functions ************************/
@@ -86,38 +90,38 @@ var cotonic = cotonic || {};
     var encoder = function(msg) {
         switch (msg.type) {
             case "connect":
-                return encode_connect(msg);
+                return encodeConnect(msg);
             case "connack":
-                return encode_connack(msg);
+                return encodeConnack(msg);
             case "publish":
-                return encode_publish(msg);
+                return encodePublish(msg);
             case "puback":
             case "pubrec":
             case "pubrel":
             case "pubcomp":
-                return encode_puback_et_al(msg);
+                return encodePubackEtAl(msg);
             case "subscribe":
-                return encode_subscribe(msg);
+                return encodeSubscribe(msg);
             case "suback":
-                return encode_suback(msg);
+                return encodeSuback(msg);
             case "unsubscribe":
-                return encode_unsubscribe(msg);
+                return encodeUnsubscribe(msg);
             case "unsuback":
-                return encode_unsuback(msg);
+                return encodeUnsuback(msg);
             case "pingreq":
-                return encode_pingreq(msg);
+                return encodePingReq(msg);
             case "pingresp":
-                return encode_pingresp(msg);
+                return encodePingResp(msg);
             case "disconnect":
-                return encode_disconnect(msg);
+                return encodeDisconnect(msg);
             case "auth":
-                return encode_auth(msg);
+                return encodeAuth(msg);
             default:
                 throw "Unknown type for encode: " + msg;
         }
     };
 
-    function encode_connect( msg ) {
+    function encodeConnect( msg ) {
         var first = MESSAGE_TYPE.CONNECT << 4;
         var willFlag = msg.will_flag || false;
         var willRetain = msg.will_retain || false;
@@ -156,7 +160,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_connack( msg ) {
+    function encodeConnack( msg ) {
         var first = MESSAGE_TYPE.CONNACK << 4;
         var v = new binary();
         if (msg.session_present) {
@@ -167,7 +171,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_publish( msg ) {
+    function encodePublish( msg ) {
         var first = MESSAGE_TYPE.PUBLISH << 4;
         var v = new binary();
         var qos = msg.qos || 0;
@@ -187,7 +191,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_puback_et_al( msg ) {
+    function encodePubackEtAl( msg ) {
         var first;
         var v = new binary();
         switch (msg.type) {
@@ -209,7 +213,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_subscribe( msg ) {
+    function encodeSubscribe( msg ) {
         var first = MESSAGE_TYPE.SUBSCRIBE << 4;
         var v = new binary();
         first |= 1 << 1;
@@ -219,7 +223,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_suback( msg ) {
+    function encodeSuback( msg ) {
         var first = MESSAGE_TYPE.SUBACK << 4;
         var v = new binary();
         v.appendUint16(msg.packet_id);
@@ -228,7 +232,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_unsubscribe( msg ) {
+    function encodeUnsubscribe( msg ) {
         var first = MESSAGE_TYPE.UNSUBSCRIBE << 4;
         var v = new binary();
         v.appendUint16(msg.packet_id);
@@ -237,7 +241,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_unsuback( msg ) {
+    function encodeUnsuback( msg ) {
         var first = MESSAGE_TYPE.UNSUBACK << 4;
         var v = new binary();
         v.appendUint16(msg.packet_id);
@@ -246,19 +250,19 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_pingreq( msg ) {
+    function encodePingReq( msg ) {
         var first = MESSAGE_TYPE.PINGREQ << 4;
         var v = new binary();
         return packet(first, v);
     }
 
-    function encode_pingresp( msg ) {
+    function encodePingResp( msg ) {
         var first = MESSAGE_TYPE.PINGRESP << 4;
         var v = new binary();
         return packet(first, v);
     }
 
-    function encode_disconnect( msg ) {
+    function encodeDisconnect( msg ) {
         var first = MESSAGE_TYPE.DISCONNECT << 4;
         var v = new binary();
         var reason_code = msg.reason_code || 0;
@@ -271,7 +275,7 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encode_auth( msg ) {
+    function encodeAuth( msg ) {
         var first = MESSAGE_TYPE.AUTH << 4;
         var v = new binary();
         v.append1(msg.reason_code || 0);
@@ -287,13 +291,462 @@ var cotonic = cotonic || {};
      * Decode a binary packet into a message
      * @public
      */
-    var decoder = function(binary) {
+    var decoder = function( binary ) {
+        // At least a byte and 0 length varint.
+        if (binary.length < 2) {
+            throw "incomplete_packet"
+        }
+        // The following might throw 'incomplete_packet'
+        var b = new decodeStream(binary);
+        var first = b.decode1();
+        var len = b.decodeVarint();
+        var variable = b.decodeBin(len);
+        var m;
+
+        try {
+            // Decode the complete packet
+            var vb = new decodeStream(variable);
+            switch (first >> 4) {
+                case MESSAGE_TYPE.CONNECT:
+                    m = decodeConnect(first, vb);
+                    break;
+                case MESSAGE_TYPE.CONNACK:
+                    m = decodeConnack(first, vb);
+                    break;
+                case MESSAGE_TYPE.PUBLISH:
+                    m = decodePublish(first, vb);
+                    break;
+                case MESSAGE_TYPE.PUBACK:
+                case MESSAGE_TYPE.PUBREC:
+                case MESSAGE_TYPE.PUBREL:
+                case MESSAGE_TYPE.PUBCOMP:
+                    m = decodePuback_et_al(first, vb);
+                    break;
+                case MESSAGE_TYPE.SUBSCRIBE:
+                    m = decodeSubscibe(first, vb);
+                    break;
+                case MESSAGE_TYPE.SUBACK:
+                    m = decodeSuback(first, vb);
+                    break;
+                case MESSAGE_TYPE.UNSUBSCRIBE:
+                    m = decodeUnsubscribe(first, vb);
+                    break;
+                case MESSAGE_TYPE.UNSUBACK:
+                    m = decodeUnsuback(first, vb);
+                    break;
+                case MESSAGE_TYPE.PINGREQ:
+                    m = decodePingReq(first, vb);
+                    break;
+                case MESSAGE_TYPE.PINGRESP:
+                    m = decodePingResp(first, vb);
+                    break;
+                case MESSAGE_TYPE.DISCONNECT:
+                    m = decodeDisconnect(first, vb);
+                    break;
+                case MESSAGE_TYPE.AUTH:
+                    m = decodeAuth(first, vb);
+                    break;
+                default:
+                    throw "invalid_packet"
+            }
+        }
+        catch (E) {
+            // incomplete data within a complete packet
+            if (E == 'incomplete_packet') {
+                E = 'invalid_packet';
+            }
+            throw E
+        }
+        return [ m, b.remainingData() ];
     };
 
+    function decodeConnect( first, vb ) {
+        var protocolName = vb.decodeUtf8();
+        var protocolLevel = vb.decode1();
+
+        if (protocolName == "MQTT" && protocolLevel == 5) {
+            var flags = vb.decode1();
+
+            var usernameFlag = !!(flags & 0x80);
+            var passwordFlag = !!(flags & 0x40);
+            var willRetain   = !!(flags & 0x20);
+            var willQos      = (flags >> 3) & 0x3;
+            var willFlag     = !!(flags & 0x04);
+            var cleanStart   = !!(flags & 0x02);
+
+            var keepAlive = vb.decodeUint16();
+            var props = vb.decodeProperties();
+            var clientId = vb.decodeUtf8();
+            var willProps = {};
+            var willTopic;
+            var willPayload;
+
+            if (willFlag) {
+                willProps = vb.decodeProperties();
+                willTopic = vb.decodeUtf8();
+                var willPayloadLen = vb.decodeUint16();
+                willPayload = vb.decodeBin(willPayloadLen);
+            }
+
+            var username;
+            var password;
+            if (usernameFlag) {
+                username = vb.decodeUtf8();
+            }
+            if (passwordFlag) {
+                password = vb.decodeUtf8();
+            }
+
+            return {
+                type: 'connect',
+                protocol_name: protocolName,
+                protocol_level: protocolLevel,
+                client_id: clientId,
+                clean_start: cleanStart,
+                keep_alive: keepAlive,
+                properties: props,
+                username: username,
+                password: password,
+                will_flag: willFlag,
+                will_retain: willRetain,
+                will_qos: willQos,
+                will_properties: willProps,
+                will_topic: willTopic,
+                will_payload: willPayload
+            };
+        } else {
+            throw "unknown_protocol";
+        }
+    }
+
+    function decodeConnack( first, vb ) {
+        var flags = vb.decode1();
+        var sessionPresent = !!(flags & 1);
+        var connectReason = vb.decode1();
+        var props = vb.decodeProperties();
+        return {
+            type: 'connack',
+            session_present: sessionPresent,
+            reason_code: connectReason,
+            properties: props
+        }
+    }
+
+    function decodePublish( first, vb ) {
+        var dup    = !!(first & 0x08);
+        var qos    = (first >> 1) & 0x03;
+        var retain = !!(first & 0x01);
+        var topic = vb.decodeUtf8();
+        var packetId;
+
+        if (qos > 0) {
+            packetId = vb.decodeUint16();
+        }
+        var props = vb.decodeProperties();
+        var payload = vb.remainingData();
+        return {
+            type: 'publish',
+            dup: dup,
+            qos: qos,
+            topic: topic,
+            packet_id: packetId,
+            properties: props,
+            payload: payload
+        }
+    }
+
+    function decodePubackEtAl( first, vb ) {
+        var packetId = vb.decodeUint16();
+        var reasonCode = vb.decode1();
+        var props = vb.decodeProperties();
+        var type;
+
+        switch (first >> 4) {
+            case MESSAGE_TYPE.PUBACK:
+                type = 'puback';
+                break;
+            case MESSAGE_TYPE.PUBREC:
+                type = 'pubrec';
+                break;
+            case MESSAGE_TYPE.PUBREL:
+                type = 'pubrel';
+                break;
+            case MESSAGE_TYPE.PUBCOMP:
+                type = 'pubcomp';
+                break;
+        }
+        return {
+            type: type,
+            packet_id: packetId,
+            reason_code: reasonCode,
+            properties: props
+        };
+    }
+
+    function decodeSubscribe( first, vb ) {
+        var packetId = vb.decodeUint16();
+        var props = vb.decodeProperties();
+        var topics = [];
+        while (vb.remainingLength() > 0) {
+            var name = vb.decodeUtf8();
+            var flags = vb.decode1();
+            topics.push({
+                topic: name,
+                retain_handling: (flags >> 4) % 0x03,
+                retain_as_published: !!(flags & 0x08),
+                no_local: !!(flags & 0x04),
+                qos: flags & 0x03
+            });
+        }
+        return {
+            type: 'subscribe',
+            packet_id: packetId,
+            topics: topics,
+            properties: props
+        };
+    }
+
+    function decodeSuback( first, vb ) {
+        var packetId = vb.decodeUint16();
+        var props = vb.decodeProperties();
+        var acks = [];
+        while (vb.remainingLength() > 0) {
+            //  0..2 is Qos, 0x80+ is error code
+            var ack = vb.decode1();
+            if (ack > 2 && ack < 0x80) {
+                throw "Illegal suback";
+            }
+            acks.push(ack);
+        }
+        return {
+            type: 'suback',
+            packet_id: packetId,
+            properties: props,
+            acks: acks
+        };
+    }
+
+    function decodeUnsubscribe( first, vb ) {
+        var packetId = vb.decodeUint16();
+        var props = vb.decodeProperties();
+        var topics = [];
+        while (vb.remainingLength() > 0) {
+            var topic = vb.decodeUtf8();
+            topics.push(topic);
+        }
+        return {
+            type: 'unsubscribe',
+            packet_id: packetId,
+            properties: props,
+            topics: topics
+        }
+    }
+
+    function decodeUnsuback( first, vb ) {
+        var packetId = vb.decodeUint16();
+        var props = vb.decodeProperties();
+        var acks = [];
+        while (vb.remainingLength() > 0) {
+            //  0..2 is Qos, 0x80+ is error code
+            var ack = vb.decode1();
+            if (ack != 0 && ack != 17 && ack < 0x80) {
+                throw "Illegal unsuback";
+            }
+            acks.push(ack);
+        }
+        return {
+            type: 'unsuback',
+            packet_id: packetId,
+            properties: props,
+            acks: acks
+        };
+    }
+
+    function decodePingReq( first, vb ) {
+        if (vb.remainingLength() > 0) {
+            throw "pingreq with variable part";
+        }
+        return {
+            type: 'pingreq'
+        };
+    }
+
+    function decodePingResp( first, vb ) {
+        if (vb.remainingLength() > 0) {
+            throw "pingresp with variable part";
+        }
+        return {
+            type: 'pingresp'
+        };
+    }
+
+    function decodeDisconnect( first, vb ) {
+        var reasonCode;
+        var props;
+        if (vb.remainingLength() == 0) {
+            reasonCode = 0;
+            props = {};
+        } else {
+            reasonCode = vb.decode1();
+            props = vb.decodeProperties();
+        }
+        return {
+            type: 'disconnect',
+            reason_code: reasonCode,
+            properties: props
+        };
+    }
+
+    function decodeAuth( first, vb ) {
+        var reasonCode = vb.decode1();
+        var props = vb.decodeProperties();
+        return {
+            type: 'auth',
+            reason_code: reasonCode,
+            properties: props
+        };
+    }
 
     /******************************************************************/
-    /*********************** Helper functions *************************/
+    /************************ Decode Helpers **************************/
     /******************************************************************/
+
+
+    /**
+     * Simple binary buffer with helper functions for decoding
+     * @private
+     */
+    function decodeStream ( binary ) {
+        this.offset = 0;
+        this.buf = binary;
+        var self = this;
+
+        this.remainingLength = function() {
+            return self.buf.length - self.offset;
+        }
+
+        this.remainingData = function() {
+            if (self.buf.length == self.offset) {
+                return new Uint8Array(0);
+            } else {
+                return self.buf.slice(self.offset, self.buf.length);
+            }
+        };
+
+        this.ensure = function( n ) {
+            if (self.offset + n > self.buf.length) {
+                throw "incomplete_packet";
+            }
+        }
+
+        this.decodeVarint = function() {
+            var multiplier = 1;
+            var n = 0;
+            var digits = 0;
+            do {
+                self.ensure(1);
+                if (++digits > 4) {
+                    throw "malformed";
+                }
+                var digit = self.buf[self.offset++];
+                n += ((digit & 0x7F) * multiplier);
+                multiplier *= 128;
+            } while ((digit & 0x80) !== 0);
+            return n;
+        };
+
+        this.decode1 = function() {
+            self.ensure(1);
+            return self.buf[self.offset++];
+        }
+
+        this.decodeUint16 = function() {
+            self.ensure(2);
+            var msb = self.buf[self.offset++];
+            var lsb = self.buf[self.offset++];
+            return (msb << 8) + lsb;
+        }
+
+        this.decodeUint32 = function() {
+            self.ensure(4);
+            var b1 = self.buf[self.offset++];
+            var b2 = self.buf[self.offset++];
+            var b3 = self.buf[self.offset++];
+            var b4 = self.buf[self.offset++];
+            return (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
+        }
+
+        this.decodeBin = function( length ) {
+            if (length == 0) {
+                return new Uint8Array(0);
+            } else {
+                self.ensure(length);
+                var offs = self.offset;
+                self.offset += length;
+                return self.buf.slice(offs, self.offset);
+            }
+        }
+
+        this.decodeUtf8 = function() {
+            var length = self.decodeUint16();
+            return UTF8ToString( self.decodeBin(length) );
+        };
+
+        this.decodeProperties = function() {
+            if (self.remainingLength() == 0) {
+                return {};
+            }
+            var len = self.decodeVarint();
+            var end = self.offset + len;
+            var props = {};
+            while (self.offset < end) {
+                var c = self.decode1();
+                var p = PROPERTY_DECODE[c];
+                if (p) {
+                    switch (p[1]) {
+                        case "bool":
+                            props[p[0]] = !!(self.decode1());
+                            break;
+                        case "uint32":
+                            props[p[0]] = self.decodeUint32();
+                            break;
+                        case "uint16":
+                            props[p[0]] = self.decodeUint16();
+                            break;
+                        case "uint8":
+                            props[p[0]] = self.decode1();
+                            break;
+                        case "utf8":
+                            props[p[0]] = self.decodeUtf8();
+                            break;
+                        case "bin":
+                            var count = self.decodeUint16();
+                            props[p[0]] = self.decodeBin(count);
+                            break;
+                        case "varint":
+                            props[p[0]] = self.decodeVarint();
+                            break;
+                        case "user":
+                        default:
+                            // User property
+                            var k = self.decodeUtf8();
+                            props[k] = self.decodeUtf8();
+                            break;
+                    }
+                } else {
+                    throw "Illegal property"
+                }
+            }
+            return props;
+        };
+
+    }
+
+
+    /******************************************************************/
+    /************************ Encode Helpers **************************/
+    /******************************************************************/
+
 
     /**
      * Serialize the topics for a subscribe.
@@ -480,6 +933,9 @@ var cotonic = cotonic || {};
                     break;
                 case "object":
                     if (b instanceof binary) {
+                        if (addlen) {
+                            self.appendUint16(b.length());
+                        }
                         self.reserve(b.length());
                         b.copyInto(self.buf, self.len);
                         self.len += b.length();
@@ -546,31 +1002,6 @@ var cotonic = cotonic || {};
         return true;
     }
 
-
-    /**
-     * Takes a String and calculates its length in bytes when encoded in UTF8.
-     * @private
-     */
-    function UTF8Length( input ) {
-        var output = 0;
-        for (var i = 0; i<input.length; i++) {
-            var charCode = input.charCodeAt(i);
-            if (charCode > 0x7FF) {
-                // Surrogate pair means its a 4 byte character
-                if (0xD800 <= charCode && charCode <= 0xDBFF) {
-                    i++;
-                    output++;
-                }
-                output +=3;
-            } else if (charCode > 0x7F) {
-                output +=2;
-            } else {
-                output++;
-            }
-        }
-        return output;
-    }
-
     /**
      * Serialize the properties.
      * Return a new 'binary' with the serialized properties.
@@ -615,6 +1046,111 @@ var cotonic = cotonic || {};
             }
         }
         return b;
+    }
+
+    /******
+     * The UTF8Length, UTF8ToString, stringToUTF8 and encodeMBI
+     * functions are adapted from paho-mqtt.js
+     *
+     * Copyright (c) 2013 IBM Corp.
+     *
+     * All rights reserved. This program and the accompanying materials
+     * are made available under the terms of the Eclipse Public License v1.0
+     * and Eclipse Distribution License v1.0 which accompany this distribution.
+     */
+
+    /**
+     * Takes a String and calculates its length in bytes when encoded in UTF8.
+     * @private
+     */
+    function UTF8Length( input ) {
+        var output = 0;
+        for (var i = 0; i<input.length; i++) {
+            var charCode = input.charCodeAt(i);
+            if (charCode > 0x7FF) {
+                // Surrogate pair means its a 4 byte character
+                if (0xD800 <= charCode && charCode <= 0xDBFF) {
+                    i++;
+                    output++;
+                }
+                output +=3;
+            } else if (charCode > 0x7F) {
+                output +=2;
+            } else {
+                output++;
+            }
+        }
+        return output;
+    }
+
+    /**
+     * Takes an Uint8Array with UTF8 encoded bytes and writes it into a String.
+     * @private
+     */
+    function UTF8ToString ( input ) {
+        var output = "";
+        var utf16;
+        var n = 0;
+
+        while (n < input.length) {
+            var byte1 = input[n++];
+            if (byte1 < 0x80) {
+                utf16 = byte1;
+            } else if (n < input.length) {
+                var byte2 = input[n++] - 0x80;
+                if (byte2 < 0) {
+                    throw "malformed_utf8";
+                }
+                if (byte1 < 0xE0) {
+                    // 2 byte character
+                    utf16 = 64 * (byte1 - 0xC0)
+                          + byte2;
+                } else if (n < input.length) {
+                    var byte3 = input[n++] - 0x80;
+                    if (byte3 < 0) {
+                        throw "malformed_utf8";
+                    }
+                    if (byte1 < 0xF0) {
+                        // 3 byte character
+                        utf16 = 4096 * (byte1 - 0xE0)
+                              + 64 * byte2
+                              + byte3;
+                    } else if (n < input.length) {
+                        var byte4 = input[n++] - 0x80;
+                        if (byte4 < 0) {
+                            throw new "malformed_utf8";
+                        }
+                        if (byte1 < 0xF8) {
+                            // 4 byte character
+                           utf16 = 262144 * (byte1 - 0xF0)
+                                 + 4096 * byte2
+                                 + 64 * byte3
+                                 + byte4;
+                        } else {
+                            // longer encodings are not supported
+                            throw "malformed_utf8";
+                        }
+                    } else {
+                        // incomplete at end
+                        throw "malformed_utf8";
+                    }
+                } else {
+                    // incomplete at end
+                    throw "malformed_utf8";
+                }
+            } else {
+                // incomplete at end
+                throw "malformed_utf8";
+            }
+            if (utf16 > 0xFFFF) {
+                // 4 byte character - express as a surrogate pair
+                utf16 -= 0x10000;
+                output += String.fromCharCode(0xD800 + (utf16 >> 10)); // lead character
+                utf16 = 0xDC00 + (utf16 & 0x3FF);  // trail character
+            }
+            output += String.fromCharCode(utf16);
+        }
+        return output;
     }
 
     /**
@@ -674,6 +1210,17 @@ var cotonic = cotonic || {};
         return output;
     }
 
+    /**
+     * Initialize some lookup arrays etc
+     */
+    function init() {
+        for (var k in PROPERTY) {
+            var p = PROPERTY[k];
+            PROPERTY_DECODE[p[0]] = [ k, p[1] ];
+        }
+    }
+
+    init();
 
     // Publish the packet functions.
     cotonic.mqtt_packet = cotonic.mqtt_packet || {};
