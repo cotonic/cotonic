@@ -52,6 +52,11 @@ QUnit.test("matches() supports named wildcards", function (assert) {
     assert.ok(mqtt.matches("foo/+something/#else", "foo/bar/baz"), "Matched topic");
 });
 
+QUnit.test("matches() supports leading slashes", function (assert) {
+    assert.ok(mqtt.matches("/foo/bar", "/foo/bar"), "Matched topic");
+    assert.notOk(mqtt.matches("/foo/bar", "/bar/foo"), "Didn't match invalid topic");
+});
+
 QUnit.test("extract() returns empty object of there's nothing to extract", function (assert) {
     assert.deepEqual(mqtt.extract("foo/bar/baz", "foo/bar/baz"), {}, "Extracted empty object");
 });

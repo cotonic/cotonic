@@ -43,6 +43,9 @@ var cotonic = cotonic || {};
 	    var patternChar = currentPattern[0];
 	    var currentTopic = topicSegments[i];
 
+            if(!currentTopic && !currentPattern)
+                continue;
+
 	    if(!currentTopic && currentPattern !== ALL) return false;
 
 	    // Only allow # at end
