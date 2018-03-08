@@ -913,10 +913,19 @@ var cotonic = cotonic || {};
         };
 
         this.appendUTF8 = function ( s ) {
-            var len = UTF8Length(s);
-            self.appendUint16(len);
-            self.reserve(len);
-            self.len = stringToUTF8(s, self.buf, self.len);
+            if (hasTextEncoder()) {
+                var b = new TextEncoder("utf-8").encode(s);
+                self.appendUint16(b.length);
+                self.reserve(b.length);
+                for (var i = 0; i < b.length; i++) {
+                    self.buf[ self.len++ ] = b[i];
+                }
+            } else {
+                var len = pahoUTF8Length(s);
+                self.appendUint16(len);
+                self.reserve(len);
+                self.len = pahoStringToUTF8(s, self.buf, self.len);
+            }
         };
 
         this.appendBin = function ( b, addlen ) {
@@ -928,12 +937,23 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case "string":
-                    var len = UTF8Length(b);
-                    if (addlen) {
-                        self.appendUint16(len);
+                    if (hasTextEncoder()) {
+                        var b = new TextEncoder("utf-8").encode(b);
+                        if (addlen) {
+                            self.appendUint16(b.length);
+                        }
+                        self.reserve(b.length);
+                        for (var i = 0; i < b.length; i++) {
+                            self.buf[ self.len++ ] = b[i];
+                        }
+                    } else {
+                        var len = pahoUTF8Length(b);
+                        if (addlen) {
+                            self.appendUint16(len);
+                        }
+                        self.reserve(len);
+                        self.len = pahoStringToUTF8(b, self.buf, self.len);
                     }
-                    self.reserve(len);
-                    self.len = stringToUTF8(b, self.buf, self.len);
                     break;
                 case "object":
                     if (b instanceof binary) {
@@ -1052,8 +1072,45 @@ var cotonic = cotonic || {};
         return b;
     }
 
+
+
+    /**
+     * Takes an Uint8Array with UTF8 encoded bytes and writes it into a String.
+     * @public
+     */
+    function UTF8ToString ( input ) {
+        if (hasTextEncoder()) {
+            return new TextDecoder("utf-8").decode(input);
+        } else {
+            return pahoUTF8ToString(input);
+        }
+    }
+
+    /**
+     * Takes a string, returns an Uint8Array with UTF8
+     * @public
+     */
+    function stringToUTF8 ( input ) {
+        if (hasTextEncoder()) {
+            return new TextEncoder("utf-8").encode(input);
+        } else {
+            var len = pahoUTF8Length(input);
+            var b = new Uint8Array(len);
+            pahoStringToUTF8(input, b, 0);
+            return b;
+        }
+    }
+
+    /**
+     * Check if this browser has support for TextEncoder and TextDecoder
+     * @private
+     */
+    function hasTextEncoder() {
+        return typeof TextEncoder == "function";
+    }
+
     /******
-     * The UTF8Length, UTF8ToString, stringToUTF8 and encodeMBI
+     * The pahoUTF8Length, pahoUTF8ToString, pahoStringToUTF8 and encodeMBI
      * functions are adapted from paho-mqtt.js
      *
      * Copyright (c) 2013 IBM Corp.
@@ -1063,35 +1120,7 @@ var cotonic = cotonic || {};
      * and Eclipse Distribution License v1.0 which accompany this distribution.
      */
 
-    /**
-     * Takes a String and calculates its length in bytes when encoded in UTF8.
-     * @private
-     */
-    function UTF8Length( input ) {
-        var output = 0;
-        for (var i = 0; i<input.length; i++) {
-            var charCode = input.charCodeAt(i);
-            if (charCode > 0x7FF) {
-                // Surrogate pair means its a 4 byte character
-                if (0xD800 <= charCode && charCode <= 0xDBFF) {
-                    i++;
-                    output++;
-                }
-                output +=3;
-            } else if (charCode > 0x7F) {
-                output +=2;
-            } else {
-                output++;
-            }
-        }
-        return output;
-    }
-
-    /**
-     * Takes an Uint8Array with UTF8 encoded bytes and writes it into a String.
-     * @private
-     */
-    function UTF8ToString ( input ) {
+    function pahoUTF8ToString ( input ) {
         var output = "";
         var utf16;
         var n = 0;
@@ -1157,11 +1186,12 @@ var cotonic = cotonic || {};
         return output;
     }
 
+
     /**
      * Takes a String and writes it into an array as UTF8 encoded bytes.
      * @private
      */
-    function stringToUTF8(input, output, pos) {
+    function pahoStringToUTF8(input, output, pos) {
         for (var i = 0; i<input.length; i++) {
             var charCode = input.charCodeAt(i);
 
@@ -1192,6 +1222,30 @@ var cotonic = cotonic || {};
             }
         }
         return pos;
+    }
+
+    /**
+     * Takes a String and calculates its length in bytes when encoded in UTF8.
+     * @private
+     */
+    function pahoUTF8Length( input ) {
+        var output = 0;
+        for (var i = 0; i<input.length; i++) {
+            var charCode = input.charCodeAt(i);
+            if (charCode > 0x7FF) {
+                // Surrogate pair means its a 4 byte character
+                if (0xD800 <= charCode && charCode <= 0xDBFF) {
+                    i++;
+                    output++;
+                }
+                output +=3;
+            } else if (charCode > 0x7F) {
+                output +=2;
+            } else {
+                output++;
+            }
+        }
+        return output;
     }
 
     /**
@@ -1230,5 +1284,10 @@ var cotonic = cotonic || {};
     cotonic.mqtt_packet = cotonic.mqtt_packet || {};
     cotonic.mqtt_packet.encode = encoder;
     cotonic.mqtt_packet.decode = decoder;
+
+    // Some useful support functions
+    cotonic.mqtt_packet.stringToUTF8 = stringToUTF8;
+    cotonic.mqtt_packet.UTF8ToString = UTF8ToString;
+    cotonic.mqtt_packet.hasTextEncoder = hasTextEncoder;
 
 }(cotonic));
