@@ -162,10 +162,12 @@ var cotonic = cotonic || {};
 
     function encodeConnack( msg ) {
         var first = MESSAGE_TYPE.CONNACK << 4;
+        var flags = 0;
         var v = new binary();
         if (msg.session_present) {
-            first |= 1;
+            flags |= 1;
         }
+        v.append1( flags );
         v.append1( msg.reason_code || 0 );
         v.appendProperties(msg.properties || {});
         return packet(first, v);
@@ -209,6 +211,7 @@ var cotonic = cotonic || {};
                 break;
         }
         v.appendUint16(msg.packet_id);
+        v.append1(msg.reason_code || 0);
         v.appendProperties(msg.properties || {});
         return packet(first, v);
     }
@@ -320,10 +323,10 @@ var cotonic = cotonic || {};
                 case MESSAGE_TYPE.PUBREC:
                 case MESSAGE_TYPE.PUBREL:
                 case MESSAGE_TYPE.PUBCOMP:
-                    m = decodePuback_et_al(first, vb);
+                    m = decodePubackEtAl(first, vb);
                     break;
                 case MESSAGE_TYPE.SUBSCRIBE:
-                    m = decodeSubscibe(first, vb);
+                    m = decodeSubscribe(first, vb);
                     break;
                 case MESSAGE_TYPE.SUBACK:
                     m = decodeSuback(first, vb);
@@ -400,7 +403,7 @@ var cotonic = cotonic || {};
             return {
                 type: 'connect',
                 protocol_name: protocolName,
-                protocol_level: protocolLevel,
+                protocol_version: protocolLevel,
                 client_id: clientId,
                 clean_start: cleanStart,
                 keep_alive: keepAlive,
@@ -448,6 +451,7 @@ var cotonic = cotonic || {};
             type: 'publish',
             dup: dup,
             qos: qos,
+            retain: retain,
             topic: topic,
             packet_id: packetId,
             properties: props,
@@ -780,7 +784,7 @@ var cotonic = cotonic || {};
                 v.append1(ack);
             } else if (ack >= 0x80 && ack <= 0xff) {
                 // error code
-                v.append(ack);
+                v.append1(ack);
             } else {
                 throw "Subscribe ack outside 0..2 and 0x80..0xff";
             }
@@ -809,7 +813,7 @@ var cotonic = cotonic || {};
                 v.append1(ack);
             } else if (ack >= 0x80 && ack <= 0xff) {
                 // error code
-                v.append(ack);
+                v.append1(ack);
             } else {
                 throw "Unsubscribe ack outside 0..2 and 0x80..0xff";
             }
@@ -971,7 +975,7 @@ var cotonic = cotonic || {};
         }
 
         this.reserve = function( count ) {
-            if (self.len < self.size + count ) {
+            if (self.size < self.len + count ) {
                 var newsize = self.size * 2;
                 while (newsize < self.size + count) {
                     newsize = newsize * 2;
@@ -1032,7 +1036,7 @@ var cotonic = cotonic || {};
                     b.appendUTF8(props[k]);
                     break;
                 case "bin":
-                    b.appendBin(props[k]);
+                    b.appendBin(props[k], true);
                     break;
                 case "varint":
                     b.appendVarint(props[k]);
