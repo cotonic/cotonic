@@ -174,12 +174,9 @@ var cotonic = cotonic || {};
      * Publish from main page
      */
     function publish(topic, message) {
-	let i = 0;
 	const subscriptions = match(topic);
 
-	if(subscriptions.length === 0) return;
-
-	for(i = 0; i < subscriptions.length; i++) {
+	for(var i = 0; i < subscriptions.length; i++) {
 	    let sub = subscriptions[i];
 	    switch(sub.type) {
 	    case "worker":
