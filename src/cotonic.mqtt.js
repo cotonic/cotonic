@@ -109,10 +109,30 @@ var cotonic = cotonic || {};
 	return params;
     }
 
+    function remove_named_wildcards(pattern) {
+	var patternSegments = pattern.split(SEPARATOR);
+	var patternLength = patternSegments.length;
+        var mqttPattern = [];
+
+	for(var i = 0; i < patternLength; i++) {
+	    var currentPattern = patternSegments[i];
+	    var patternChar = currentPattern[0];
+
+            if(patternChar === ALL || patternChar == SINGLE) {
+                mqttPattern.push(patternChar);
+            } else {
+                mqttPattern.push(currentPattern);
+            }
+        }
+
+        return mqttPattern.join(SEPARATOR);
+    }
+
     cotonic.mqtt = cotonic.mqtt || {};
     cotonic.mqtt.matches = matches;
     cotonic.mqtt.extract = extract;
     cotonic.mqtt.exec = exec;
     cotonic.mqtt.fill = fill;
+    cotonic.mqtt.remove_named_wildcards = remove_named_wildcards;
  
 })(cotonic);

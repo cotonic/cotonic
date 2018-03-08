@@ -114,3 +114,25 @@ QUnit.test("fill() ignores non-named # params", function (assert) {
 QUnit.test("fill() uses `undefined` for non-named + params", function(assert){
     assert.deepEqual(mqtt.fill("foo/+", {}), "foo/undefined", "Filled in params");
 });
+
+QUnit.test("remove_named_wildcards() keeps patterns without wildcards intact", function(assert) {
+    assert.deepEqual(mqtt.remove_named_wildcards("foo"), "foo", "No wildcards");
+    assert.deepEqual(mqtt.remove_named_wildcards("foo/bar"), "foo/bar", "No wildcards");
+    assert.deepEqual(mqtt.remove_named_wildcards("/a/b/c"), "/a/b/c", "No wildcards");
+});
+
+QUnit.test("remove_named_wildcards() without named wildcards", function(assert) {
+    assert.deepEqual(mqtt.remove_named_wildcards("foo/+/bar"), "foo/+/bar", "Single level wildcard");
+    assert.deepEqual(mqtt.remove_named_wildcards("+/foo/bar"), "+/foo/bar", "Single level wildcard");
+    assert.deepEqual(mqtt.remove_named_wildcards("+/+/bar"), "+/+/bar", "Single level wildcard");
+    assert.deepEqual(mqtt.remove_named_wildcards("+/+/#"), "+/+/#", "Single and multilevel wildcards");
+    assert.deepEqual(mqtt.remove_named_wildcards("#"), "#", "Multi level wildcard");
+});
+
+QUnit.test("remove_named_wildcards() with named wildcards", function(assert) {
+    assert.deepEqual(mqtt.remove_named_wildcards("foo/+a/bar"), "foo/+/bar", "Single level wildcard");
+    assert.deepEqual(mqtt.remove_named_wildcards("+a/foo/bar"), "+/foo/bar", "Single level wildcard");
+    assert.deepEqual(mqtt.remove_named_wildcards("+a/+b/bar"), "+/+/bar", "Single level wildcard");
+    assert.deepEqual(mqtt.remove_named_wildcards("+a/+b/#"), "+/+/#", "Single and multilevel wildcards");
+    assert.deepEqual(mqtt.remove_named_wildcards("#a"), "#", "Multi level wildcard");
+});

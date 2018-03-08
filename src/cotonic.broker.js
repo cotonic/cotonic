@@ -19,7 +19,8 @@ var cotonic = cotonic || {};
 
 
 (function(cotonic) {
-    let clients = {};
+    var clients;
+    var root;
 
     /* Trie implementation */
     const CHILDREN = 0;
@@ -27,7 +28,12 @@ var cotonic = cotonic || {};
     
     function new_node(value) { return [null, value]; }
 
-    let root = new_node(null);
+    function flush() {
+        clients = {};
+        root = new_node(null);
+    }
+
+    flush();
 
     function add(topic, thing) {
 	const path = topic.split("/");
@@ -148,7 +154,7 @@ var cotonic = cotonic || {};
 	default:
 	    console.log("Received unknown command", data.cmd);
 	};
-    })
+    });
 
     function handle_connect(wid, data) {
 	// TODO: Start keep-alive timer
@@ -177,7 +183,7 @@ var cotonic = cotonic || {};
 	    let sub = subscriptions[i];
 	    switch(sub.type) {
 	    case "worker":
-		cotonic.send(sub.wid, {cmd: publish, topic: topic, msg: message});
+		cotonic.send(sub.wid, {cmd: "publish", topic: topic, msg: message});
 		break;
 	    case "page":
 		let p = cotonic.mqtt.extract(sub.topic, topic);
@@ -193,7 +199,7 @@ var cotonic = cotonic || {};
      * Subscribe from main page
      */
     function subscribe(topic, callback) {
-        let mqtt_topic = topic;	// TODO, support topic descriptions as in cotonic.mqtt
+        let mqtt_topic = cotonic.mqtt.remove_named_wildcards(topic);
 	add(mqtt_topic, {type: "page", topic: topic, callback: callback});
     }
 
@@ -204,6 +210,7 @@ var cotonic = cotonic || {};
     cotonic.broker._add = add;
     cotonic.broker._match = match;
     cotonic.broker._remove = remove;
+    cotonic.broker._flush = flush;
 
     // External API
     cotonic.broker.publish = publish;
