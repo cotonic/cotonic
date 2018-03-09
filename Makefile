@@ -24,7 +24,7 @@ lib/incremental-dom-min.js.map:
 
 ## Things needed for testing.
 
-testlib: test/lib/qunit.css test/lib/qunit.css test/lib/qunit-composite.css test/lib/qunit-composite.js
+testlib: test/lib/qunit.js test/lib/qunit.css test/lib/qunit.css test/lib/qunit-composite.css test/lib/qunit-composite.js
 
 test/lib/qunit.css:
 	$(call download, "$@", \

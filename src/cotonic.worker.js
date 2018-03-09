@@ -39,11 +39,12 @@
 
 "use strict";
 
+var cotonic = cotonic || {};
+
 /* Cotonic worker code */
 
 (function(self) {
-        
-    /** Model */
+
     var model = {
         id: undefined,
 
@@ -51,7 +52,7 @@
         connecting: false,
 
         sub_id: 0,
-        subscriptions:         {}, // topic -> callback
+        subscriptions: {}, // topic -> [callback]
         pending_subscriptions: {}, // sub-id -> callback
 
         selfClose: self.close
@@ -66,13 +67,18 @@
 		    self.postMessage({cmd: data.cmd, topic: data.topic, message: data.message});
 		} else {
 		    // Lookup matching topics, and trigger callbacks
-		    for(var topic in model.subscriptions) {
-			var p = topic.exec(topic, data.topic)
-			if(p !== null) {
-			    try {
-			        mode.subscriptions[topic](data.payload, p._topic = data.topic);
+		    for(var pattern in model.subscriptions) {
+			var p = cotonic.mqtt.exec(pattern, data.topic)
+			if(p === null)
+			    continue;
+			
+			let subs = model.subscriptions[pattern];
+
+			for(var i=0; i < subs.length; i++) {
+	                    try {
+				subs[i](data.payload, p);
 			    } catch(e) {
-				console.log("Error during callback of: " + topic);
+				console.error("Error during callback of: " + pattern, e);
 			    }
 			}
 		    }
@@ -82,7 +88,8 @@
 	    // SUBSCRIBE
             if(data.cmd == "subscribe" && data.from == "client") {
                 var sub_id = model.sub_id++;
-                self.postMessage({cmd: "subscribe", topic: data.topic, id: sub_id});
+		let mqtt_topic = cotonic.mqtt.remove_named_wildcards(data.topic);
+                self.postMessage({cmd: "subscribe", topic: mqtt_topic, id: sub_id});
                 model.pending_subscriptions[sub_id] = data;
             }
 
@@ -92,15 +99,19 @@
                 if(pending_subscription) {
                     delete model.pending_subscriptions[data.sub_id];
 
-                    model.subscriptions[pending_subscription.topic] = pending_subscription.callback;
+                    let subs = model.subscriptions[pending_subscription.topic];
+		    if(subs == undefined) {
+                        subs = model.subscriptions[pending_subscription.topic] = [];
+		    }
+
+		    subs.push(pending_subscription.callback);
+
                     if(pending_subscription.suback_callback) {
                         setTimeout(pending_subscription.suback_callback, 0);
                     }
                 }
             }
-
         } else if(state.disconnected(model)) {
-
             if(data.cmd == "connect") {
                 model.id = data.id;
                 model.connected = false;
@@ -108,7 +119,6 @@
                 self.postMessage({cmd: "connect", willTopic: data.willTopic, willMessage: data.willMessage})
             } else if(data.cmd == "publish") {
             }
-
         } else if(state.connecting(model)) {
             if(data.cmd == "connack" && data.from == "broker") {
                 model.connecting = false;
@@ -230,4 +240,5 @@
 
     self.addEventListener("message", actions.on_message);
     self.addEventListener("error", actions.on_error);
+
 })(self);
