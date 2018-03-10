@@ -68,15 +68,16 @@ var cotonic = cotonic || {};
 		} else {
 		    // Lookup matching topics, and trigger callbacks
 		    for(var pattern in model.subscriptions) {
-			var p = cotonic.mqtt.exec(pattern, data.topic)
-			if(p === null)
-			    continue;
-			
-			let subs = model.subscriptions[pattern];
+                        if(!cotonic.mqtt.matches(pattern, data.topic))
+                            continue;
 
+			let subs = model.subscriptions[pattern];
 			for(var i=0; i < subs.length; i++) {
+                            let subscription = subs[i];
 	                    try {
-				subs[i](data.payload, p);
+				subscription.callback(data.payload,
+                                                      cotonic.mqtt.extract(
+                                                          subscription.topic, data.topic));
 			    } catch(e) {
 				console.error("Error during callback of: " + pattern, e);
 			    }
@@ -88,9 +89,28 @@ var cotonic = cotonic || {};
 	    // SUBSCRIBE
             if(data.cmd == "subscribe" && data.from == "client") {
                 var sub_id = model.sub_id++;
+                let sub_topic = data.topic;
+                let already_subscribed = false;
 		let mqtt_topic = cotonic.mqtt.remove_named_wildcards(data.topic);
-                self.postMessage({cmd: "subscribe", topic: mqtt_topic, id: sub_id});
-                model.pending_subscriptions[sub_id] = data;
+
+                // Check if there already is a subscription with the same topic.
+		for(var pattern in model.subscriptions) {
+                    if(pattern != mqtt_topic) continue;
+
+                    already_subscribed = true;
+                    
+                    let subs = model.subscriptions[pattern];
+                    subs.push({topic: sub_topic, callback: data.callback})
+                    if(data.suback_callback) {
+                        setTimeout(data.suback_callback, 0);
+                    }
+                }
+
+                if(!already_subscribed) {
+                    self.postMessage({cmd: "subscribe", topic: mqtt_topic, id: sub_id});
+                    data.mqtt_topic = mqtt_topic;
+                    model.pending_subscriptions[sub_id] = data;
+                }
             }
 
 	    // SUBACK
@@ -99,15 +119,17 @@ var cotonic = cotonic || {};
                 if(pending_subscription) {
                     delete model.pending_subscriptions[data.sub_id];
 
-                    let subs = model.subscriptions[pending_subscription.topic];
+                    let subs = model.subscriptions[pending_subscription.mqtt_topic];
 		    if(subs == undefined) {
-                        subs = model.subscriptions[pending_subscription.topic] = [];
+                        subs = model.subscriptions[pending_subscription.mqtt_topic] = [];
 		    }
 
-		    subs.push(pending_subscription.callback);
+		    subs.push({topic: pending_subscription.topic,
+                               callback: pending_subscription.callback});
 
                     if(pending_subscription.suback_callback) {
                         setTimeout(pending_subscription.suback_callback, 0);
+                        delete pending_subscription.suback_callback;
                     }
                 }
             }
