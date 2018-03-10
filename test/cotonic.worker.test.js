@@ -98,7 +98,7 @@ QUnit.test("Connect, subscribe and publish to worker", function(assert) {
             subscribed = true;
 
             worker.postMessage({cmd: "suback", sub_id: e.data.id});
-	    worker.postMessage({cmd: "publish", topic: e.data.topic, payload: "Hi"});
+	    worker.postMessage({cmd: "publish", topic: "test/a/b", payload: "Hi"});
 	    return;
         }
     }
