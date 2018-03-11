@@ -44,12 +44,12 @@ test/lib/qunit-composite.js:
 
 
 cotonic.js: lib
-	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.broker.js > cotonic.js
+	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.mqtt_packet.js src/cotonic.broker.js > cotonic.js
 
-release: cotonic.js
+cotonic_worker.js: lib
+	cat src/cotonic.mqtt.js src/cotonic.worker.js > cotonic_worker.js
+
+release: cotonic.js cotonic_worker.js
 
 test: lib testlib
 	./start_dev.sh
-
-build:
-	lib test

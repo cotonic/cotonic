@@ -45,7 +45,7 @@ var cotonic = cotonic || {};
 
 (function(self) {
 
-    var model = {
+    let model = {
         id: undefined,
 
         connected: false,
@@ -67,12 +67,12 @@ var cotonic = cotonic || {};
 		    self.postMessage({cmd: data.cmd, topic: data.topic, message: data.message});
 		} else {
 		    // Lookup matching topics, and trigger callbacks
-		    for(var pattern in model.subscriptions) {
+		    for(let pattern in model.subscriptions) {
                         if(!cotonic.mqtt.matches(pattern, data.topic))
                             continue;
 
 			let subs = model.subscriptions[pattern];
-			for(var i=0; i < subs.length; i++) {
+			for(let i=0; i < subs.length; i++) {
                             let subscription = subs[i];
 	                    try {
 				subscription.callback(data.payload,
@@ -88,13 +88,13 @@ var cotonic = cotonic || {};
 
 	    // SUBSCRIBE
             if(data.cmd == "subscribe" && data.from == "client") {
-                var sub_id = model.sub_id++;
+                let sub_id = model.sub_id++;
                 let sub_topic = data.topic;
                 let already_subscribed = false;
 		let mqtt_topic = cotonic.mqtt.remove_named_wildcards(data.topic);
 
                 // Check if there already is a subscription with the same topic.
-		for(var pattern in model.subscriptions) {
+		for(let pattern in model.subscriptions) {
                     if(pattern != mqtt_topic) continue;
 
                     already_subscribed = true;
@@ -115,7 +115,7 @@ var cotonic = cotonic || {};
 
 	    // SUBACK
             if(data.cmd == "suback" && data.from == "broker") {
-                var pending_subscription = model.pending_subscriptions[data.sub_id];
+                let pending_subscription = model.pending_subscriptions[data.sub_id];
                 if(pending_subscription) {
                     delete model.pending_subscriptions[data.sub_id];
 
@@ -159,18 +159,18 @@ var cotonic = cotonic || {};
     }
 
     /** View */
-    var view = {};
+    let view = {};
 
     view.display = function(representation) {
         // TODO. Could be used to represent debug information.
     }
 
     /** State */
-    var state = {view: view};
+    let state = {view: view};
 
     state.representation = function(model) {
         // TODO, could be debug information.
-        var representation;
+        let representation;
         state.view.display(representation);
     }
 
@@ -202,7 +202,7 @@ var cotonic = cotonic || {};
 
     /** Actions */
 
-    var actions = {};
+    let actions = {};
 
     function client_cmd(cmd, data, present) {
 	present = present || model.present;
@@ -212,7 +212,7 @@ var cotonic = cotonic || {};
     }
 
     actions.on_message = function(e) {
-	var data = e.data;
+	let data = e.data;
 	data.from = "broker";
         model.present(data);
     }
@@ -227,7 +227,7 @@ var cotonic = cotonic || {};
 
     actions.connect_timeout = function(data, present) {
         present = present || model.present;
-        var d = data, p = present;
+        let d = data, p = present;
 
         setTimeout(function() {
             d.connect_timeout = true;
