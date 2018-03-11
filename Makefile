@@ -24,7 +24,7 @@ lib/incremental-dom-min.js.map:
 
 ## Things needed for testing.
 
-testlib: test/lib/qunit.css test/lib/qunit.css test/lib/qunit-composite.css test/lib/qunit-composite.js
+testlib: test/lib/qunit.js test/lib/qunit.css test/lib/qunit.css test/lib/qunit-composite.css test/lib/qunit-composite.js
 
 test/lib/qunit.css:
 	$(call download, "$@", \
@@ -44,12 +44,12 @@ test/lib/qunit-composite.js:
 
 
 cotonic.js: lib
-	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.broker.js > cotonic.js
+	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.mqtt_packet.js src/cotonic.broker.js > cotonic.js
 
-release: cotonic.js
+cotonic_worker.js: lib
+	cat src/cotonic.mqtt.js src/cotonic.worker.js > cotonic_worker.js
+
+release: cotonic.js cotonic_worker.js
 
 test: lib testlib
 	./start_dev.sh
-
-build:
-	lib test

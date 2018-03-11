@@ -17,13 +17,14 @@
 /* Originial code from https://github.com/RangerMauve/mqtt-pattern */
 
 "use strict";
+
 var cotonic = cotonic || {};
 
 (function(cotonic) {
     
-    var SEPARATOR = "/";
-    var SINGLE = "+";
-    var ALL = "#";
+    const SEPARATOR = "/";
+    const SINGLE = "+";
+    const ALL = "#";
 
 
     function exec(pattern, topic) {

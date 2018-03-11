@@ -19,8 +19,8 @@ var cotonic = cotonic || {};
 
 
 (function(cotonic) {
-    var clients;
-    var root;
+    let clients;
+    let root;
 
     /* Trie implementation */
     const CHILDREN = 0;
@@ -176,7 +176,7 @@ var cotonic = cotonic || {};
     function publish(topic, message) {
 	const subscriptions = match(topic);
 
-	for(var i = 0; i < subscriptions.length; i++) {
+	for(let i = 0; i < subscriptions.length; i++) {
 	    let sub = subscriptions[i];
 	    switch(sub.type) {
 	    case "worker":
