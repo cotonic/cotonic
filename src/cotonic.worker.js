@@ -75,7 +75,7 @@ var cotonic = cotonic || {};
 			for(let i=0; i < subs.length; i++) {
                             let subscription = subs[i];
 	                    try {
-				subscription.callback(data.payload,
+				subscription.callback(data.msg,
                                                       cotonic.mqtt.extract(
                                                           subscription.topic, data.topic));
 			    } catch(e) {

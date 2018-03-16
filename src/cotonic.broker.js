@@ -164,6 +164,7 @@ var cotonic = cotonic || {};
 
     function handle_subscribe(wid, data) {
 	add(data.topic, {type: "worker", wid: wid});
+        cotonic.send(wid, {cmd: "puback", sub_id: id});
     }
 
     function handle_publish(wid, data) {
