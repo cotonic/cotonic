@@ -647,6 +647,7 @@ QUnit.test("auth", function(assert) {
     var b = mqtt_packet.encode({
         type: "auth"
     });
+    assert.deepEqual( b, new Uint8Array([0xf0,0]), "auth");
     var m = mqtt_packet.decode(b);
     assert.deepEqual(
         m,

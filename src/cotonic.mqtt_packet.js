@@ -281,8 +281,13 @@ var cotonic = cotonic || {};
     function encodeAuth( msg ) {
         var first = MESSAGE_TYPE.AUTH << 4;
         var v = new binary();
-        v.append1(msg.reason_code || 0);
-        v.appendProperties(msg.properties || {});
+        var reason_code = msg.reason_code || 0;
+        var properties = msg.properties || {};
+
+        if (reason_code != 0 || !isEmptyProperties(properties)) {
+            v.append1(reason_code);
+            v.appendProperties(properties);
+        }
         return packet(first, v);
     }
 
@@ -602,8 +607,15 @@ var cotonic = cotonic || {};
     }
 
     function decodeAuth( first, vb ) {
-        var reasonCode = vb.decode1();
-        var props = vb.decodeProperties();
+        var reasonCode;
+        var props;
+        if (vb.remainingLength() == 0) {
+            reasonCode = 0;
+            props = {};
+        } else {
+            reasonCode = vb.decode1();
+            props = vb.decodeProperties();
+        }
         return {
             type: 'auth',
             reason_code: reasonCode,
