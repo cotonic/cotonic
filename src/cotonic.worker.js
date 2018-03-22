@@ -64,7 +64,7 @@ var cotonic = cotonic || {};
 	    // PUBLISH
 	    if(data.cmd == "publish") {
 		if(data.from == "client") {
-		    self.postMessage({cmd: data.cmd, topic: data.topic, message: data.message});
+		    self.postMessage({cmd: data.cmd, topic: data.topic, message: data.message, options: data.options});
 		} else {
 		    // Lookup matching topics, and trigger callbacks
 		    for(let pattern in model.subscriptions) {
@@ -252,8 +252,8 @@ var cotonic = cotonic || {};
         actions.subscribe({topic: topic, callback: callback, suback_callback: suback_callback});
     }
 
-    self.publish = function(topic, message) {
-	actions.publish({topic, topic, message: message});
+    self.publish = function(topic, message, options) {
+	actions.publish({topic, topic, message: message, options: options});
     }
 
     self.disconnect = function() {
