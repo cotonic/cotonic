@@ -68,6 +68,27 @@ QUnit.test("Subscribe and publish, with named wildcards", function(assert) {
     cotonic.broker._flush();
 });
 
+QUnit.test("Subscribe and publish, retained messages", function(assert) {
+    let publishes = [];
+
+    cotonic.broker._delete_all_retained();
+
+    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retained: true});
+
+    cotonic.broker.subscribe("retained/#a", function(message, prop) {
+	publishes.push({msg: message, prop: prop});
+    });
+
+    assert.equal(1, publishes.length, "There is one message");
+
+    cotonic.broker.subscribe("#a", function(message, prop) {
+	publishes.push({msg: message, prop: prop});
+    });
+
+    assert.equal(2, publishes.length, "There are two messages");
+    cotonic.broker._delete_all_retained();
+});
+
 
 
     
