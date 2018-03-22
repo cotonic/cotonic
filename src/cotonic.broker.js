@@ -138,7 +138,6 @@ var cotonic = cotonic || {};
     }
 
     /* ----- end trie ---- */
-
     
     /* We assume every message is for the broker. */
     cotonic.receive(function(data, wid) {
@@ -152,7 +151,7 @@ var cotonic = cotonic || {};
 	case "subscribe":
 	    return handle_subscribe(wid, data);
 	default:
-	    console.log("Received unknown command", data.cmd);
+	    console.error("Received unknown command", data.cmd);
 	};
     });
 
@@ -163,42 +162,123 @@ var cotonic = cotonic || {};
     }
 
     function handle_subscribe(wid, data) {
-	add(data.topic, {type: "worker", wid: wid});
+        let subscription = {type: "worker", wid: wid};
+
+	add(data.topic, subscription);
         cotonic.send(wid, {cmd: "puback", sub_id: id});
+
+        const retained = get_matching_retained(data.topic);
+        for(let i = 0; i < retained.length; i++) {
+            publish_message(subscription, retained[i].topic, retained[i].retained.message);
+        }
     }
 
     function handle_publish(wid, data) {
-	publish(data.topic, data.message);
-    }
-
-    /**
-     * Publish from main page
-     */
-    function publish(topic, message) {
-	const subscriptions = match(topic);
-
-	for(let i = 0; i < subscriptions.length; i++) {
-	    let sub = subscriptions[i];
-	    switch(sub.type) {
-	    case "worker":
-		cotonic.send(sub.wid, {cmd: "publish", topic: topic, msg: message});
-		break;
-	    case "page":
-		let p = cotonic.mqtt.extract(sub.topic, topic);
-		sub.callback(message, p);
-		break;
-	    default:
-		console.log("Unknown subscription", sub);
-	    }
-	}
+	publish(data.topic, data.message, data.options);
     }
 
     /** 
      * Subscribe from main page
      */
     function subscribe(topic, callback) {
-        let mqtt_topic = cotonic.mqtt.remove_named_wildcards(topic);
-	add(mqtt_topic, {type: "page", topic: topic, callback: callback});
+        const subscription = {type: "page", topic: topic, callback: callback};
+        const mqtt_topic = cotonic.mqtt.remove_named_wildcards(topic);
+
+	add(mqtt_topic, subscription); 
+
+        const retained = get_matching_retained(mqtt_topic);
+        for(let i = 0; i < retained.length; i++) {
+            publish_message(subscription, retained[i].topic, retained[i].retained.message);
+        }
+    }
+
+    /**
+     * Publish from main page
+     */
+    function publish(topic, message, options) {
+	const subscriptions = match(topic);
+
+        if(options && options.retained) {
+            retain(topic, message, options);
+        }
+
+	for(let i = 0; i < subscriptions.length; i++) {
+            publish_message(subscriptions[i], topic, message);
+	}
+    }
+
+    function publish_message(sub, topic, message) {
+        if(sub.type === "worker") {
+            cotonic.send(sub.wid, {cmd: "publish", topic: topic, msg: message})
+        } else if(sub.type === "page") {
+            const p = cotonic.mqtt.extract(sub.topic, topic);
+            sub.callback(message, p);
+        } else {
+            console.error("Unkown subscription type", sub);
+        }
+    }
+
+    function retain_key(topic) {
+        return "c_retained$" + topic;
+    }
+
+    function retain(topic, message, options) {
+        sessionStorage.setItem(retain_key(topic), JSON.stringify({
+            message: message,
+            options: options
+        }));
+    }
+
+    function get_matching_retained(topic) {
+        const prefix = "c_retained$";
+        let matching = [];
+        
+        for(let i = 0; i < sessionStorage.length; i++) {
+            let key = sessionStorage.key(i);
+
+            if(key.substring(0, prefix.length) !== prefix) {
+                continue;
+            }
+
+            const retained_topic = key.substring(prefix.length);
+            if(!cotonic.mqtt.matches(topic, retained_topic)) {
+                continue;
+            }
+
+            const retained = get_retained(retained_topic);
+            if(retained !== null)
+                matching.push({topic: topic, retained: retained}); 
+        }
+
+        return matching;
+    }
+
+    function get_retained(topic) {
+        const key = retain_key(topic);
+        const item = sessionStorage.getItem(key);
+        if(item === null) {
+            return null;
+        }
+
+        const Obj = JSON.parse(item);
+        if(!Obj.message) {
+            sessionStorage.removeItem(key);
+            return null;
+        }
+
+        return Obj;
+    }
+
+    function delete_all_retained() {
+        const prefix = "c_retained$";
+
+        for(let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if(key.substring(0, prefix.length) !== prefix) {
+                continue;
+            }
+            sessionStorage.removeItem(key);
+        }
     }
 
     cotonic.broker = cotonic.broker || {};
@@ -209,6 +289,7 @@ var cotonic = cotonic || {};
     cotonic.broker._match = match;
     cotonic.broker._remove = remove;
     cotonic.broker._flush = flush;
+    cotonic.broker._delete_all_retained = delete_all_retained;
 
     // External API
     cotonic.broker.publish = publish;

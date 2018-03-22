@@ -25,3 +25,8 @@ QUnit.test("Send a message to a worker, and receive message back.", function(ass
     var wid = cotonic.spawn("hello-page-worker.js");
     cotonic.send(wid, "Hello worker!");
 });
+
+QUnit.test("Crypto test", function(assert) {
+    let wid = cotonic.spawn("crypto-test.js");
+    assert.equal(true, true, "Just testing api");
+});
