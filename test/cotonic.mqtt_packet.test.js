@@ -270,7 +270,34 @@ QUnit.test("publish", function(assert) {
             },
             new Uint8Array([])
         ],
-        "publish2");
+        "publish3");
+    // Multiple subscription identifiers
+    var b = mqtt_packet.encode({
+        type: "publish",
+        topic: "foo/bar/la",
+        properties: {
+            subscription_identifier: [ 1, 2, 3 ]
+        }
+    });
+    var m = mqtt_packet.decode(b);
+    assert.deepEqual(
+        m,
+        [
+            {
+                type: "publish",
+                topic: "foo/bar/la",
+                qos: 0,
+                dup: false,
+                retain: false,
+                packet_id: undefined,
+                payload: new Uint8Array(0),
+                properties: {
+                    subscription_identifier: [ 1, 2, 3 ]
+                }
+            },
+            new Uint8Array([])
+        ],
+        "publish4");
 });
 
 

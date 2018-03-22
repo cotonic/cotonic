@@ -43,33 +43,33 @@ var cotonic = cotonic || {};
     };
 
     var PROPERTY = {
-        payload_format_indicator:   [ 0x01, "bool" ],
-        message_expiry_interval:    [ 0x02, "uint32" ],
-        content_type:               [ 0x03, "utf8" ],
-        response_topic:             [ 0x08, "topic" ],
-        correlation_data:           [ 0x09, "bin" ],
-        subscription_identifier:    [ 0x0B, "varint" ],
-        session_expiry_interval:    [ 0x11, "uint32" ],
-        assigned_client_identifier: [ 0x12, "utf8" ],
-        server_keep_alive:          [ 0x13, "uint16" ],
-        authentication_method:      [ 0x15, "utf8" ],
-        authentication_data:        [ 0x16, "bin" ],
-        request_problem_information:[ 0x17, "bool" ],
-        will_delay_interval:        [ 0x18, "uint32" ],
-        request_response_information:[0x19, "bool" ],
-        response_information:       [ 0x1A, "bin" ],
-        server_reference:           [ 0x1C, "utf8" ],
-        reason_string:              [ 0x1F, "utf8" ],
-        receive_maximum:            [ 0x21, "uint16" ],
-        topic_alias_maximum:        [ 0x22, "uint16" ],
-        topic_alias:                [ 0x23, "uint16" ],
-        maximum_qos:                [ 0x24, "uint8" ],
-        retain_available:           [ 0x25, "bool" ],
-        __user:                     [ 0x26, "user" ],
-        maximum_packet_size:        [ 0x27, "uint32" ],
-        wildcard_subscription_available:   [ 0x28, "bool" ],
-        subscription_identifier_available: [ 0x29, "bool" ],
-        shared_subscription_available:     [ 0x2A, "bool" ]
+        payload_format_indicator:   [ 0x01, "bool", false ],
+        message_expiry_interval:    [ 0x02, "uint32", false ],
+        content_type:               [ 0x03, "utf8", false ],
+        response_topic:             [ 0x08, "topic", false ],
+        correlation_data:           [ 0x09, "bin", false ],
+        subscription_identifier:    [ 0x0B, "varint", true ],
+        session_expiry_interval:    [ 0x11, "uint32", false ],
+        assigned_client_identifier: [ 0x12, "utf8", false ],
+        server_keep_alive:          [ 0x13, "uint16", false ],
+        authentication_method:      [ 0x15, "utf8", false ],
+        authentication_data:        [ 0x16, "bin", false ],
+        request_problem_information:[ 0x17, "bool", false ],
+        will_delay_interval:        [ 0x18, "uint32", false ],
+        request_response_information:[0x19, "bool", false ],
+        response_information:       [ 0x1A, "bin", false ],
+        server_reference:           [ 0x1C, "utf8", false ],
+        reason_string:              [ 0x1F, "utf8", false ],
+        receive_maximum:            [ 0x21, "uint16", false ],
+        topic_alias_maximum:        [ 0x22, "uint16", false ],
+        topic_alias:                [ 0x23, "uint16", false ],
+        maximum_qos:                [ 0x24, "uint8", false ],
+        retain_available:           [ 0x25, "bool", false ],
+        __user:                     [ 0x26, "user", false ],
+        maximum_packet_size:        [ 0x27, "uint32", false ],
+        wildcard_subscription_available:   [ 0x28, "bool", false ],
+        subscription_identifier_available: [ 0x29, "bool", false ],
+        shared_subscription_available:     [ 0x2A, "bool", false ]
     };
 
     // Filled in from PROPERTY by the init code
@@ -719,35 +719,53 @@ var cotonic = cotonic || {};
                 var c = self.decode1();
                 var p = PROPERTY_DECODE[c];
                 if (p) {
+                    var v;
+                    var k = p[0];
                     switch (p[1]) {
                         case "bool":
-                            props[p[0]] = !!(self.decode1());
+                            v = !!(self.decode1());
                             break;
                         case "uint32":
-                            props[p[0]] = self.decodeUint32();
+                            v = self.decodeUint32();
                             break;
                         case "uint16":
-                            props[p[0]] = self.decodeUint16();
+                            v = self.decodeUint16();
                             break;
                         case "uint8":
-                            props[p[0]] = self.decode1();
+                            v = self.decode1();
                             break;
                         case "utf8":
-                            props[p[0]] = self.decodeUtf8();
+                            v = self.decodeUtf8();
                             break;
                         case "bin":
                             var count = self.decodeUint16();
-                            props[p[0]] = self.decodeBin(count);
+                            v = self.decodeBin(count);
                             break;
                         case "varint":
-                            props[p[0]] = self.decodeVarint();
+                            v = self.decodeVarint();
                             break;
                         case "user":
                         default:
                             // User property
-                            var k = self.decodeUtf8();
-                            props[k] = self.decodeUtf8();
+                            k = self.decodeUtf8();
+                            v = self.decodeUtf8();
                             break;
+                    }
+                    if (p[2]) {
+                        switch (typeof props[k]) {
+                            case 'undefined':
+                                props[k] = v;
+                                break;
+                            case 'object':
+                                // assume array
+                                props[k].push(v);
+                                break;
+                            default:
+                                props[k] = new Array(props[k], v);
+                                break;
+                        }
+                    } else {
+                        props[k] = v;
                     }
                 } else {
                     throw "Illegal property"
@@ -1050,40 +1068,50 @@ var cotonic = cotonic || {};
                 continue;
             }
             var p = (PROPERTY[k] || PROPERTY.__user);
-            b.append1(p[0]);
-            switch (p[1]) {
-                case "bool":
-                    b.append1(props[k] ? 1 : 0);
-                    break;
-                case "uint32":
-                    b.appendUint32(props[k]);
-                    break;
-                case "uint16":
-                    b.appendUint16(props[k]);
-                    break;
-                case "uint8":
-                    b.append1(props[k]);
-                    break;
-                case "utf8":
-                    b.appendUTF8(props[k]);
-                    break;
-                case "bin":
-                    b.appendBin(props[k], true);
-                    break;
-                case "varint":
-                    b.appendVarint(props[k]);
-                    break;
-                case "user":
-                default:
-                    // User property
-                    b.appendUTF8(k);
-                    b.appendUTF8(props[k]);
-                    break;
+            if (p[2] && props[k].constructor === Array) {
+                for (var i = 0; i < props[k].length; i++) {
+                    b.append1(p[0]);
+                    serializeProperty(p[1], k, props[k][i], b);
+                }
+            } else {
+                b.append1(p[0]);
+                serializeProperty(p[1], k, props[k], b);
             }
         }
         return b;
     }
 
+    function serializeProperty( type, k, v, b ) {
+        switch (type) {
+            case "bool":
+                b.append1(v ? 1 : 0);
+                break;
+            case "uint32":
+                b.appendUint32(v);
+                break;
+            case "uint16":
+                b.appendUint16(v);
+                break;
+            case "uint8":
+                b.append1(v);
+                break;
+            case "utf8":
+                b.appendUTF8(v);
+                break;
+            case "bin":
+                b.appendBin(v, true);
+                break;
+            case "varint":
+                b.appendVarint(v);
+                break;
+            case "user":
+            default:
+                // User property
+                b.appendUTF8(k);
+                b.appendUTF8(v);
+                break;
+        }
+    }
 
 
     /**
@@ -1286,7 +1314,7 @@ var cotonic = cotonic || {};
     function init() {
         for (var k in PROPERTY) {
             var p = PROPERTY[k];
-            PROPERTY_DECODE[p[0]] = [ k, p[1] ];
+            PROPERTY_DECODE[p[0]] = [ k, p[1], p[2] ];
         }
     }
 
