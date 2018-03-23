@@ -165,7 +165,7 @@ var cotonic = cotonic || {};
         let subscription = {type: "worker", wid: wid};
 
 	add(data.topic, subscription);
-        cotonic.send(wid, {cmd: "puback", sub_id: id});
+        cotonic.send(wid, {cmd: "suback", sub_id: data.id});
 
         const retained = get_matching_retained(data.topic);
         for(let i = 0; i < retained.length; i++) {
