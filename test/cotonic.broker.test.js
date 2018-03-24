@@ -89,6 +89,19 @@ QUnit.test("Subscribe and publish, retained messages", function(assert) {
     cotonic.broker._delete_all_retained();
 });
 
+QUnit.test("Delete retained messages", function(assert) {
+    let publishes = [];
 
+    cotonic.broker._delete_all_retained();
+    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retained: true});
+    cotonic.broker.publish("retained/bar", "", {retained: true});
+
+    cotonic.broker.subscribe("retained/#a", function(message, prop) {
+	publishes.push({msg: message, prop: prop});
+    });
+    
+    assert.equal(0, publishes.length, "There are no messages");
+
+})
 
     

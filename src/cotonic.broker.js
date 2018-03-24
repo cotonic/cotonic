@@ -186,6 +186,8 @@ var cotonic = cotonic || {};
 
 	add(mqtt_topic, subscription); 
 
+        // TODO optimization possible. Only check all topics when the subscribe
+        // contains a wildcard.
         const retained = get_matching_retained(mqtt_topic);
         for(let i = 0; i < retained.length; i++) {
             publish_message(subscription, retained[i].topic, retained[i].retained.message);
@@ -223,10 +225,16 @@ var cotonic = cotonic || {};
     }
 
     function retain(topic, message, options) {
-        sessionStorage.setItem(retain_key(topic), JSON.stringify({
-            message: message,
-            options: options
-        }));
+        const key = retain_key(topic);
+        
+        if(message) {
+            sessionStorage.setItem(key, JSON.stringify({
+                message: message,
+                options: options
+            }));
+        } else {
+            sessionStorage.removeItem(key);
+        }
     }
 
     function get_matching_retained(topic) {
