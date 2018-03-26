@@ -121,7 +121,7 @@ var cotonic = cotonic || {};
          * Periodic state check. Checks if needs an action like connect.
          */
         function periodic() {
-            if (!isStateClosed()) {
+            if (isStateClosed() && !isStateForceClosed()) {
                 if (self.backoff > 0) {
                     self.backoff--;
                 } else {
@@ -136,6 +136,9 @@ var cotonic = cotonic || {};
             self.errorsSinceLastData++;
             if (isStateConnected()) {
                 self.socket.close();
+                self.isConnected = false;
+            } else {
+                self.isConnected = (self.socket.readyState == 1);
             }
             self.backoff = Math.min(20, self.errorsSinceLastData * self.errorsSinceLastData);
             self.session.disconnected('ws', reason);
@@ -170,8 +173,12 @@ var cotonic = cotonic || {};
                     self.session.connected('ws');
                 }
             };
-            self.socket.onclose = function() {  self.isConnected = false; };
-            self.socket.onerror = function() {  handleError('ws'); };
+            self.socket.onclose = function() {
+                handleError('ws-close');
+            };
+            self.socket.onerror = function() {
+                handleError('ws-error');
+            };
             self.socket.onmessage = function( message ) {
                 if (message.data instanceof ArrayBuffer) {
                     var data = new Uint8Array(message.data);
@@ -179,10 +186,9 @@ var cotonic = cotonic || {};
                     if (self.awaitPong) {
                         if (equalData(data, self.randomPing)) {
                             self.awaitPong = false;
-                            self.errorsSinceLastData = 0;
                             self.session.connected('ws');
                         } else {
-                            handleError('pongdata');
+                            handleError('ws-pongdata');
                         }
                     } else {
                         receiveData(data);
@@ -252,7 +258,8 @@ var cotonic = cotonic || {};
             } else {
                 self.remoteUrl = 'wss:' + self.remoteHost + WS_CONTROLLER_PATH;
             }
-            setTimeout( function() { connect(); }, WS_CONNECT_DELAY);
+            setTimeout( function() { connect(); }, WS_CONNECT_DELAY );
+            setTimeout( function() { periodic() }, WS_PERIODIC_DELAY );
         }
 
         init();

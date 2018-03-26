@@ -154,11 +154,12 @@ var cotonic = cotonic || {};
         };
 
         this.disconnected = function( channel, reason ) {
-            if (channel == 'ws') {
-                // WebSocket was closed. Reset our connection.
-                self.isSentConnect = false;
-                self.isWaitConnack = false;
+            if (isStateWaitingConnAck()) {
+                // Something wrong during the connect - start with a new session
+                self.clientId = '';
             }
+            self.isSentConnect = false;
+            self.isWaitConnack = false;
         };
 
         /**
@@ -207,21 +208,30 @@ var cotonic = cotonic || {};
                         console.log("Unexpected CONNACK");
                     }
                     self.isWaitConnack = false;
-                    self.connectProps = msg.properties;
-                    if (self.connectProps.assigned_client_identifier) {
-                        self.clientId = self.connectProps.assigned_client_identifier;
+                    switch (msg.reason_code) {
+                        case 0:
+                            self.connectProps = msg.properties;
+                            if (self.connectProps.assigned_client_identifier) {
+                                self.clientId = self.connectProps.assigned_client_identifier;
+                            }
+                            // Reset keep-alive timer
+                            if (typeof self.connectProps.server_keep_alive == "number") {
+                                self.keepAliveInterval = self.connectProps.server_keep_alive;
+                            } else {
+                                self.keepAliveInterval = MQTT_KEEP_ALIVE;
+                            }
+                            resetKeepAliveTimer();
+                            // Resent pending connack and connrel messages
+                            // Sent queued messages
+                            // Check clean_start - resubscribe if set
+                            // TODO
+                            break;
+                        case 0x85:
+                            self.clientId = '';
+                            break;
+                        default:
+                            break;
                     }
-                    // Reset keep-alive timer
-                    if (typeof self.connectProps.server_keep_alive == "number") {
-                        self.keepAliveInterval = self.connectProps.server_keep_alive;
-                    } else {
-                        self.keepAliveInterval = MQTT_KEEP_ALIVE;
-                    }
-                    resetKeepAliveTimer();
-                    // Resent pending connack and connrel messages
-                    // Sent queued messages
-                    // Check clean_start - resubscribe if set
-                    // TODO
                     break;
                 case 'pingreq':
                     self.sendMessage({ type: 'pingresp' });
@@ -239,7 +249,7 @@ var cotonic = cotonic || {};
 
 
         /**
-         * Force all connections closed - happens on reveive of 'DISCONNECT'
+         * Force all connections closed - happens on receive of 'DISCONNECT'
          */
         function closeConnections() {
             for (k in self.connection) {
