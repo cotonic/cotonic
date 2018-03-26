@@ -19,205 +19,17 @@ var cotonic = cotonic || {};
 
 (function (cotonic) {
 
-    /**
-     * Possible transports for remotes.
-     *
-     * For 'origin':
-     * - wss with mqtt-transport controller
-     * - sse + post to mqtt-transport controller
-     *
-     * For other remotes (clients):
-     * - WebRTC
-     */
-
-    // Lookup list of all remotes with their connections
-    // One of them is 'origin' (which is a special case)
-    var sessions = {};
+    /*************************************************************************************************/
+    /********************************** Connections using Websocket **********************************/
+    /*************************************************************************************************/
 
     var WS_CONTROLLER_PATH = '/mqtt-transport'; // Default controller for websocket connections etc.
     var WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
     var WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
 
-
-    var newSession = function( remote ) {
-        remote = remote || 'origin';
-        if (sessions[ remote ]) {
-            return sessions[remote];
-        } else {
-            var ch = new mqttSession();
-            sessions[remote] = ch;
-            ch.connect(remote);
-            return ch;
-        }
-    };
-
-    var findSession = function( remote ) {
-        remote = remote || 'origin';
-        return sessions[remote];
-    };
-
-
-    /*************************************************************************************************/
-    /****************************************** MQTT Session *****************************************/
-    /*************************************************************************************************/
-
-
-    /**
-     * MQTT session to a remote server/client.
-     * Keeps track of logged on user and authentication.
-     * Tries to reconnect if needed.
-     */
-    function mqttSession() {
-        this.connections = {};       // Websocket and other connection
-        this.clientId = '';          // Re-assigned by server
-        this.sendQueue = [];         // Queued outgoing messages
-        this.receiveQueue = [];      // Queue with received messages
-        this.isSentConnect = false;
-        this.isWaitConnack = false;
-        this.connectProps = {};
-        var self = this;
-
-        this.connect = function( remote ) {
-            if (remote == 'origin') {
-                self.connections['ws'] = new ws( remote, self );
-                // todo: also connect SSE and postback interfaces
-            } else {
-                // todo: add webRTC
-            }
-        };
-
-        this.connected = function ( channel ) {
-            // Connection established - try to send out 'connect'
-            if (channel == 'ws') {
-                if (isStateNew()) {
-                    self.isSentConnect = self.sendMessage({
-                        type: 'connect',
-                        client_id: self.clientId,
-                        clean_start: false
-                    });
-                    if (self.isSentConnect) {
-                        self.isWaitConnack = true;
-                    }
-                }
-            }
-        };
-
-        this.publish = function( topic, payload, options ) {
-            // Queue message
-        };
-
-        this.subscribe = function( topics ) {
-            // Queue message
-        };
-
-        this.unsubscribe = function ( topics ) {
-            // Queue message
-        }
-
-        // Handle incoming message from another server or client
-        this.receiveMessage = function ( msg ) {
-            self.receiveQueue.push(msg);
-            if (!self.receiveTimer) {
-                self.receiveTimer = setTimeout(function() { doReceive(); }, 1);
-            }
-        };
-
-        this.sendMessage = function ( msg ) {
-            if (self.connections.ws) {
-                self.connections.ws.sendMessage(msg);
-            }
-            // todo: use direct post or webrtc async
-        };
-
-        this.queueMessage = function ( msg ) {
-            this.queue.push(msg);
-            // todo: drop QoS 0 messages that are waiting too long
-        };
-
-        this.disconnected = function( channel, reason ) {
-            if (channel == 'ws') {
-                // WebSocket was closed. Reset our connection.
-                self.isSentConnect = false;
-                self.isWaitConnack = false;
-            }
-        };
-
-        /**
-         * State functions
-         */
-        function isStateNew() {
-            return !self.isSentConnect;
-        }
-
-        function isStateWaitingConnAck() {
-            return self.isSentConnect && self.isWaitConnack;
-        }
-
-        function isStateConnected() {
-            return !self.isWaitConnack;
-        }
-
-
-        /**
-         * Receive the messages in the incoming message queue
-         */
-        function doReceive() {
-            for (var i=0; i < self.receiveQueue; i++) {
-                handleReceivedMessage( self.receiveQueue[i] );
-            }
-            self.receiveQueue = [];
-            self.receiveTimer = false;
-        }
-
-        function handleReceivedMessage ( msg ) {
-            switch (msg.type) {
-                case 'connack':
-                    if (!isStateWaitingConnAck()) {
-                        console.log("Unexpected CONNACK");
-                    }
-                    self.isWaitConnack = false;
-                    self.connectProps = msg.properties;
-                    // 1. Start pinger for pingreq keep-alive interval
-                    // 2. Check clean_start
-                    break;
-                case 'pingreq':
-                    // Send pingresp
-                    break;
-                case 'pingresp':
-                    // Reset keep-alive check
-                    break;
-                case 'disconnect':
-                    self.isSentConnect = false;
-                    self.isWaitConnack = false;
-                    closeConnections();
-                    break;
-                default:
-                    break;
-            }
-        };
-
-
-        /**
-         * Force all connections closed - happens on reveive of 'DISCONNECT'
-         */
-        function closeConnections() {
-            for (k in self.connection) {
-                self.connection[k].closeConnection();
-            }
-            self.connection = {};
-        }
+    function newTransport( remote, mqttSession ) {
+        return new ws(remote, mqttSession);
     }
-
-
-    /*************************************************************************************************/
-    /********************************* Connections using SSE and POST ********************************/
-    /*************************************************************************************************/
-
-    // ... todo ...
-
-    /*************************************************************************************************/
-    /********************************** Connections using Websocket **********************************/
-    /*************************************************************************************************/
 
     /**
      * Websocket connection.
@@ -246,7 +58,7 @@ var cotonic = cotonic || {};
         this.sendMessage = function( message ) {
             if (isStateConnected()) {
                 var b = cotonic.mqtt_packet.encode( message );
-                socket.send( b.buffer );
+                self.socket.send( b.buffer );
                 return true;
             } else {
                 return false;
@@ -345,18 +157,18 @@ var cotonic = cotonic || {};
             self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
             self.socket.binaryType = 'arraybuffer';
             self.socket.onopen = function() {
+                self.isConnected = true;
                 if (self.socket.protocol == 'mqtt.cotonic.org') {
                     // Send ping and await pong to check channel.
-                    self.randomPing = Uint8Array([
+                    self.randomPing = new Uint8Array([
                         255, 254, 42, Math.floor(Math.random()*100), Math.floor(Math.random()*100)
                     ]),
-                    socket.send( self.randomPing.buffer );
+                    self.socket.send( self.randomPing.buffer );
                     self.awaitPong = true;
                 } else {
                     self.awaitPong = false;
                     self.session.connected('ws');
                 }
-                self.isConnected = true;
             };
             self.socket.onclose = function() {  self.isConnected = false; };
             self.socket.onerror = function() {  handleError('ws'); };
@@ -413,15 +225,18 @@ var cotonic = cotonic || {};
         }
 
         function decodeReceivedData () {
-            try {
-                [ msg, rest ] = cotonic.mqtt_packet.decode(self.data);
-                self.errorsSinceLastData = 0;
-                self.data = rest;
-                self.session.receiveMessage(msg);
-                decodeReceivedData();
-            } catch (e) {
-                if (e != 'incomplete_packet') {
-                    handleError(e);
+            var ok = true;
+            while (ok && self.data.length > 0) {
+                try {
+                    var result = cotonic.mqtt_packet.decode(self.data);
+                    self.errorsSinceLastData = 0;
+                    self.data = result[1];
+                    self.session.receiveMessage(result[0]);
+                } catch (e) {
+                    if (e != 'incomplete_packet') {
+                        handleError(e);
+                    }
+                    ok = false;
                 }
             }
         }
@@ -443,8 +258,9 @@ var cotonic = cotonic || {};
         init();
     }
 
-    // Publish the packet functions.
-    cotonic.mqtt_transport = cotonic.mqtt_packet || {};
-    cotonic.mqtt_transport.newSession = newSession;
+    // Publish the transport ws functions.
+    cotonic.mqtt_transport = cotonic.mqtt_transport || {};
+    cotonic.mqtt_transport.ws = cotonic.mqtt_transport.ws || {};
+    cotonic.mqtt_transport.ws.newTransport = newTransport;
 
 }(cotonic));
