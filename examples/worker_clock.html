@@ -31,7 +31,8 @@
         </div>
 
         <script type="text/javascript" src="../lib/incremental-dom.js"></script>
-        <script type="text/javascript" src="../src/cotonic.js"></script>
+        <script type="text/javascript" src="../src/cotonic.js"
+                data-base-worker-src="http://localhost:6227/dist/cotonic_worker.js"></script>
         <script type="text/javascript" src="../src/cotonic.tokenizer.js"></script>
         <script type="text/javascript" src="../src/cotonic.idom.js"></script>
         <script type="text/javascript" src="../src/cotonic.ui.js"></script>
@@ -50,7 +51,7 @@
 	      cotonic.ui.update(msg.id, msg.snippet);
           });
           
-          cotonic.spawn("clock_worker.js");
+          cotonic.spawn("http://localhost:6227/examples/clock_worker.js");
         </script>
     </body>
 </html>

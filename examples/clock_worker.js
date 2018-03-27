@@ -3,8 +3,6 @@
 
 console.log("clock worker here");
 
-importScripts("../src/cotonic.worker.js");
-
 self.on_connect = function() {
     console.log("connected");
 
