@@ -6,9 +6,10 @@
 
 QUnit.test("Receive connect from worker", function(assert) {
     assert.timeout(500);
-
     var done = assert.async();
+
     var worker = new Worker("connect-worker.js");
+    worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
         var cmd = e.data.cmd;
@@ -20,13 +21,15 @@ QUnit.test("Receive connect from worker", function(assert) {
 
 QUnit.test("Connect and connack worker", function(assert) {
     assert.timeout(500);
-
     var done = assert.async();
+
     var worker = new Worker("hello-world-worker.js");
+    worker.postMessage(["init", {}]);
 
     var connected = false;
 
     worker.onmessage = function(e) {
+        console.log("XXXX", e.data);
         if(!connected) {
             var cmd = e.data.cmd;
             assert.equal(cmd, "connect");
@@ -43,11 +46,12 @@ QUnit.test("Connect and connack worker", function(assert) {
 
 QUnit.test("Connect and subscribe worker", function(assert) {
     assert.timeout(500);
+    var done = assert.async();
 
     var connected = false;
     var subscribed = false;
-    var done = assert.async();
     var worker = new Worker("subscribe-worker.js");
+    worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
         var cmd = e.data.cmd;
@@ -71,9 +75,10 @@ QUnit.test("Connect and subscribe worker", function(assert) {
 
 QUnit.test("Connect, subscribe and publish to worker", function(assert) {
     assert.timeout(500);
-
     var done = assert.async();
+
     var worker = new Worker("subscribe-publish-worker.js");
+    worker.postMessage(["init", {}]);
 
     var connected = false;
     var subscribed = false;

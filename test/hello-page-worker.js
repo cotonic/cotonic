@@ -1,6 +1,16 @@
 //
 //
 
+let my_name;
+
+function worker_init(name) {
+    my_name = name;
+}
+
 self.onmessage = function(msg) {
-    postMessage("Hello page!");
+    if(my_name) {
+        postMessage("Hello page, I'm " + my_name + "!");
+    } else {
+        postMessage("Hello page!");
+    }
 }

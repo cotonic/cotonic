@@ -1,6 +1,10 @@
-.PHONY: lib testlib
+.PHONY: dist lib testlib
+
+DIRS=dist
+$(shell mkdir -p $(DIRS))
 
 LIBS := $(wildcard lib/*)
+
 
 download = curl --create-dirs --location -f --output $(1) $(2)
 
@@ -43,13 +47,13 @@ test/lib/qunit-composite.js:
 	    	"https://cdn.rawgit.com/jquery/qunit-composite/master/qunit-composite.js")
 
 
-cotonic.js: lib
-	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.mqtt_packet.js src/cotonic.broker.js > cotonic.js
+dist/cotonic.js: lib
+	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.mqtt_packet.js src/cotonic.broker.js > dist/cotonic.js
 
-cotonic_worker.js: lib
-	cat src/cotonic.mqtt.js src/cotonic.worker.js > cotonic_worker.js
+dist/cotonic_worker.js: lib
+	cat src/cotonic.mqtt.js src/cotonic.worker.js > dist/cotonic_worker.js
 
-release: cotonic.js cotonic_worker.js
+dist: dist/cotonic.js dist/cotonic_worker.js
 
 test: lib testlib
 	./start_dev.sh

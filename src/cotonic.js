@@ -18,9 +18,29 @@
 var cotonic = cotonic || {};
 
 (function(cotonic) {
-    var next_worker_id = 1;
-    var workers = {};
-    var receive_handler = null;
+    /* Get the data-base-worker-src from the script tag that loads
+     * cotonic on this page.
+     */
+    let BASE_WORKER_SRC = (function() {
+        const currentScript = document.currentScript || (function() {
+            const scripts = document.getElementsByTagName("script");
+            return scripts[scripts.length - 1];
+        })();
+        if(!currentScript) return null;
+
+        return currentScript.getAttribute("data-base-worker-src")
+    })();
+
+    let next_worker_id = 1;
+    let workers = {};
+    let receive_handler = null;
+
+    /**
+     * Set the base worker src url programatically
+     */
+    function set_worker_base_src(url) {
+        BASE_WORKER_SRC = url;
+    }
 
     /**
      * Handle incoming messages from workers 
@@ -46,15 +66,25 @@ var cotonic = cotonic || {};
     /**
      * Start a worker
      */
-    function spawn(url) {
-        var worker = new Worker(url);
-        var worker_id = next_worker_id++;
+    function spawn(url, args) {
+	if(!BASE_WORKER_SRC)
+	    throw("Can't spawn worker, no data-base-worker-src attribute set.");
+
+        const blob = new Blob(["importScripts(\"", BASE_WORKER_SRC, "\");"]);
+        const blobURL = window.URL.createObjectURL(blob);
+
+        const worker_id = next_worker_id++;
+        let worker = new Worker(blobURL);
+
+        worker.postMessage(["init", {
+            url: url,
+            args: args,
+            wid: worker_id}]);
 
         worker.onmessage = message_from_worker.bind(this, worker_id);
 	worker.onerror = error_from_worker.bind(this, worker_id);
-        workers[worker_id] = worker;
 
-	console.log("spawned", url);
+        workers[worker_id] = worker;
 
         return worker_id;
     }
@@ -63,14 +93,12 @@ var cotonic = cotonic || {};
      * Send a message to a web-worker
      */
     function send(wid, message) {
-        var worker;
-
         if(wid === 0) {
 	    setTimeout(function() { handler(message, wid) }, 0);
             return;
         }
 
-        worker = workers[wid];
+        let worker = workers[wid];
         if(worker) {
             worker.postMessage(message);
         }
@@ -79,6 +107,8 @@ var cotonic = cotonic || {};
     function receive(handler) {
 	receive_handler = handler;
     }
+
+    cotonic.set_worker_base_src = set_worker_base_src; 
 
     cotonic.spawn = spawn;
     cotonic.send = send;

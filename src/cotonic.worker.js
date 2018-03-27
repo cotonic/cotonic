@@ -145,11 +145,15 @@ var cotonic = cotonic || {};
             if(data.cmd == "connack" && data.from == "broker") {
                 model.connecting = false;
                 model.connected = true;
-                if(self.on_connect) setTimeout(self.on_connect, 0);
+                if(self.on_connect) {
+                    setTimeout(self.on_connect, 0);
+                }
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
-                if(self.on_error) self.on_error("connect_timeout");
+                if(self.on_error) {
+                    self.on_error("connect_timeout");
+                }
             }
         } else {
             // TODO
@@ -213,8 +217,10 @@ var cotonic = cotonic || {};
 
     actions.on_message = function(e) {
 	let data = e.data;
-	data.from = "broker";
-        model.present(data);
+        if(data.cmd) {
+            data.from = "broker";
+            model.present(e.data);
+        }
     }
 
     actions.on_error = function(e) {
@@ -260,7 +266,25 @@ var cotonic = cotonic || {};
         actions.disconnect();
     }
 
-    self.addEventListener("message", actions.on_message);
-    self.addEventListener("error", actions.on_error);
+    function init(e) {
+        self.removeEventListener("message", init);
 
+        if(e.data[0] !== "init")
+            throw("Worker init error. Wrong init message.");
+
+        self.addEventListener("message", actions.on_message);
+        self.addEventListener("error", actions.on_error);
+
+        const url = e.data[1].url;
+        const args = e.data[1].args;
+
+        if(url) {
+            importScripts(url);
+        }
+
+        if(self.worker_init)
+            worker_init.apply(null, args);
+    }
+
+    self.addEventListener("message", init);
 })(self);
