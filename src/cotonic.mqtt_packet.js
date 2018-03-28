@@ -236,7 +236,7 @@ var cotonic = cotonic || {};
     }
 
     function encodeUnsubscribe( msg ) {
-        var first = MESSAGE_TYPE.UNSUBSCRIBE << 4;
+        var first = (MESSAGE_TYPE.UNSUBSCRIBE << 4) | 0x2;
         var v = new binary();
         v.appendUint16(msg.packet_id);
         v.appendProperties(msg.properties || {});
@@ -788,16 +788,20 @@ var cotonic = cotonic || {};
      */
     function serializeSubscribeTopics( v, topics ) {
         for (var i = 0; i < topics.length; i++) {
-            var qos = topics[i].qos || 0;
-            var noLocal = topics[i].no_local || false;
-            var retainAsPublished = topics[i].retain_as_published || false;
-            var retainHandling = topics[i].retain_handling || 0;
+            var topic = topics[i];
+            if (typeof topic == "string") {
+                topic = { topic: topic };
+            }
+            var qos = topic.qos || 0;
+            var noLocal = topic.no_local || false;
+            var retainAsPublished = topic.retain_as_published || false;
+            var retainHandling = topic.retain_handling || 0;
             var flags = 0;
             flags |= retainHandling << 4;
             flags |= (retainAsPublished ? 1 : 0) << 3;
             flags |= (noLocal ? 1 : 0) << 2;
             flags |= qos;
-            v.appendUTF8(topics[i].topic);
+            v.appendUTF8(topic.topic);
             v.append1(flags);
         }
     }

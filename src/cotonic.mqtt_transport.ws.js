@@ -128,7 +128,6 @@ var cotonic = cotonic || {};
                     connect();
                 }
             }
-            setTimeout(function() { periodic() }, WS_PERIODIC_DELAY);
         }
 
         function handleError( reason ) {
@@ -258,8 +257,8 @@ var cotonic = cotonic || {};
             } else {
                 self.remoteUrl = 'wss:' + self.remoteHost + WS_CONTROLLER_PATH;
             }
-            setTimeout( function() { connect(); }, WS_CONNECT_DELAY );
-            setTimeout( function() { periodic() }, WS_PERIODIC_DELAY );
+            setTimeout(connect, WS_CONNECT_DELAY );
+            setInterval(periodic, WS_PERIODIC_DELAY );
         }
 
         init();
