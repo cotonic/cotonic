@@ -114,7 +114,7 @@ the message on C:
     bridge on C: publish("public/foo/bar", "Hello from S")
 
 
-### Example 4: server subscribes on client topic
+### Example 4: server subscribes to client topic
 
 Server S wants to subscribe to a topic on C.
 
@@ -136,7 +136,7 @@ It performs the following steps:
  3. The bridge on C rewrites the topic to `bridge`, recognizes the topic and then
     processes the subscribe message.
  4. The bridge on C rewrites the topic in the original subscribe message to `foo/bar`
- 5  The bridge on C subscribes to `foo/bar` on C (which will perform an access control check)
+ 5. The bridge on C subscribes to `foo/bar` on C (which will perform an access control check)
 
 Now the subscription is established
 
