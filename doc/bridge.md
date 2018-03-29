@@ -193,18 +193,24 @@ to the local topic tree on D.
 If a publish topic is rewritten by a bridge, then it also rewrites the `response_topic` in the
 publish message's properties.
 
-Say if a client C receives a publish from S (at origin) then the rewrite by the bridge on C will be:
+If a client C receives a publish from S (at origin) then the rewrite of the respone topic
+by the bridge on C will be:
 
-    reply/my/topic --> bridge/origin/reply/my/topic
+    on bridge C: foo/bar
+             --> bridge/origin/foo/bar
 
-In the case of C sending a message to D via S the response topic rewrites will be:
+This ensures that the response is indeed relayed to the topic `foo/bar` on the origin server.
 
-    on bridge C: reply/my/topic --> bridge/HR7qGCihmnjD6UU4tJyB/reply/my/topic
+If C sends a message to D via S, the response topic rewrites will be:
 
-The the message is published on S to the bridge for D, forwarding it to D. The bridge on
-D will once again rewrite the respone topic:
+    on bridge C: reply/my/topic
+             --> bridge/HR7qGCihmnjD6UU4tJyB/reply/my/topic
 
-    on bridge D: bridge/HR7qGCihmnjD6UU4tJyB/reply/my/topic --> bridge/origin/bridge/HR7qGCihmnjD6UU4tJyB/reply/my/topic
+Then the message is published on S. The session of D receives it and forwards it to D. The bridge on
+D will once again rewrite the response topic:
 
-Now a publish on D to the reponse topic will correctly forward to the client C (via S).
+    on bridge D: bridge/HR7qGCihmnjD6UU4tJyB/reply/my/topic
+             --> bridge/origin/bridge/HR7qGCihmnjD6UU4tJyB/reply/my/topic
+
+Now a publish to the reponse topic on D will correctly forward via S to client C.
 
