@@ -294,12 +294,12 @@ var cotonic = cotonic || {};
     // For testing
     cotonic.broker._root = root;
     cotonic.broker._add = add;
-    cotonic.broker._match = match;
     cotonic.broker._remove = remove;
     cotonic.broker._flush = flush;
     cotonic.broker._delete_all_retained = delete_all_retained;
 
     // External API
+    cotonic.broker.match = match;
     cotonic.broker.publish = publish;
     cotonic.broker.subscribe = subscribe;
 }(cotonic));
