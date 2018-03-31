@@ -12,8 +12,8 @@ QUnit.test("Receive connect from worker", function(assert) {
     worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
-        var cmd = e.data.cmd;
-        assert.equal(cmd, "connect");
+        var type = e.data.type;
+        assert.equal(type, "connect");
 	worker.terminate();
         done();
     }
@@ -29,12 +29,11 @@ QUnit.test("Connect and connack worker", function(assert) {
     var connected = false;
 
     worker.onmessage = function(e) {
-        console.log("XXXX", e.data);
         if(!connected) {
-            var cmd = e.data.cmd;
-            assert.equal(cmd, "connect");
+            var type = e.data.type;
+            assert.equal(type, "connect");
             connected = true;
-            worker.postMessage({cmd: "connack"})
+            worker.postMessage({type: "connack"})
         } else {
             // The hello world worker sends a normal postMessage
             assert.equal(e.data, "Hello world!")
@@ -54,19 +53,19 @@ QUnit.test("Connect and subscribe worker", function(assert) {
     worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
-        var cmd = e.data.cmd;
+        var type = e.data.type;
 
         if(!connected) {
-            assert.equal(cmd, "connect");
+            assert.equal(type, "connect");
             connected = true;
-            worker.postMessage({cmd: "connack"})
+            worker.postMessage({type: "connack"})
             return;
         }
 
         if(!subscribed) {
-            assert.equal(cmd, "subscribe");
+            assert.equal(type, "subscribe");
             subscribed = true;
-            worker.postMessage({cmd: "suback", sub_id: e.data.id})
+            worker.postMessage({type: "suback", sub_id: e.data.id})
 	    worker.terminate();
             done();
         }
@@ -84,7 +83,7 @@ QUnit.test("Connect, subscribe and publish to worker", function(assert) {
     var subscribed = false;
 
     worker.onmessage = function(e) {
-        var cmd = e.data.cmd;
+        var type = e.data.type;
 
 	if(e.data == "Hello to you too") {
 	    worker.terminate();
@@ -92,18 +91,18 @@ QUnit.test("Connect, subscribe and publish to worker", function(assert) {
 	}
 
         if(!connected) {
-            assert.equal(cmd, "connect");
+            assert.equal(type, "connect");
             connected = true;
-            worker.postMessage({cmd: "connack"})
+            worker.postMessage({type: "connack"})
             return;
         }
 
         if(!subscribed) {
-            assert.equal(cmd, "subscribe");
+            assert.equal(type, "subscribe");
             subscribed = true;
 
-            worker.postMessage({cmd: "suback", sub_id: e.data.id});
-	    worker.postMessage({cmd: "publish", topic: "test/a/b", payload: "Hi"});
+            worker.postMessage({type: "suback", sub_id: e.data.id});
+	    worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi"});
 
 	    return;
         }

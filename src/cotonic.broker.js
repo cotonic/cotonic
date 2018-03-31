@@ -141,9 +141,9 @@ var cotonic = cotonic || {};
     
     /* We assume every message is for the broker. */
     cotonic.receive(function(data, wid) {
-	if(!data.cmd) return;
+	if(!data.type) return;
 
-	switch(data.cmd) {
+	switch(data.type) {
 	case "connect":
 	    return handle_connect(wid, data);
 	case "publish":
@@ -151,21 +151,21 @@ var cotonic = cotonic || {};
 	case "subscribe":
 	    return handle_subscribe(wid, data);
 	default:
-	    console.error("Received unknown command", data.cmd);
+	    console.error("Received unknown command", data.type);
 	};
     });
 
     function handle_connect(wid, data) {
 	// TODO: Start keep-alive timer
 	clients[wid] = data;
-	cotonic.send(wid, {cmd: "connack"});
+	cotonic.send(wid, {type: "connack"});
     }
 
     function handle_subscribe(wid, data) {
         let subscription = {type: "worker", wid: wid};
 
 	add(data.topic, subscription);
-        cotonic.send(wid, {cmd: "suback", sub_id: data.id});
+        cotonic.send(wid, {type: "suback", sub_id: data.id});
 
         const retained = get_matching_retained(data.topic);
         for(let i = 0; i < retained.length; i++) {
@@ -209,12 +209,12 @@ var cotonic = cotonic || {};
 	}
     }
 
-    function publish_message(sub, topic, message) {
+    function publish_message(sub, topic, payload) {
         if(sub.type === "worker") {
-            cotonic.send(sub.wid, {cmd: "publish", topic: topic, msg: message})
+            cotonic.send(sub.wid, {type: "publish", topic: topic, payload: payload})
         } else if(sub.type === "page") {
             const p = cotonic.mqtt.extract(sub.topic, topic);
-            sub.callback(message, p);
+            sub.callback(payload, p);
         } else {
             console.error("Unkown subscription type", sub);
         }

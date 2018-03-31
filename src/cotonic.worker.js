@@ -14,29 +14,6 @@
  * limitations under the License.
  */
 
- /**
-  * Description of messages
-
-  topic:
-
-   message-cmd:
-       CONNECT, CONNACK,
-
-       PUBLISH, PUBACK, PUBREC, PUBREL, PUBCOMP,
-
-       SUBSCRIBE, PUBCOMP, SUBSCRIBE, SUBACK, UNSUBSCRIBE, UNSUBACK,
-
-       PINGREQ, PINGRESP,
-
-       DISCONNECT
-
-   message:
-       {cmd:<message-cmd>, <payload>}
-
-   connect-payload:
-       {client_identifier: <id>, will_topic: <topic>, will_message: <payload>}
-  */
-
 "use strict";
 
 var cotonic = cotonic || {};
@@ -62,9 +39,9 @@ var cotonic = cotonic || {};
         /* State changes happen here */
         if(state.connected(model)) {
 	    // PUBLISH
-	    if(data.cmd == "publish") {
+	    if(data.type == "publish") {
 		if(data.from == "client") {
-		    self.postMessage({cmd: data.cmd, topic: data.topic, message: data.message, options: data.options});
+		    self.postMessage({type: data.type, topic: data.topic, message: data.message, options: data.options});
 		} else {
 		    // Lookup matching topics, and trigger callbacks
 		    for(let pattern in model.subscriptions) {
@@ -87,7 +64,7 @@ var cotonic = cotonic || {};
 	    }
 
 	    // SUBSCRIBE
-            if(data.cmd == "subscribe" && data.from == "client") {
+            if(data.type == "subscribe" && data.from == "client") {
                 let sub_id = model.sub_id++;
                 let sub_topic = data.topic;
                 let already_subscribed = false;
@@ -107,14 +84,14 @@ var cotonic = cotonic || {};
                 }
 
                 if(!already_subscribed) {
-                    self.postMessage({cmd: "subscribe", topic: mqtt_topic, id: sub_id});
+                    self.postMessage({type: "subscribe", topic: mqtt_topic, id: sub_id});
                     data.mqtt_topic = mqtt_topic;
                     model.pending_subscriptions[sub_id] = data;
                 }
             }
 
 	    // SUBACK
-            if(data.cmd == "suback" && data.from == "broker") {
+            if(data.type == "suback" && data.from == "broker") {
                 let pending_subscription = model.pending_subscriptions[data.sub_id];
                 if(pending_subscription) {
                     delete model.pending_subscriptions[data.sub_id];
@@ -134,15 +111,15 @@ var cotonic = cotonic || {};
                 }
             }
         } else if(state.disconnected(model)) {
-            if(data.cmd == "connect") {
+            if(data.type == "connect") {
                 model.id = data.id;
                 model.connected = false;
                 model.connecting = true;
-                self.postMessage({cmd: "connect", willTopic: data.willTopic, willMessage: data.willMessage})
-            } else if(data.cmd == "publish") {
+                self.postMessage({type: "connect", willTopic: data.willTopic, willMessage: data.willMessage})
+            } else if(data.type == "publish") {
             }
         } else if(state.connecting(model)) {
-            if(data.cmd == "connack" && data.from == "broker") {
+            if(data.type == "connack" && data.from == "broker") {
                 model.connecting = false;
                 model.connected = true;
                 if(self.on_connect) {
@@ -208,16 +185,16 @@ var cotonic = cotonic || {};
 
     let actions = {};
 
-    function client_cmd(cmd, data, present) {
+    function client_cmd(type, data, present) {
 	present = present || model.present;
 	data.from = "client";
-	data.cmd = cmd;
+	data.type = type;
         present(data);
     }
 
     actions.on_message = function(e) {
 	let data = e.data;
-        if(data.cmd) {
+        if(data.type) {
             data.from = "broker";
             model.present(e.data);
         }
