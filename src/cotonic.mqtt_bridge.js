@@ -24,7 +24,7 @@ var cotonic = cotonic || {};
 
     var newBridge = function( remote ) {
         remote = remote || 'origin';
-        if (sessions[ remote ]) {
+        if (bridges[ remote ]) {
             return bridges[remote];
         } else {
             var bridge = new mqttBridge();
