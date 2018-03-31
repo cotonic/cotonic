@@ -18,6 +18,7 @@
 var cotonic = cotonic || {};
 
 (function (cotonic) {
+    const LOCAL_TOPIC = "bridge/+remote/#topic";
 
     // Bridges to remote servers and clients
     var bridges = {};
@@ -34,6 +35,13 @@ var cotonic = cotonic || {};
         bridges[remote] = bridge;
 
         bridge.connect(remote, mqtt_session);
+
+        // Subscribe to the local topic
+        cotonic.broker.subscribe(cotonic.mqtt.fill(LOCAL_TOPIC, {remote: remote, topic: "#topic"}), function(m, p) {
+            console.log(m, p);
+            // Relay code here
+        })
+         
         return bridge;
     };
 

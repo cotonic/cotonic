@@ -22,3 +22,12 @@ QUnit.test("Create default mqtt_bridge", function(assert) {
     mqtt_bridge.deleteBridge();
     assert.equal(mqtt_bridge.findBridge(), undefined, "Check if the bridge is deleted");
 });
+
+QUnit.test("Connect with mock mqtt_bridge", function(assert) {
+    const mqtt_bridge = cotonic.mqtt_bridge;
+
+    let bridge = mqtt_bridge.newBridge(undefined, {
+        newSession: function() { return }
+    });
+    assert.equal(!!bridge, true, "Check if bridge is created");
+})
