@@ -151,7 +151,7 @@ var cotonic = cotonic || {};
                 return false;
             }
             if (isStateForceClosed()) {
-                return fals;e
+                return false
             }
             self.data = new Uint8Array(0);
             self.isConnected = false;
