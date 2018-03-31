@@ -22,21 +22,29 @@ var cotonic = cotonic || {};
     // Bridges to remote servers and clients
     var bridges = {};
 
-    var newBridge = function( remote ) {
+    var newBridge = function( remote, mqtt_session ) {
         remote = remote || 'origin';
+        mqtt_session = mqtt_session || cotonic.mqtt_session
+
         if (bridges[ remote ]) {
             return bridges[remote];
-        } else {
-            var bridge = new mqttBridge();
-            bridges[remote] = bridge;
-            bridge.connect(remote);
-            return bridge;
-        }
+        } 
+
+        let bridge = new mqttBridge();
+        bridges[remote] = bridge;
+
+        bridge.connect(remote, mqtt_session);
+        return bridge;
     };
 
     var findBridge = function( remote ) {
         remote = remote || 'origin';
         return bridges[remote];
+    };
+
+    var deleteBridge = function( remote ) {
+        remote = remote || 'origin';
+        delete bridges[remote];
     };
 
 
@@ -53,10 +61,10 @@ var cotonic = cotonic || {};
         var routingId;
 
         // TODO: pass authentication details to the session
-        this.connect = function ( remote ) {
+        this.connect = function ( remote , mqtt_session ) {
             self.remote = remote;
             // 1. Start a mqtt_session for the remote
-            self.session = cotonic.mqtt_session.newSession(remote, self);
+            self.session = mqtt_session.newSession(remote, self);
         }
 
         this.match = function ( topicId ) {
@@ -104,5 +112,6 @@ var cotonic = cotonic || {};
     cotonic.mqtt_bridge = cotonic.mqtt_bridge || {};
     cotonic.mqtt_bridge.newBridge = newBridge;
     cotonic.mqtt_bridge.findBridge = findBridge;
+    cotonic.mqtt_bridge.deleteBridge = deleteBridge;
 
 }(cotonic));
