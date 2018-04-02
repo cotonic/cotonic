@@ -48,7 +48,9 @@ test/lib/qunit-composite.js:
 
 
 dist/cotonic.js: lib
-	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js src/cotonic.mqtt.js src/cotonic.mqtt_packet.js src/cotonic.broker.js > dist/cotonic.js
+	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js \
+src/cotonic.mqtt.js src/cotonic.mqtt_session.js src/cotonic.mqtt_packet.js src/cotonic.mqtt_transport.ws.js \
+src/cotonic.broker.js > dist/cotonic.js
 
 dist/cotonic_worker.js: lib
 	cat src/cotonic.mqtt.js src/cotonic.worker.js > dist/cotonic_worker.js
