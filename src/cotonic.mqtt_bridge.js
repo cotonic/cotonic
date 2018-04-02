@@ -19,13 +19,14 @@ var cotonic = cotonic || {};
 
 (function (cotonic) {
     const LOCAL_TOPIC = "bridge/+remote/#topic";
+    const STATUS_TOPIC = "$bridge/+remote/status";
 
     // Bridges to remote servers and clients
     var bridges = {};
 
     var newBridge = function( remote, mqtt_session ) {
         remote = remote || 'origin';
-        mqtt_session = mqtt_session || cotonic.mqtt_session
+        mqtt_session = mqtt_session || cotonic.mqtt_session;
 
         if (bridges[ remote ]) {
             return bridges[remote];
@@ -35,12 +36,6 @@ var cotonic = cotonic || {};
         bridges[remote] = bridge;
 
         bridge.connect(remote, mqtt_session);
-
-        // Subscribe to the local topic
-        cotonic.broker.subscribe(cotonic.mqtt.fill(LOCAL_TOPIC, {remote: remote, topic: "#topic"}), function(m, p) {
-            console.log(m, p);
-            // Relay code here
-        })
          
         return bridge;
     };
@@ -64,28 +59,36 @@ var cotonic = cotonic || {};
 
         var remote;
         var session;
-        var self = this;
         var clientId;
         var routingId;
+        var statusTopic;
+        var self = this;
+
 
         // TODO: pass authentication details to the session
         this.connect = function ( remote , mqtt_session ) {
             self.remote = remote;
+            statusTopic = cotonic.mqtt.fill(STATUS_TOPIC, {remote: remote});
+
             // 1. Start a mqtt_session for the remote
             self.session = mqtt_session.newSession(remote, self);
-        }
+            publishStatus( false );
+
+        };
 
         this.match = function ( topicId ) {
             return self.clientId === topicId || self.routingId === topicId;
-        }
+        };
 
         this.auth = function ( /* ... */ ) {
             // Start a re-authentication, useful when logging on
             // TODO: decide if we need to restart the session with a new clientId (could be an option)
-        }
+        };
 
         this.sessionConnack = function ( clientId, connack ) {
             // 1. Register the clientId and the optional 'cotonic-routing-id' property
+            self.clientId = clientId;
+
             // 2. Check 'session_present' flag
             //    - If not present then:
             //      1. Add subscription on server for "bridge/<clientId>/#"
@@ -93,20 +96,34 @@ var cotonic = cotonic || {};
             //      3. Resubscribe client subscriptions (fetch all local subscriptions matching 'bridge/<remote>/#')
             // Publish to '$bridge/<remote>/status' topic that we connected (retained)
             // Subscribers then handle the 'session_present' flag.
-        }
+
+            // Subscribe to the local topic
+            cotonic.broker.subscribe(cotonic.mqtt.fill(LOCAL_TOPIC, {remote: remote, topic: "#topic"}), function(m, p) {
+                console.log(m, p);
+                // Relay code here
+            });
+
+            publishStatus( true );
+        };
 
         this.sessionAuth = function ( ConnectOrAuth, isConnected ) {
             // Either:
             // - Add authentication credentials to the CONNECT packet
             // - Received an AUTH packet, perform extended (re-)authentication
-        }
+        };
 
         this.sessionDisconnect = function ( optDisconnect ) {
             // Publish to '$bridge/<remote>/status' topic that this remote disconnected (retained)
-        }
+            publishStatus( false );
+        };
 
     }
 
+    function publishStatus( session_present ) {
+        cotonic.broker.publish(statusTopic, {
+            session_present: session_present
+        }, {retained: true});
+    }
 
     function init() {
         // 1. Subscribe to 'bridge/#'

@@ -25,9 +25,44 @@ QUnit.test("Create default mqtt_bridge", function(assert) {
 
 QUnit.test("Connect with mock mqtt_bridge", function(assert) {
     const mqtt_bridge = cotonic.mqtt_bridge;
+    let done = assert.async();
 
-    let bridge = mqtt_bridge.newBridge(undefined, {
-        newSession: function() { return }
-    });
+    // Clear retained bridge status messages 
+    cotonic.broker.publish("$bridge/mock/status", undefined, {retained: true});
+
+    let mockSession;
+
+    {
+        let theBridge;
+
+        mockSession = {
+
+            newSession: function(remote, obj) {
+                theBridge = obj;
+                return;
+            },
+
+            connack: function() {
+                theBridge.sessionConnack("mock-client-id", {});
+            }
+            
+        };
+    }
+
+
+    let bridge = mqtt_bridge.newBridge("mock", mockSession);
+
     assert.equal(!!bridge, true, "Check if bridge is created");
+
+    let s = cotonic.broker.subscribe("$bridge/mock/status", function(m) {
+        // After the connack below, the test is done.
+        if(m && m.session_present) {
+            done();
+            cotonic.broker.unsubscribe(s);
+        }
+    })
+
+    // connack the session
+    mockSession.connack()
+    
 })
