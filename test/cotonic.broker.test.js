@@ -10,7 +10,7 @@ QUnit.test("Subscribe and publish, no wildcards", function(assert) {
     cotonic.broker.publish("a/b/c", "Hello nobody!");
     
     cotonic.broker.subscribe("a/b/c", function(message, prop) {
-	publishes.push(message);
+        publishes.push(message.payload);
     });
 
     cotonic.broker.publish("a/b/c", "Hello world!");
@@ -26,11 +26,11 @@ QUnit.test("Subscribe and publish, with wildcards", function(assert) {
     cotonic.broker.publish("foo/bar", "Hello nobody!");
 
     cotonic.broker.subscribe("foo/#", function(message, prop) {
-	publishes.push({payload: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
     
     cotonic.broker.subscribe("bar/+", function(message, prop) {
-	publishes.push({payload: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
     cotonic.broker.publish("foo/bar", "One");
@@ -50,11 +50,11 @@ QUnit.test("Subscribe and publish, with named wildcards", function(assert) {
     cotonic.broker.publish("foo/bar", "Hello nobody!");
 
     cotonic.broker.subscribe("foo/#a", function(message, prop) {
-	publishes.push({payload: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
     
     cotonic.broker.subscribe("bar/+a", function(message, prop) {
-	publishes.push({payload: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
     cotonic.broker.publish("foo/bar", "One");
@@ -73,16 +73,16 @@ QUnit.test("Subscribe and publish, retained messages", function(assert) {
 
     cotonic.broker._delete_all_retained();
 
-    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retained: true});
+    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retain: true});
 
     cotonic.broker.subscribe("retained/#a", function(message, prop) {
-	publishes.push({payload: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
     assert.equal(1, publishes.length, "There is one message");
 
     cotonic.broker.subscribe("#a", function(message, prop) {
-	publishes.push({payload: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
     assert.equal(2, publishes.length, "There are two messages");
@@ -93,11 +93,11 @@ QUnit.test("Delete retained messages", function(assert) {
     let publishes = [];
 
     cotonic.broker._delete_all_retained();
-    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retained: true});
-    cotonic.broker.publish("retained/bar", "", {retained: true});
+    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retain: true});
+    cotonic.broker.publish("retained/bar", "", {retain: true});
 
     cotonic.broker.subscribe("retained/#a", function(message, prop) {
-	publishes.push({payload: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
     
     assert.equal(0, publishes.length, "There are no messages");

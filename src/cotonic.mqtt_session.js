@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// TODO: change this into a web-worker
+
 // TODO: Limit in-flight acks (both ways)
 // TODO: Drop QoS 0 messages if sendQueue gets too large
 
@@ -45,12 +47,12 @@ var cotonic = cotonic || {};
     const MQTT_RC_PACKET_ID_IN_USE     = 145;
     const MQTT_RC_PACKET_ID_NOT_FOUND  = 146;
 
-    var newSession = function( remote ) {
+    var newSession = function( remote, bridgeTopics ) {
         remote = remote || 'origin';
         if (sessions[ remote ]) {
             return sessions[remote];
         } else {
-            var ch = new mqttSession();
+            var ch = new mqttSession(bridgeTopics);
             sessions[remote] = ch;
             ch.connect(remote);
             return ch;
@@ -73,11 +75,12 @@ var cotonic = cotonic || {};
      * Keeps track of logged on user and authentication.
      * Tries to reconnect if needed.
      */
-    function mqttSession() {
-        this.connections = {};       // Websocket and other connections
-        this.clientId = '';          // Assigned by server
-        this.sendQueue = [];         // Queued outgoing messages
-        this.receiveQueue = [];      // Queued incoming messages
+    function mqttSession( mqttBridgeTopics ) {
+        this.bridgeTopics = mqttBridgeTopics;   // mqtt_bridge responsible for this session
+        this.connections = {};                  // Websocket and other connections
+        this.clientId = '';                     // Assigned by server
+        this.sendQueue = [];                    // Queued outgoing messages
+        this.receiveQueue = [];                 // Queued incoming messages
         this.isSentConnect = false;
         this.isWaitConnack = false;
         this.isWaitPingResp = false;
@@ -88,16 +91,67 @@ var cotonic = cotonic || {};
         this.messageNr = 0;
         this.awaitingAck = {};
         this.awaitingRel = {};
+
+
         var self = this;
 
+        /**
+         * A message sent from the bridge, to be relayed to the server
+         * The bridge took care of rewriting topics
+         */
+        function sessionToRemote( msg ) {
+            switch (msg.payload.type) {
+                case "publish":
+                    publish(msg.payload);
+                    break;
+                case "subscribe":
+                    subscribe(msg.payload);
+                    break;
+                case "unsubscribe":
+                    unsubscribe(msg.payload);
+                    break;
+                case "auth":
+                    // TODO: relay AUTH
+                    break;
+                default:
+                    // Error: unknown msg to relay
+                    break;
+            }
+        }
+
+        /**
+         * Relay a publish to the bridge, the bridge will rewrite the topic
+         * and republish it locally.
+         */
+        function sessionToBridge( msg ) {
+            localPublish(self.bridgeTopics.session_in, msg);
+        }
+
+        /**
+         * Send a message to the bridge control
+         */
+        function sessionToBridgeControl( msg ) {
+            localPublish(self.bridgeTopics.bridge_control, msg);
+        }
+
+        /**
+         * Control messages from the bridge for this session
+         */
+        function sessionControl( msg ) {
+        }
+
+        /**
+         * Start a transport to the remote
+         */
         this.connect = function( remote ) {
             if (remote == 'origin') {
                 self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self );
-                // TODO: also connect SSE and postback interface for fallback if ws not working
+                // TODO: also start SSE+postback transport for fallback if ws not working
             } else {
-                // TODO: add webRTC dataChannel for p2p
+                // TODO: start webRTC dataChannel for p2p
             }
         };
+
 
         this.connected = function ( channel ) {
             // Connection established - try to send out 'connect'
@@ -119,24 +173,25 @@ var cotonic = cotonic || {};
             }
         };
 
-        this.publish = function( topic, payload, options ) {
-            options = options || {};
-            var encodedPayload;
+        function publish( pubmsg ) {
+            const payload = pubmsg.payload;
+            let properties = pubmsg.properties || {}
+            let encodedPayload;
+
             if (typeof payload == "undefined" || payload === null) {
                 encodedPayload = new Uint8Array(0);
             } else {
-                var contentType = options.content_type || guessContentType(payload);
+                let contentType = properties.content_type || guessContentType(payload);
                 encodedPayload = encodePayload(payload, contentType);
-                var props = options.properties || {};
-                props.content_type = contentType;
+                properties.content_type = contentType;
             }
-            var msg = {
+            let msg = {
                 type: 'publish',
-                topic: topic,
+                topic: pubmsg.topic,
                 payload: encodedPayload,
-                qos: options.qos || 0,
-                retain: options.retain || 0,
-                properties: props
+                qos: pubmsg.qos || 0,
+                retain: pubmsg.retain || 0,
+                properties: properties
             };
             switch (msg.qos) {
                 case 0:
@@ -161,9 +216,8 @@ var cotonic = cotonic || {};
             self.sendMessage(msg);
         };
 
-        this.subscribe = function( topics, options ) {
-            options = options || {};
-            var props = options.properties || {};
+        function subscribe( submsg ) {
+            let topics = submsg.topics;
             if (typeof topics == "string") {
                 topics = [ { topic: topics } ];
             }
@@ -171,7 +225,7 @@ var cotonic = cotonic || {};
                 type: 'subscribe',
                 packet_id: nextPacketId(),
                 topics: topics,
-                properties: props
+                properties: submsg.properties || {}
             }
             self.awaitingAck[msg.packet_id] = {
                 type: 'suback',
@@ -181,17 +235,16 @@ var cotonic = cotonic || {};
             self.sendMessage(msg);
         };
 
-        this.unsubscribe = function ( topics, options ) {
-            options = options || {};
+        function unsubscribe ( unsubmsg ) {
+            let topics = unsubmsg.topics;
             if (typeof topics == "string") {
                 topics = [ topics ];
             }
-            var props = options.properties || {};
             var msg = {
                 type: 'unsubscribe',
                 packet_id: nextPacketId(),
                 topics: topics,
-                properties: props
+                properties: unsubmsg.properties || {}
             }
             self.awaitingAck[msg.packet_id] = {
                 type: 'unsuback',
@@ -469,7 +522,6 @@ var cotonic = cotonic || {};
                                 self.clientId = msg.properties.assigned_client_identifier;
                                 self.awaitingRel = {};
                                 self.awaitingAck = {};
-                                // TODO: relay that we need to resubscribe to bridge
                             }
                             if (typeof self.connectProps.server_keep_alive == "number") {
                                 self.keepAliveInterval = self.connectProps.server_keep_alive;
@@ -478,16 +530,32 @@ var cotonic = cotonic || {};
                             }
                             resetKeepAliveTimer();
                             sendQueuedMessages();
+
+                            // Relay the connack to the bridge (might need to resubscribe)
+                            publishStatus(true);
+                            sessionToBridge({
+                                type: "connack",
+                                is_connected: true,
+                                client_id: self.clientId,
+                                connack: msg
+                            });
                             break;
                         case MQTT_RC_CLIENT_ID_INVALID:
+                            // On next retry let the server pick a client id.
                             self.clientId = '';
-                            break;
                         default:
+                            publishStatus(false);
+                            sessionToBridge({
+                                type: "connack",
+                                is_connected: false,
+                                connack: msg
+                            });
                             break;
                     }
                     break;
                 case 'puback':
-                    // TODO relay status to bridge
+                    // TODO: associate the original publish command
+                    sessionToBridge(msg);
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'puback') {
                             console.log("MQTT: Unexpected puback for ", self.awaitingAck[msg.packet_id])
@@ -498,7 +566,8 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'pubrec':
-                    // TODO relay status to bridge
+                    // TODO: associate the original publish command
+                    sessionToBridge(msg);
                     if (msg.reason_code < 0x80) {
                         if (self.awaitingAck[msg.packet_id]) {
                             if (self.awaitingAck[msg.packet_id].type != 'pubrec') {
@@ -517,7 +586,6 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'pubcomp':
-                    // TODO relay status to bridge
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'pubcomp') {
                             console.log("MQTT: Unexpected pubcomp for ", self.awaitingAck[msg.packet_id])
@@ -526,8 +594,8 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'suback':
-                    // TODO: relay status to bridge
                     if (self.awaitingAck[msg.packet_id]) {
+                        sessionToBridge(msg);
                         if (self.awaitingAck[msg.packet_id].type != 'suback') {
                             console.log("MQTT: Unexpected suback for ", self.awaitingAck[msg.packet_id])
                         }
@@ -535,8 +603,9 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'unsuback':
-                    // TODO: relay status to bridge
+                    // TODO: associate the original subscribe command
                     if (self.awaitingAck[msg.packet_id]) {
+                        sessionToBridge(msg);
                         if (self.awaitingAck[msg.packet_id].type != 'unsuback') {
                             console.log("MQTT: Unexpected unsuback for ", self.awaitingAck[msg.packet_id])
                         }
@@ -584,7 +653,9 @@ var cotonic = cotonic || {};
                     if (isPubOk) {
                         var ct = msg.properties.content_type;
                         msg.payload = decodePayload(msg.payload, ct);
-                        // TODO: relay received message to bridge
+
+                        sessionToBridge(msg);
+
                         if (replyMsg) {
                             replyMsg.reason_code = MQTT_RC_SUCCESS;
                         }
@@ -619,6 +690,8 @@ var cotonic = cotonic || {};
                     break;
                 case 'auth':
                     // TODO: pass AUTH message to the runtime for re-authentication
+                    sessionToBridge(msg);
+                    break;
                 default:
                     break;
             }
@@ -643,6 +716,7 @@ var cotonic = cotonic || {};
             self.isWaitConnack = false;
             self.keepAliveInterval = 0;
             stopKeepAliveTimer();
+            publishStatus(false);
         }
 
         /**
@@ -657,6 +731,39 @@ var cotonic = cotonic || {};
             } while (self.awaitingAck[self.packetId]);
             return self.packetId;
         }
+
+        /**
+         * Publish a message to the broker
+         */
+        function localPublish( topic, msg, opts ) {
+            cotonic.broker.publish(topic, msg, opts);
+        }
+
+        /**
+         * Subscribe to a topic on the broker
+         */
+        function localSubscribe( topic, callback ) {
+            cotonic.broker.subscribe(topic, callback);
+        }
+
+        /**
+         * Publish the current connection status
+         */
+        function publishStatus( isConnected ) {
+            localPublish(self.bridgeTopics.session_status, { is_connected: isConnected }, { retain: true });
+        }
+
+        /**
+         * Initialize, connect to local topics
+         */
+        function init() {
+            console.log(self.bridgeTopics);
+            publishStatus( false );
+            localSubscribe(self.bridgeTopics.session_out, sessionToRemote);
+            localSubscribe(self.bridgeTopics.session_control, sessionControl);
+        }
+
+        init();
     }
 
     // Publish the MQTT session functions.

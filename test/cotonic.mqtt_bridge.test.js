@@ -28,7 +28,7 @@ QUnit.test("Connect with mock mqtt_bridge", function(assert) {
     let done = assert.async();
 
     // Clear retained bridge status messages 
-    cotonic.broker.publish("$bridge/mock/status", undefined, {retained: true});
+    cotonic.broker.publish("$bridge/mock/status", undefined, {retain: true});
 
     let mockSession;
 
