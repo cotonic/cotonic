@@ -108,3 +108,56 @@ QUnit.test("Connect, subscribe and publish to worker", function(assert) {
         }
     }
 });
+
+QUnit.test("Connect, subscribe and unsubscribe worker", function(assert) {
+    assert.timeout(500);
+    var done = assert.async();
+
+    var connected = false;
+    var subscribed1 = false;
+    var subscribed2 = false;
+    var unsubscribed = false;
+    var worker = new Worker("subscribe-unsubscribe-worker.js");
+    worker.postMessage(["init", {}]);
+
+    worker.onmessage = function(e) {
+
+        if (e.data === 1) {
+            worker.terminate();
+            done();
+        }
+
+        var type = e.data.type;
+
+        if(!connected) {
+            assert.equal(type, "connect");
+            connected = true;
+            worker.postMessage({type: "connack"})
+            return;
+        }
+
+        if(!subscribed1) {
+            assert.equal(type, "subscribe");
+            subscribed1 = true;
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]})
+            return;
+        }
+
+        if(!subscribed2) {
+            assert.equal(type, "subscribe");
+            subscribed2 = true;
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]})
+            worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi-1"});
+            return;
+        }
+
+        if(!unsubscribed) {
+            assert.equal(type, "unsubscribe");
+            unsubscribed = true;
+            worker.postMessage({type: "unsuback", packet_id: e.data.packet_id, acks: [0]})
+            worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi-2"});
+            worker.postMessage({type: "publish", topic: "test/check", payload: ""});
+            return;
+        }
+    }
+});

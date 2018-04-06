@@ -28,7 +28,7 @@ var cotonic = cotonic || {};
         connected: false,
         connecting: false,
 
-        sub_id: 0,
+        packet_id: 1,
         subscriptions: {}, // topic -> [callback]
         pending_acks: {}, // sub-id -> callback
 
@@ -76,7 +76,7 @@ var cotonic = cotonic || {};
             if(data.type == "subscribe" && data.from == "client") {
                 let new_subs = [];
                 let new_topics = [];
-                let sub_id = model.sub_id++;
+                let packet_id = model.packet_id++;
 
                 for (let k = 0; k < data.topics.length; k++) {
                     let t = data.topics[k];
@@ -107,10 +107,10 @@ var cotonic = cotonic || {};
                 }
 
                 if(new_topics.length > 0) {
-                    self.postMessage({type: "subscribe", topics: new_subs, packet_id: sub_id});
+                    self.postMessage({type: "subscribe", topics: new_subs, packet_id: packet_id});
                     data.subs = new_subs;
                     data.topics = new_topics;
-                    model.pending_acks[sub_id] = data;
+                    model.pending_acks[packet_id] = data;
                 }
             }
 
@@ -148,16 +148,16 @@ var cotonic = cotonic || {};
             // TODO: use a subscriber tag to know which subscription is canceled
             //       now we unsubscribe all subscribers
             if(data.type == "unsubscribe" && data.from == "client") {
-                let sub_id = model.sub_id++;
+                let packet_id = model.packet_id++;
                 let mqtt_topics = [];
-                for (k = 0; k < data.topics.length; k++) {
+                for (let k = 0; k < data.topics.length; k++) {
                     let t = data.topics[k];
                     let mqtt_topic = cotonic.mqtt.remove_named_wildcards(t);
                     mqtt_topics.push(mqtt_topic);
                 }
-                self.postMessage({type: "unsubscribe", topics: mqtt_topics, packet_id: sub_id});
+                self.postMessage({type: "unsubscribe", topics: mqtt_topics, packet_id: packet_id});
                 data.mqtt_topics = mqtt_topics;
-                model.pending_acks[sub_id] = data;
+                model.pending_acks[packet_id] = data;
             }
 
             // UNSUBACK
@@ -166,9 +166,14 @@ var cotonic = cotonic || {};
                 if(pending) {
                     delete model.pending_acks[data.packet_id];
 
-                    for(let i = 0; i < pending.mqtt_topics; i++) {
+                    for(let i = 0; i < pending.mqtt_topics.length; i++) {
                         let mqtt_topic = pending.mqtt_topics[i];
                         if (data.acks[i] < 0x80) {
+                            let subs = model.subscriptions[mqtt_topic];
+                            for (let k = subs.length-1; k >= 0; k--) {
+                                delete subs[k].callback;
+                                delete subs[k];
+                            }
                             delete model.subscriptions[mqtt_topic];
                         }
 
@@ -205,7 +210,7 @@ var cotonic = cotonic || {};
                 });
             } else {
                 // message before connect, queue?
-                console.error("Message during diconnect state", data);
+                console.error("Message during disconnect state", data);
             }
         } else if(state.connecting(model)) {
             if(data.type == "connack" && data.from == "broker") {
