@@ -14,7 +14,7 @@ QUnit.test("Receive connect from worker", function(assert) {
     worker.onmessage = function(e) {
         var type = e.data.type;
         assert.equal(type, "connect");
-	worker.terminate();
+        worker.terminate();
         done();
     }
 });
@@ -37,7 +37,7 @@ QUnit.test("Connect and connack worker", function(assert) {
         } else {
             // The hello world worker sends a normal postMessage
             assert.equal(e.data, "Hello world!")
-	    worker.terminate();
+            worker.terminate();
             done();
         }
     }
@@ -65,8 +65,8 @@ QUnit.test("Connect and subscribe worker", function(assert) {
         if(!subscribed) {
             assert.equal(type, "subscribe");
             subscribed = true;
-            worker.postMessage({type: "suback", sub_id: e.data.id})
-	    worker.terminate();
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]})
+            worker.terminate();
             done();
         }
     }
@@ -85,10 +85,10 @@ QUnit.test("Connect, subscribe and publish to worker", function(assert) {
     worker.onmessage = function(e) {
         var type = e.data.type;
 
-	if(e.data == "Hello to you too") {
-	    worker.terminate();
-	    done();
-	}
+        if(e.data == "Hello to you too") {
+            worker.terminate();
+            done();
+        }
 
         if(!connected) {
             assert.equal(type, "connect");
@@ -101,10 +101,10 @@ QUnit.test("Connect, subscribe and publish to worker", function(assert) {
             assert.equal(type, "subscribe");
             subscribed = true;
 
-            worker.postMessage({type: "suback", sub_id: e.data.id});
-	    worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi"});
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]});
+            worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi"});
 
-	    return;
+            return;
         }
     }
 });

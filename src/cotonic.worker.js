@@ -78,7 +78,7 @@ var cotonic = cotonic || {};
                 let new_topics = [];
                 let sub_id = model.sub_id++;
 
-                for (k = 0; k < data.topics.length; k++) {
+                for (let k = 0; k < data.topics.length; k++) {
                     let t = data.topics[k];
                     let mqtt_topic = cotonic.mqtt.remove_named_wildcards(t.topic);
 
@@ -121,16 +121,18 @@ var cotonic = cotonic || {};
                     delete model.pending_acks[data.packet_id];
 
                     for(let k = 0; k < pending.topics.length; k++) {
-                        let subreq = pending.topics[k];
+                        let subreq = pending.subs[k];
                         let mqtt_topic = subreq.topic;
                         if(model.subscriptions[mqtt_topic] === undefined) {
                             model.subscriptions[mqtt_topic] = [];
                         }
 
                         if(data.acks[k] < 0x80) {
-                            subs.push({topic: data.topics[k],
-                                       sub: subreq,
-                                       callback: pending.callback});
+                            model.subscriptions[mqtt_topic].push({
+                                topic: pending.topics[k],
+                                sub: subreq,
+                                callback: pending.callback
+                            });
                         }
                         if(pending.ack_callback) {
                             setTimeout(pending.ack_callback, 0, topic, data.acks[k], subreq);
@@ -332,7 +334,7 @@ var cotonic = cotonic || {};
         if (typeof(topics) == "string") {
             ts = [
                 {
-                    topic: topic,
+                    topic: topics,
                     qos: 0,
                     retain_handling: 0,
                     retain_as_published: false,
