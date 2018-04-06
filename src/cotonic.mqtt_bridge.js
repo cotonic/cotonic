@@ -140,7 +140,7 @@ var cotonic = cotonic || {};
                         relay.topic = localRoutingTopic(relay.topic);
                     }
                     if (relay.properties && relay.properties.response_topic) {
-                        relay.properties.response_topic = remoteRoutingTopic(relay.properties.response_topic);
+                        relay.properties.response_topic = localRoutingTopic(relay.properties.response_topic);
                     }
                     cotonic.broker.publish_mqtt_message(relay, { wid: self.wid });
                     break;
