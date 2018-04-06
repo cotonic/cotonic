@@ -79,13 +79,13 @@ QUnit.test("Subscribe and publish, retained messages", function(assert) {
         publishes.push({payload: message.payload, prop: prop});
     });
 
-    assert.equal(1, publishes.length, "There is one message");
+    assert.equal(publishes.length, 1, "There is one message");
 
     cotonic.broker.subscribe("#a", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
     });
 
-    assert.equal(2, publishes.length, "There are two messages");
+    assert.equal(publishes.length, 2, "There are two messages");
     cotonic.broker._delete_all_retained();
 });
 

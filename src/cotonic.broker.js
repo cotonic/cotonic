@@ -249,7 +249,7 @@ var cotonic = cotonic || {};
             add(mqtt_topic, subscription);
             acks.push(0);
 
-            if(t.retain_handling != 0) {
+            if(t.retain_handling < 2) {
                 // TODO optimization possible. Only check all topics when the subscribe
                 // contains a wildcard.
                 const retained = get_matching_retained(mqtt_topic);
@@ -348,7 +348,7 @@ var cotonic = cotonic || {};
     }
 
     function publish_subscriber(sub, mqttmsg, wid) {
-        if (sub.wid && sub.wid === wid && sub.sub.no_local) {
+        if (wid && sub.wid && sub.wid === wid && sub.sub.no_local) {
             return;
         }
 
