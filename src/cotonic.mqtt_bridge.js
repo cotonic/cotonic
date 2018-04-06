@@ -74,9 +74,11 @@ var cotonic = cotonic || {};
         var remote_subscriptions = {};
         var sessionTopic;
         var self = this;
+        var wid;
 
         // TODO: pass authentication details to the session
         this.connect = function ( remote, mqtt_session ) {
+            self.wid = "bridge/" + remote;
             self.remote = remote;
             self.local_topics = {
                 // Comm between system and bridge
@@ -90,7 +92,6 @@ var cotonic = cotonic || {};
                 session_status: cotonic.mqtt.fill(SESSION_STATUS_TOPIC, {remote: remote}),
                 session_control: cotonic.mqtt.fill(SESSION_CONTROL_TOPIC, {remote: remote})
             };
-            let wid = "bridge/" + remote;
             cotonic.broker.subscribe(self.local_topics.bridge_local, relayOut, {wid: wid, no_local: true});
             cotonic.broker.subscribe(self.local_topics.bridge_control, bridgeControl);
             cotonic.broker.subscribe(self.local_topics.session_in, relayIn);
@@ -127,13 +128,21 @@ var cotonic = cotonic || {};
             let relay = msg.payload;
             switch (relay.type) {
                 case 'publish':
-                    // TODO: handle publish to the routing and client-id topics
-                    //       these prefixes must be removed (but not other prefixes)
-                    // relay.topic = localRoutingTopic(relay.topic);
+                    let topic = relay.topic;
+                    let m = topic.match(/^bridge\/([^\/]+)\/(.*)/);
+                    if (m) {
+                        if (m[1] != self.clientId && m[1] != self.routingid) {
+                            console.log("Bridge relay for unknown routing-id", topic);
+                            return;
+                        }
+                        relay.topic = m[2];
+                    } else {
+                        relay.topic = localRoutingTopic(relay.topic);
+                    }
                     if (relay.properties && relay.properties.response_topic) {
                         relay.properties.response_topic = remoteRoutingTopic(relay.properties.response_topic);
                     }
-                    cotonic.broker.publish_mqtt_message(relay);
+                    cotonic.broker.publish_mqtt_message(relay, { wid: self.wid });
                     break;
                 case 'connack':
                     sessionConnack(relay);
@@ -217,22 +226,45 @@ var cotonic = cotonic || {};
 
         function sessionConnack ( msg ) {
             // 1. Register the clientId and the optional 'cotonic-routing-id' property
-            self.clientId = msg.client_id;
-            if (msg.properties && msg.properties['cotonic-routing-id']) {
-                self.routingId = msg.properties['cotonic-routing-id']
+            if (msg.is_connected) {
+                // Either the existing client-id or an assigned client-id
+                self.clientId = msg.client_id;
+
+                // Optional routing-id, assigned by the server
+                let props = msg.connack.properties;
+                if (props && props['cotonic-routing-id']) {
+                    self.routingId = props['cotonic-routing-id']
+                } else {
+                    self.routingId = msg.client_id;
+                }
+
+                if (!msg.connack.session_present) {
+                    // Subscribe to the client + routing forward topics
+                    let topics = [
+                        { topic: "bridge/" + self.clientId + "/#", qos: 2 }
+                    ];
+                    if (self.clientId != self.routingId) {
+                        topics.push({ topic: "bridge/" + self.routingId + "/#", qos: 2 });
+                    }
+                    let subscribe = {
+                        type: "subscribe",
+                        topics: topics,
+                    };
+                    cotonic.broker.publish(self.local_topics.session_out, subscribe);
+                }
+
+                // 2. Check 'session_present' flag
+                //    - If not present then:
+                //      1. Add subscription on server for "bridge/<clientId>/#"
+                //      2. Add subscription on server for "bridge/<routingId>/#"
+                //      3. Resubscribe client subscriptions (fetch all local subscriptions matching 'bridge/<remote>/#')
+                // Publish to '$bridge/<remote>/status' topic that we connected (retained)
+                // Subscribers then handle the 'session_present' flag.
+
+                publishStatus( true );
             } else {
-                self.routingId = msg.client_id;
+                publishStatus( false );
             }
-
-            // 2. Check 'session_present' flag
-            //    - If not present then:
-            //      1. Add subscription on server for "bridge/<clientId>/#"
-            //      2. Add subscription on server for "bridge/<routingId>/#"
-            //      3. Resubscribe client subscriptions (fetch all local subscriptions matching 'bridge/<remote>/#')
-            // Publish to '$bridge/<remote>/status' topic that we connected (retained)
-            // Subscribers then handle the 'session_present' flag.
-
-            publishStatus( true );
         };
 
         this.sessionAuth = function ( ConnectOrAuth, isConnected ) {
