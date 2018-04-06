@@ -1,5 +1,5 @@
 /**
- * Test worker which connects, and subscribes, and does nothing else.
+ * Test worker which connects, subscribes, and unsubscribes.
  */
 
 "use strict";
@@ -30,4 +30,4 @@ self.on_connect = function() {
     self.subscribe("test/check", onpubcheck);
 }
 
-self.connect("subscribe-worker");
+self.connect("subscribe-unsubscribe-worker");
