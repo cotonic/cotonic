@@ -287,18 +287,19 @@ var cotonic = cotonic || {};
         if (typeof topics == "string") {
             topics = [ topics ];
         }
-        unsubscribe_subscriber({type: "page", tag: options.tag}, { topics: topics });
+        unsubscribe_subscriber({type: "page", wid: options.wid}, { topics: topics });
     }
 
     function unsubscribe_subscriber(sub, msg) {
         let bridge_topics = {};
         let acks = [];
 
-        for (let i = 0; i < msg.topics; i++) {
+        for (let i = 0; i < msg.topics.length; i++) {
             remove(msg.topics[i], sub);
             acks.push(0);
 
             // Collect bridge topics per bridge
+            const mqtt_topic = cotonic.mqtt.remove_named_wildcards(msg.topics[i]);
             let m = mqtt_topic.match(/^bridge\/([^\/]+)\/.*/);
             if (m !== null && m[1] != "+") {
                 if (bridge_topics[ m[1] ] === undefined) {

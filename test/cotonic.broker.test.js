@@ -8,7 +8,7 @@ QUnit.test("Subscribe and publish, no wildcards", function(assert) {
     let publishes = [];
 
     cotonic.broker.publish("a/b/c", "Hello nobody!");
-    
+
     cotonic.broker.subscribe("a/b/c", function(message, prop) {
         publishes.push(message.payload);
     });
@@ -28,7 +28,7 @@ QUnit.test("Subscribe and publish, with wildcards", function(assert) {
     cotonic.broker.subscribe("foo/#", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
     });
-    
+
     cotonic.broker.subscribe("bar/+", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
     });
@@ -52,7 +52,7 @@ QUnit.test("Subscribe and publish, with named wildcards", function(assert) {
     cotonic.broker.subscribe("foo/#a", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
     });
-    
+
     cotonic.broker.subscribe("bar/+a", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
     });
@@ -89,6 +89,29 @@ QUnit.test("Subscribe and publish, retained messages", function(assert) {
     cotonic.broker._delete_all_retained();
 });
 
+QUnit.test("Subscribe, publish, unsubscribe, publish", function(assert) {
+    let publishes = [];
+
+    cotonic.broker._delete_all_retained();
+
+    cotonic.broker.subscribe("plop", function(message, prop) {
+        publishes.push({payload: message.payload, prop: prop});
+    }, { wid: "x" });
+
+    cotonic.broker.publish("plop", "First");
+    cotonic.broker.unsubscribe("plop", { wid: "x" });
+    cotonic.broker.publish("plop", "Second");
+
+    assert.equal(publishes.length, 1, "There is one message");
+
+    assert.deepEqual([
+            {payload: "First", prop: {}}
+        ], publishes, "Single match");
+
+    cotonic.broker._flush();
+});
+
+
 QUnit.test("Delete retained messages", function(assert) {
     let publishes = [];
 
@@ -99,9 +122,8 @@ QUnit.test("Delete retained messages", function(assert) {
     cotonic.broker.subscribe("retained/#a", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
     });
-    
+
     assert.equal(0, publishes.length, "There are no messages");
 
 })
 
-    
