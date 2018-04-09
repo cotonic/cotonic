@@ -156,16 +156,16 @@ var cotonic = cotonic || {};
                     // suback (multiple topics)
                     // non-conformant: the topics are added to the ack
                     for (let k = 0; k < relay.acks; k++) {
-
+                        // Relay acks to bridge?
                     }
                     break;
                 case 'puback':
                 case 'pubrec':
                     // puback (per topic)
                     // non-conformant: add the topic in the ack
-                    break;
-                case 'publish':
-                    // status in payload
+                    for (let k = 0; k < relay.acks; k++) {
+                        // Relay acks to bridge?
+                    }
                     break;
                 default:
                     console.log("Bridge relayIn received unknown message", msg);

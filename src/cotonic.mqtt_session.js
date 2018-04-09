@@ -567,7 +567,7 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'pubrec':
-                    if (msg.awaitingAck[msg.packet_id]) {
+                    if (self.awaitingAck[msg.packet_id]) {
                         // TODO: associate the original publish command
                         // sessionToBridge(msg);
                     }
