@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// Tokenizer based on the erlang html tokenizer in https://github.com/mochi/mochiweb
+
 "use strict";
 var cotonic = cotonic || {};
 
