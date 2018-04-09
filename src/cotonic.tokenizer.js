@@ -18,38 +18,38 @@
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-    var TAB = 9;
-    var NEWLINE = 10;
-    var SPACE = 32;
-    var RETURN = 13;
+    const TAB = 9,
+          NEWLINE = 10,
+          SPACE = 32,
+          RETURN = 13,
 
-    var DASH = 45;
-    var LT = 60;
-    var GT = 62;
+          DASH = 45,
+          LT = 60,
+          GT = 62,
 
-    var SLASH = 47;
-    var UNDERSCORE = 95;
-    var AMPERSAND = 38;
-    var EQUALS = 61;
-    var QUESTION_MARK = 63;
-    var COLON = 59;
+          SLASH = 47,
+          UNDERSCORE = 95,
+          AMPERSAND = 38,
+          EQUALS = 61,
+          QUESTION_MARK = 63,
+          COLON = 59,
 
-    var QUOTE = 34;
-    var SQUOTE = 39;
+          QUOTE = 34,
+          SQUOTE = 39,
 
-    var CHAR_0 = 48;
-    var CHAR_9 = 57;
+          CHAR_0 = 48,
+          CHAR_9 = 57,
 
-    var CHAR_A = 65;
-    var CHAR_Z = 90;
+          CHAR_A = 65,
+          CHAR_Z = 90,
 
-    var CHAR_a = 97;
-    var CHAR_z = 122;
+          CHAR_a = 97,
+          CHAR_z = 122,
 
-    var DONE = 0;
-    var SCRIPT = 1;
-    var TEXTAREA = 2;
-    var NORMAL = 3;
+          DONE = 0,
+          SCRIPT = 1,
+          TEXTAREA = 2,
+          NORMAL = 3;
 
 
     function TokenBuilder(acc) {
@@ -129,25 +129,25 @@ var cotonic = cotonic || {};
         };
     }
 
-    var tokens = function (data, tokenBuilder) {
+    let tokens = function (data, tokenBuilder) {
         if (tokenBuilder === undefined) {
             tokenBuilder = new TokenBuilder([]);
         }
 
-        var decoder = new Decoder(tokenBuilder);
+        let decoder = new Decoder(tokenBuilder);
         tokens3(data, tokenBuilder, decoder);
         return tokenBuilder.result;
     }
 
     function tokens3(data, builder, decoder) {
-        var rv, cont=true;
+        let cont=true;
 
         while (cont) {
             if (data.length <= decoder.offset) {
                 return;
             }
 
-            rv = tokenize(data, builder, decoder);
+            let rv = tokenize(data, builder, decoder);
 
             if (rv === DONE) {
                 return;
@@ -164,7 +164,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize(data, builder, d) {
-        var tag, attributes, text_data, has_slash,
+        let tag, attributes, text_data, has_slash,
             c0, c1, c2, c3, c4, c5, c6, c7, c8;
 
         c0 = data.charAt(d.offset);
@@ -251,7 +251,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_textarea(data, d) {
-        var cont=true, offsetStart = d.offset, lt, slash, n;
+        let cont=true, offsetStart = d.offset, lt, slash, n;
 
         while (cont) {
             lt = data.codePointAt(d.offset);
@@ -294,7 +294,7 @@ var cotonic = cotonic || {};
 
 
     function tokenize_script(data, d) {
-        var cont=true, offsetStart = d.offset, lt, slash, n;
+        let cont=true, offsetStart = d.offset, lt, slash, n;
 
         while (cont) {
             lt = data.codePointAt(d.offset);
@@ -336,7 +336,7 @@ var cotonic = cotonic || {};
      */
 
     function tokenize_doctype(data, d) {
-        var c, acc = [], word, cont=true;
+        let c, acc = [], word, cont=true;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -359,7 +359,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_comment(data, d) {
-        var c1, c2, c3, offsetStart = d.offset, cont=true;
+        let c1, c2, c3, offsetStart = d.offset, cont=true;
 
         while (cont) {
             c1 = data.codePointAt(d.offset);
@@ -387,7 +387,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_word_or_literal(data, d) {
-        var c = data.codePointAt(d.offset);
+        let c = data.codePointAt(d.offset);
 
         if (c === QUOTE || c === SQUOTE)
             return tokenize_word(data, c, d.inc_col());
@@ -400,7 +400,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_word(data, quote, d) {
-        var c, charref, acc = [], cont=true;
+        let c, charref, acc = [], cont=true;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -424,7 +424,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_data(data, d) {
-        var c, offsetStart = d.offset, cont=true;
+        let c, offsetStart = d.offset, cont=true;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -437,7 +437,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_literal(data, d, type) {
-        var literal = [], cont=true,
+        let literal = [], cont=true,
             c = data.codePointAt(d.offset);
 
         // Handle case where tokenize_literal would consume
@@ -473,10 +473,10 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_attributes(data, d) {
-        var cont=true, attributes = [], attribute, attribute_value;
+        let cont=true, attributes = [], attribute, attribute_value;
 
         while (cont) {
-            var c = data.codePointAt(d.offset);
+            let c = data.codePointAt(d.offset);
 
             if (c === undefined)
                 return value(attributes, d);
@@ -502,7 +502,7 @@ var cotonic = cotonic || {};
     }
 
     function find_gt(data, d) {
-        var has_slash = false, c, cont=true;
+        let has_slash = false, c, cont=true;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -526,7 +526,7 @@ var cotonic = cotonic || {};
     }
 
     function find_qgt(data, d) {
-        var cont = true, offsetStart = d.offset, c1, c2;
+        let cont = true, offsetStart = d.offset, c1, c2;
 
         while (cont) {
             c1 = data.codePointAt(d.offset);
@@ -557,7 +557,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_attr_value(key, data, d) {
-        var c;
+        let c;
 
         skip_whitespace(data, d);
 
@@ -571,7 +571,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_quoted_or_unquoted_attr_value(data, d) {
-        var c;
+        let c;
 
         c = data.codePointAt(d.offset);
         if (c === undefined)
@@ -586,7 +586,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_quoted_attr_value(data, start_quote, d) {
-        var c, v = [], charref, cont = true;
+        let c, v = [], charref, cont = true;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -613,7 +613,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_unquoted_attr_value(data, d) {
-        var c, v = [], charref, cont = true;
+        let c, v = [], charref, cont = true;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -643,21 +643,21 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_tag(tag) {
-        var ltag = tag.toLowerCase();
+        let ltag = tag.toLowerCase();
         if (is_html_tag(ltag)) return ltag;
 
         return tag;
     }
 
     function tokenize_attribute_name(name) {
-        var lname = name.toLowerCase();
+        let lname = name.toLowerCase();
         if (is_html_attr(lname)) return lname;
 
         return name;
     }
 
     function tokenize_charref(data, d) {
-        var column = d.column, line = d.line, offset = d.offset;
+        let column = d.column, line = d.line, offset = d.offset;
 
         try {
             return tokenize_charref1(data, d);
@@ -674,7 +674,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_charref1(data, d) {
-        var cont = true, c, offsetStart = d.offset, u;
+        let cont = true, c, offsetStart = d.offset, u;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -716,7 +716,7 @@ var cotonic = cotonic || {};
     }
 
     function skip_whitespace(data, d) {
-        var c, cont=true;
+        let c, cont=true;
 
         while (cont) {
             c = data.codePointAt(d.offset);
@@ -757,7 +757,7 @@ var cotonic = cotonic || {};
     }
 
     function is_singleton(tag) {
-        var v = html_tags[tag]
+        let v = html_tags[tag]
 
         if (v === undefined)
             return false;
@@ -771,7 +771,7 @@ var cotonic = cotonic || {};
 
     // When an element is in the table it is a html tag, the boolean value
     // indicates wether the element is a sintleton tag.
-    var html_tags = {
+    let html_tags = {
         // A
         a: false,
         abbr: false,
@@ -929,7 +929,7 @@ var cotonic = cotonic || {};
         xmp: false
     };
 
-    var html_attrs = {
+    let html_attrs = {
         accept: true,
         "accept-charset": true,
         accesskey: true,
@@ -1064,11 +1064,11 @@ var cotonic = cotonic || {};
      *
      * Assumes the code can use document. Does not work inside a worker.
      */
-    var charref = (function () {
-        var element = document.createElement("div");
+    let charref = (function () {
+        let element = document.createElement("div");
 
         return function (raw) {
-            var d;
+            let d;
             if (raw.slice(-1) == ";") {
                 element.innerHTML = "&" + raw;
             } else {
