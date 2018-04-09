@@ -47,15 +47,15 @@ test/lib/qunit-composite.js:
 	    	"https://cdn.rawgit.com/jquery/qunit-composite/master/qunit-composite.js")
 
 
-dist/cotonic.js: lib
+dist/cotonic-bundle.js: lib
 	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js \
-src/cotonic.mqtt.js src/cotonic.mqtt_session.js src/cotonic.mqtt_packet.js src/cotonic.mqtt_transport.ws.js \
-src/cotonic.broker.js > dist/cotonic.js
+src/cotonic.mqtt.js src/cotonic.mqtt_session.js src/cotonic.mqtt_packet.js \
+src/cotonic.mqtt_transport.ws.js src/cotonic.mqtt_bridge.js src/cotonic.broker.js > dist/cotonic-bundle.js
 
-dist/cotonic_worker.js: lib
-	cat src/cotonic.mqtt.js src/cotonic.worker.js > dist/cotonic_worker.js
+dist/cotonic-worker-bundle.js: lib
+	cat src/cotonic.mqtt.js src/cotonic.worker.js > dist/cotonic-worker-bundle.js
 
-dist: dist/cotonic.js dist/cotonic_worker.js
+dist: dist/cotonic-bundle.js dist/cotonic-worker-bundle.js
 
 test: lib testlib
 	./start_dev.sh
