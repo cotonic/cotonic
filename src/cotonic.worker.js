@@ -14,29 +14,6 @@
  * limitations under the License.
  */
 
- /**
-  * Description of messages
-
-  topic:
-
-   message-cmd:
-       CONNECT, CONNACK,
-
-       PUBLISH, PUBACK, PUBREC, PUBREL, PUBCOMP,
-
-       SUBSCRIBE, PUBCOMP, SUBSCRIBE, SUBACK, UNSUBSCRIBE, UNSUBACK,
-
-       PINGREQ, PINGRESP,
-
-       DISCONNECT
-
-   message:
-       {cmd:<message-cmd>, <payload>}
-
-   connect-payload:
-       {client_identifier: <id>, will_topic: <topic>, will_message: <payload>}
-  */
-
 "use strict";
 
 var cotonic = cotonic || {};
@@ -46,14 +23,14 @@ var cotonic = cotonic || {};
 (function(self) {
 
     let model = {
-        id: undefined,
+        client_id: undefined,
 
         connected: false,
         connecting: false,
 
-        sub_id: 0,
+        packet_id: 1,
         subscriptions: {}, // topic -> [callback]
-        pending_subscriptions: {}, // sub-id -> callback
+        pending_acks: {}, // sub-id -> callback
 
         selfClose: self.close
     }
@@ -61,88 +38,184 @@ var cotonic = cotonic || {};
     model.present = function(data) {
         /* State changes happen here */
         if(state.connected(model)) {
-	    // PUBLISH
-	    if(data.cmd == "publish") {
-		if(data.from == "client") {
-		    self.postMessage({cmd: data.cmd, topic: data.topic, message: data.message, options: data.options});
-		} else {
-		    // Lookup matching topics, and trigger callbacks
-		    for(let pattern in model.subscriptions) {
-                        if(!cotonic.mqtt.matches(pattern, data.topic))
-                            continue;
-
-			let subs = model.subscriptions[pattern];
-			for(let i=0; i < subs.length; i++) {
-                            let subscription = subs[i];
-	                    try {
-				subscription.callback(data.msg,
-                                                      cotonic.mqtt.extract(
-                                                          subscription.topic, data.topic));
-			    } catch(e) {
-				console.error("Error during callback of: " + pattern, e);
-			    }
-			}
-		    }
-		}
-	    }
-
-	    // SUBSCRIBE
-            if(data.cmd == "subscribe" && data.from == "client") {
-                let sub_id = model.sub_id++;
-                let sub_topic = data.topic;
-                let already_subscribed = false;
-		let mqtt_topic = cotonic.mqtt.remove_named_wildcards(data.topic);
-
-                // Check if there already is a subscription with the same topic.
-		for(let pattern in model.subscriptions) {
-                    if(pattern != mqtt_topic) continue;
-
-                    already_subscribed = true;
-                    
-                    let subs = model.subscriptions[pattern];
-                    subs.push({topic: sub_topic, callback: data.callback})
-                    if(data.suback_callback) {
-                        setTimeout(data.suback_callback, 0);
+            // PUBLISH
+            if(data.type == "publish") {
+                if(data.from == "client") {
+                    // publish to broker
+                    let options = data.options || {};
+                    let msg = {
+                        type: "publish",
+                        topic: data.topic,
+                        payload: data.payload,
+                        qos: options.qos || 0,
+                        retain: options.retain || false,
+                        properties: options.properties || {}
                     }
-                }
-
-                if(!already_subscribed) {
-                    self.postMessage({cmd: "subscribe", topic: mqtt_topic, id: sub_id});
-                    data.mqtt_topic = mqtt_topic;
-                    model.pending_subscriptions[sub_id] = data;
-                }
-            }
-
-	    // SUBACK
-            if(data.cmd == "suback" && data.from == "broker") {
-                let pending_subscription = model.pending_subscriptions[data.sub_id];
-                if(pending_subscription) {
-                    delete model.pending_subscriptions[data.sub_id];
-
-                    let subs = model.subscriptions[pending_subscription.mqtt_topic];
-		    if(subs == undefined) {
-                        subs = model.subscriptions[pending_subscription.mqtt_topic] = [];
-		    }
-
-		    subs.push({topic: pending_subscription.topic,
-                               callback: pending_subscription.callback});
-
-                    if(pending_subscription.suback_callback) {
-                        setTimeout(pending_subscription.suback_callback, 0);
-                        delete pending_subscription.suback_callback;
+                    self.postMessage(msg);
+                } else {
+                    // Receive publish from broker, call matching subscription callbacks
+                    for(let pattern in model.subscriptions) {
+                        if(cotonic.mqtt.matches(pattern, data.topic)) {
+                            let subs = model.subscriptions[pattern];
+                            for(let i=0; i < subs.length; i++) {
+                                let subscription = subs[i];
+                                try {
+                                    subscription.callback(data,
+                                                          cotonic.mqtt.extract(
+                                                              subscription.topic, data.topic));
+                                } catch(e) {
+                                    console.error("Error during callback of: " + pattern, e);
+                                }
+                            }
+                        }
                     }
                 }
             }
+
+            // SUBSCRIBE
+            if(data.type == "subscribe" && data.from == "client") {
+                let new_subs = [];
+                let new_topics = [];
+                let packet_id = model.packet_id++;
+
+                for (let k = 0; k < data.topics.length; k++) {
+                    let t = data.topics[k];
+                    let mqtt_topic = cotonic.mqtt.remove_named_wildcards(t.topic);
+
+                    // Check if there is a subscription with the same MQTT topic.
+                    if (model.subscriptions[mqtt_topic]) {
+                        // TODO: check qos / retain_handling
+                        //       if qos > or retain_handling < then resubscribe
+                        already_subscribed = true;
+
+                        let subs = model.subscriptions[mqtt_topic];
+                        subs.push({topic: t.topic, callback: data.callback})
+                        if(data.ack_callback) {
+                            setTimeout(data.ack_callback, 0);
+                        }
+                    } else {
+                        let newsub = {
+                            topic: mqtt_topic,
+                            qos: t.qos || 0,
+                            retain_handling: t.retain_handling || 0,
+                            retain_as_published: t.retain_as_published || false,
+                            no_local: t.no_local || false
+                        };
+                        new_subs.push(newsub);
+                        new_topics.push(t.topic);
+                    }
+                }
+
+                if(new_topics.length > 0) {
+                    self.postMessage({type: "subscribe", topics: new_subs, packet_id: packet_id});
+                    data.subs = new_subs;
+                    data.topics = new_topics;
+                    model.pending_acks[packet_id] = data;
+                }
+            }
+
+            // SUBACK
+            if(data.type == "suback" && data.from == "broker") {
+                let pending = model.pending_acks[data.packet_id];
+                if(pending) {
+                    delete model.pending_acks[data.packet_id];
+
+                    for(let k = 0; k < pending.topics.length; k++) {
+                        let subreq = pending.subs[k];
+                        let mqtt_topic = subreq.topic;
+                        if(model.subscriptions[mqtt_topic] === undefined) {
+                            model.subscriptions[mqtt_topic] = [];
+                        }
+
+                        if(data.acks[k] < 0x80) {
+                            model.subscriptions[mqtt_topic].push({
+                                topic: pending.topics[k],
+                                sub: subreq,
+                                callback: pending.callback
+                            });
+                        }
+                        if(pending.ack_callback) {
+                            setTimeout(pending.ack_callback, 0, topic, data.acks[k], subreq);
+                        }
+                    }
+                    if(pending.ack_callback) {
+                        delete pending.ack_callback;
+                    }
+                }
+            }
+
+            // UNSUBSCRIBE
+            // TODO: use a subscriber tag to know which subscription is canceled
+            //       now we unsubscribe all subscribers
+            if(data.type == "unsubscribe" && data.from == "client") {
+                let packet_id = model.packet_id++;
+                let mqtt_topics = [];
+                for (let k = 0; k < data.topics.length; k++) {
+                    let t = data.topics[k];
+                    let mqtt_topic = cotonic.mqtt.remove_named_wildcards(t);
+                    mqtt_topics.push(mqtt_topic);
+                }
+                self.postMessage({type: "unsubscribe", topics: mqtt_topics, packet_id: packet_id});
+                data.mqtt_topics = mqtt_topics;
+                model.pending_acks[packet_id] = data;
+            }
+
+            // UNSUBACK
+            if(data.type == "unsuback" && data.from == "broker") {
+                let pending = model.pending_acks[data.packet_id];
+                if(pending) {
+                    delete model.pending_acks[data.packet_id];
+
+                    for(let i = 0; i < pending.mqtt_topics.length; i++) {
+                        let mqtt_topic = pending.mqtt_topics[i];
+                        if (data.acks[i] < 0x80) {
+                            let subs = model.subscriptions[mqtt_topic];
+                            for (let k = subs.length-1; k >= 0; k--) {
+                                delete subs[k].callback;
+                                delete subs[k];
+                            }
+                            delete model.subscriptions[mqtt_topic];
+                        }
+
+                        if(pending.ack_callback) {
+                            setTimeout(pending.ack_callback, 0, mqtt_topic, data.acks[k]);
+                        }
+                    }
+                    if(pending.ack_callback) {
+                        delete pending.ack_callback;
+                    }
+                }
+            }
+
+            // PING
+            if(data.type == "pingreq" && data.from == "client") {
+                // TODO: if broker doesn't answer then stop this worker
+                self.postMessage({type: "pingreq"});
+            }
+
+            if(data.type == "pingresp" && data.from == "broker") {
+                // TODO: Connection and broker are alive, we can stay alive
+            }
+
         } else if(state.disconnected(model)) {
-            if(data.cmd == "connect") {
-                model.id = data.id;
+            if(data.type == "connect") {
+                model.client_id = data.id;
                 model.connected = false;
                 model.connecting = true;
-                self.postMessage({cmd: "connect", willTopic: data.willTopic, willMessage: data.willMessage})
-            } else if(data.cmd == "publish") {
+                self.postMessage({
+                    type: "connect",
+                    client_id: data.id,
+                    will_topic: data.will_topic,
+                    will_payload: data.will_payload
+                });
+            } else {
+                // message before connect, queue?
+                console.error("Message during disconnect state", data);
             }
         } else if(state.connecting(model)) {
-            if(data.cmd == "connack" && data.from == "broker") {
+            if(data.type == "connack" && data.from == "broker") {
+                // assume reason_code == 0
+                // register assigned client identifier?
                 model.connecting = false;
                 model.connected = true;
                 if(self.on_connect) {
@@ -208,16 +281,16 @@ var cotonic = cotonic || {};
 
     let actions = {};
 
-    function client_cmd(cmd, data, present) {
-	present = present || model.present;
-	data.from = "client";
-	data.cmd = cmd;
+    function client_cmd(type, data, present) {
+        present = present || model.present;
+        data.from = "client";
+        data.type = type;
         present(data);
     }
 
     actions.on_message = function(e) {
-	let data = e.data;
-        if(data.cmd) {
+        let data = e.data;
+        if(data.type) {
             data.from = "broker";
             model.present(e.data);
         }
@@ -229,7 +302,9 @@ var cotonic = cotonic || {};
     actions.disconnect = client_cmd.bind(null, "disconnect");
     actions.connect = client_cmd.bind(null, "connect");
     actions.subscribe = client_cmd.bind(null, "subscribe");
+    actions.unsubscribe = client_cmd.bind(null, "unsubscribe");
     actions.publish = client_cmd.bind(null, "publish");
+    actions.pingreq = client_cmd.bind(null, "pingreq");
 
     actions.connect_timeout = function(data, present) {
         present = present || model.present;
@@ -250,16 +325,51 @@ var cotonic = cotonic || {};
         actions.close();
     }
 
-    self.connect = function(id, willTopic, willMessage) {
-        actions.connect({id: id, willTopic: willTopic, willMessage: willMessage});
+    self.connect = function(id, willTopic, willPayload) {
+        actions.connect({
+            client_id: id,
+            will_topic: willTopic,
+            will_payload: willPayload
+        });
     }
 
-    self.subscribe = function(topic, callback, suback_callback) {
-        actions.subscribe({topic: topic, callback: callback, suback_callback: suback_callback});
+    self.subscribe = function(topics, callback, ack_callback) {
+        let ts;
+
+        if (typeof(topics) == "string") {
+            ts = [
+                {
+                    topic: topics,
+                    qos: 0,
+                    retain_handling: 0,
+                    retain_as_published: false,
+                    no_local: false
+                }
+            ];
+        } else {
+            // Assume array with topic subscriptions
+            ts = topics;
+        }
+        actions.subscribe({topics: ts, callback: callback, ack_callback: ack_callback});
     }
 
-    self.publish = function(topic, message, options) {
-	actions.publish({topic, topic, message: message, options: options});
+    self.unsubscribe = function(topics, callback, ack_callback) {
+        let ts;
+
+        if (typeof(topics) == "string") {
+            ts = [ topics ];
+        } else {
+            ts = topics;
+        }
+        actions.unsubscribe({topics: ts, callback: callback, ack_callback: ack_callback});
+    }
+
+    self.publish = function(topic, payload, options) {
+        actions.publish({topic: topic, payload: payload, options: options});
+    }
+
+    self.pingreq = function() {
+        actions.pingreq();
     }
 
     self.disconnect = function() {

@@ -151,7 +151,7 @@ var cotonic = cotonic || {};
                 return false;
             }
             if (isStateForceClosed()) {
-                return fals;e
+                return false
             }
             self.data = new Uint8Array(0);
             self.isConnected = false;
@@ -257,8 +257,8 @@ var cotonic = cotonic || {};
             } else {
                 self.remoteUrl = 'wss:' + self.remoteHost + WS_CONTROLLER_PATH;
             }
-            setTimeout(connect, WS_CONNECT_DELAY );
-            setInterval(periodic, WS_PERIODIC_DELAY );
+            setTimeout(connect, WS_CONNECT_DELAY);
+            setInterval(periodic, WS_PERIODIC_DELAY);
         }
 
         init();

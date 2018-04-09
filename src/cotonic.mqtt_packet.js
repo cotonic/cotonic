@@ -46,7 +46,7 @@ var cotonic = cotonic || {};
         payload_format_indicator:   [ 0x01, "bool", false ],
         message_expiry_interval:    [ 0x02, "uint32", false ],
         content_type:               [ 0x03, "utf8", false ],
-        response_topic:             [ 0x08, "topic", false ],
+        response_topic:             [ 0x08, "utf8", false ],
         correlation_data:           [ 0x09, "bin", false ],
         subscription_identifier:    [ 0x0B, "varint", true ],
         session_expiry_interval:    [ 0x11, "uint32", false ],

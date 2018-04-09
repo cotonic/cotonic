@@ -8,9 +8,9 @@ QUnit.test("Subscribe and publish, no wildcards", function(assert) {
     let publishes = [];
 
     cotonic.broker.publish("a/b/c", "Hello nobody!");
-    
+
     cotonic.broker.subscribe("a/b/c", function(message, prop) {
-	publishes.push(message);
+        publishes.push(message.payload);
     });
 
     cotonic.broker.publish("a/b/c", "Hello world!");
@@ -26,20 +26,20 @@ QUnit.test("Subscribe and publish, with wildcards", function(assert) {
     cotonic.broker.publish("foo/bar", "Hello nobody!");
 
     cotonic.broker.subscribe("foo/#", function(message, prop) {
-	publishes.push({msg: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
-    
+
     cotonic.broker.subscribe("bar/+", function(message, prop) {
-	publishes.push({msg: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
     cotonic.broker.publish("foo/bar", "One");
     cotonic.broker.publish("foo/bar/baz", "Two");
     cotonic.broker.publish("bar/this", "Three");
 
-    assert.deepEqual([{msg: "One", prop: {}},
-                      {msg: "Two", prop: {}},
-                      {msg: "Three", prop: {}}], publishes, "Three matches");
+    assert.deepEqual([{payload: "One", prop: {}},
+                      {payload: "Two", prop: {}},
+                      {payload: "Three", prop: {}}], publishes, "Three matches");
 
     cotonic.broker._flush();
 });
@@ -50,20 +50,20 @@ QUnit.test("Subscribe and publish, with named wildcards", function(assert) {
     cotonic.broker.publish("foo/bar", "Hello nobody!");
 
     cotonic.broker.subscribe("foo/#a", function(message, prop) {
-	publishes.push({msg: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
-    
+
     cotonic.broker.subscribe("bar/+a", function(message, prop) {
-	publishes.push({msg: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
     cotonic.broker.publish("foo/bar", "One");
     cotonic.broker.publish("foo/bar/baz", "Two");
     cotonic.broker.publish("bar/this", "Three");
 
-    assert.deepEqual([{msg: "One", prop: {a: ["bar"]}},
-                      {msg: "Two", prop: {a: ["bar", "baz"]}},
-                      {msg: "Three", prop: {a: "this"}}], publishes, "Three matches");
+    assert.deepEqual([{payload: "One", prop: {a: ["bar"]}},
+                      {payload: "Two", prop: {a: ["bar", "baz"]}},
+                      {payload: "Three", prop: {a: "this"}}], publishes, "Three matches");
 
     cotonic.broker._flush();
 });
@@ -73,35 +73,57 @@ QUnit.test("Subscribe and publish, retained messages", function(assert) {
 
     cotonic.broker._delete_all_retained();
 
-    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retained: true});
+    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retain: true});
 
     cotonic.broker.subscribe("retained/#a", function(message, prop) {
-	publishes.push({msg: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
-    assert.equal(1, publishes.length, "There is one message");
+    assert.equal(publishes.length, 1, "There is one message");
 
     cotonic.broker.subscribe("#a", function(message, prop) {
-	publishes.push({msg: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
 
-    assert.equal(2, publishes.length, "There are two messages");
+    assert.equal(publishes.length, 2, "There are two messages");
     cotonic.broker._delete_all_retained();
 });
+
+QUnit.test("Subscribe, publish, unsubscribe, publish", function(assert) {
+    let publishes = [];
+
+    cotonic.broker._delete_all_retained();
+
+    cotonic.broker.subscribe("plop", function(message, prop) {
+        publishes.push({payload: message.payload, prop: prop});
+    }, { wid: "x" });
+
+    cotonic.broker.publish("plop", "First");
+    cotonic.broker.unsubscribe("plop", { wid: "x" });
+    cotonic.broker.publish("plop", "Second");
+
+    assert.equal(publishes.length, 1, "There is one message");
+
+    assert.deepEqual([
+            {payload: "First", prop: {}}
+        ], publishes, "Single match");
+
+    cotonic.broker._flush();
+});
+
 
 QUnit.test("Delete retained messages", function(assert) {
     let publishes = [];
 
     cotonic.broker._delete_all_retained();
-    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retained: true});
-    cotonic.broker.publish("retained/bar", "", {retained: true});
+    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retain: true});
+    cotonic.broker.publish("retained/bar", "", {retain: true});
 
     cotonic.broker.subscribe("retained/#a", function(message, prop) {
-	publishes.push({msg: message, prop: prop});
+        publishes.push({payload: message.payload, prop: prop});
     });
-    
+
     assert.equal(0, publishes.length, "There are no messages");
 
 })
 
-    

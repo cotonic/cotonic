@@ -43,32 +43,32 @@ var cotonic = cotonic || {};
     }
 
     /**
-     * Handle incoming messages from workers 
+     * Handle incoming messages from workers
      */
     function message_from_worker(wid, msg) {
         var data = msg.data;
 
-	if(receive_handler) {
-	    receive_handler(data, wid);
-	} else {
-	    console.log("Unhandled message from worker", wid, msg);
-	}
+        if(receive_handler) {
+            receive_handler(data, wid);
+        } else {
+            console.log("Unhandled message from worker", wid, msg);
+        }
     }
 
     /**
      * Handle error from worker
      */
     function error_from_worker(wid, e) {
-	// TODO, actually handle the error
-	console.log("Error from worker", wid, e);
+        // TODO, actually handle the error
+        console.log("Error from worker", wid, e);
     }
 
     /**
      * Start a worker
      */
     function spawn(url, args) {
-	if(!BASE_WORKER_SRC)
-	    throw("Can't spawn worker, no data-base-worker-src attribute set.");
+        if(!BASE_WORKER_SRC)
+            throw("Can't spawn worker, no data-base-worker-src attribute set.");
 
         const blob = new Blob(["importScripts(\"", BASE_WORKER_SRC, "\");"]);
         const blobURL = window.URL.createObjectURL(blob);
@@ -82,7 +82,7 @@ var cotonic = cotonic || {};
             wid: worker_id}]);
 
         worker.onmessage = message_from_worker.bind(this, worker_id);
-	worker.onerror = error_from_worker.bind(this, worker_id);
+        worker.onerror = error_from_worker.bind(this, worker_id);
 
         workers[worker_id] = worker;
 
@@ -94,7 +94,7 @@ var cotonic = cotonic || {};
      */
     function send(wid, message) {
         if(wid === 0) {
-	    setTimeout(function() { handler(message, wid) }, 0);
+            setTimeout(function() { handler(message, wid) }, 0);
             return;
         }
 
@@ -105,10 +105,10 @@ var cotonic = cotonic || {};
     }
 
     function receive(handler) {
-	receive_handler = handler;
+        receive_handler = handler;
     }
 
-    cotonic.set_worker_base_src = set_worker_base_src; 
+    cotonic.set_worker_base_src = set_worker_base_src;
 
     cotonic.spawn = spawn;
     cotonic.send = send;

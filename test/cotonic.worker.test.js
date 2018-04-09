@@ -12,9 +12,9 @@ QUnit.test("Receive connect from worker", function(assert) {
     worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
-        var cmd = e.data.cmd;
-        assert.equal(cmd, "connect");
-	worker.terminate();
+        var type = e.data.type;
+        assert.equal(type, "connect");
+        worker.terminate();
         done();
     }
 });
@@ -29,16 +29,15 @@ QUnit.test("Connect and connack worker", function(assert) {
     var connected = false;
 
     worker.onmessage = function(e) {
-        console.log("XXXX", e.data);
         if(!connected) {
-            var cmd = e.data.cmd;
-            assert.equal(cmd, "connect");
+            var type = e.data.type;
+            assert.equal(type, "connect");
             connected = true;
-            worker.postMessage({cmd: "connack"})
+            worker.postMessage({type: "connack"})
         } else {
             // The hello world worker sends a normal postMessage
             assert.equal(e.data, "Hello world!")
-	    worker.terminate();
+            worker.terminate();
             done();
         }
     }
@@ -54,20 +53,20 @@ QUnit.test("Connect and subscribe worker", function(assert) {
     worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
-        var cmd = e.data.cmd;
+        var type = e.data.type;
 
         if(!connected) {
-            assert.equal(cmd, "connect");
+            assert.equal(type, "connect");
             connected = true;
-            worker.postMessage({cmd: "connack"})
+            worker.postMessage({type: "connack"})
             return;
         }
 
         if(!subscribed) {
-            assert.equal(cmd, "subscribe");
+            assert.equal(type, "subscribe");
             subscribed = true;
-            worker.postMessage({cmd: "suback", sub_id: e.data.id})
-	    worker.terminate();
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]})
+            worker.terminate();
             done();
         }
     }
@@ -84,28 +83,81 @@ QUnit.test("Connect, subscribe and publish to worker", function(assert) {
     var subscribed = false;
 
     worker.onmessage = function(e) {
-        var cmd = e.data.cmd;
+        var type = e.data.type;
 
-	if(e.data == "Hello to you too") {
-	    worker.terminate();
-	    done();
-	}
+        if(e.data == "Hello to you too") {
+            worker.terminate();
+            done();
+        }
 
         if(!connected) {
-            assert.equal(cmd, "connect");
+            assert.equal(type, "connect");
             connected = true;
-            worker.postMessage({cmd: "connack"})
+            worker.postMessage({type: "connack"})
             return;
         }
 
         if(!subscribed) {
-            assert.equal(cmd, "subscribe");
+            assert.equal(type, "subscribe");
             subscribed = true;
 
-            worker.postMessage({cmd: "suback", sub_id: e.data.id});
-	    worker.postMessage({cmd: "publish", topic: "test/a/b", payload: "Hi"});
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]});
+            worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi"});
 
-	    return;
+            return;
+        }
+    }
+});
+
+QUnit.test("Connect, subscribe and unsubscribe worker", function(assert) {
+    assert.timeout(500);
+    var done = assert.async();
+
+    var connected = false;
+    var subscribed1 = false;
+    var subscribed2 = false;
+    var unsubscribed = false;
+    var worker = new Worker("subscribe-unsubscribe-worker.js");
+    worker.postMessage(["init", {}]);
+
+    worker.onmessage = function(e) {
+
+        if (e.data === 1) {
+            worker.terminate();
+            done();
+        }
+
+        var type = e.data.type;
+
+        if(!connected) {
+            assert.equal(type, "connect");
+            connected = true;
+            worker.postMessage({type: "connack"})
+            return;
+        }
+
+        if(!subscribed1) {
+            assert.equal(type, "subscribe");
+            subscribed1 = true;
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]})
+            return;
+        }
+
+        if(!subscribed2) {
+            assert.equal(type, "subscribe");
+            subscribed2 = true;
+            worker.postMessage({type: "suback", packet_id: e.data.packet_id, acks: [0]})
+            worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi-1"});
+            return;
+        }
+
+        if(!unsubscribed) {
+            assert.equal(type, "unsubscribe");
+            unsubscribed = true;
+            worker.postMessage({type: "unsuback", packet_id: e.data.packet_id, acks: [0]})
+            worker.postMessage({type: "publish", topic: "test/a/b", payload: "Hi-2"});
+            worker.postMessage({type: "publish", topic: "test/check", payload: ""});
+            return;
         }
     }
 });

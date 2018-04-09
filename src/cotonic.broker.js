@@ -25,7 +25,7 @@ var cotonic = cotonic || {};
     /* Trie implementation */
     const CHILDREN = 0;
     const VALUE = 1;
-    
+
     function new_node(value) { return [null, value]; }
 
     function flush() {
@@ -36,185 +36,382 @@ var cotonic = cotonic || {};
     flush();
 
     function add(topic, thing) {
-	const path = topic.split("/");
-	
-	let i = 0;
-	let current = root;
-	
-	for(i = 0; i < path.length; i++) {
-	    let children = current[CHILDREN];
-	    if(children === null) {
-		children = current[CHILDREN] = {};
-	    }
-	    
-	    if(!children.hasOwnProperty(path[i])) {
-		children[path[i]] = new_node(null);
-	    }
-	    
-	    current = children[path[i]];
-	}
+        const path = topic.split("/");
 
-	let v = current[VALUE];
-	if(v === null) {
-	    v = current[VALUE] = [];
-	}
-	
-	v.push(thing);
+        let i = 0;
+        let current = root;
+
+        for(i = 0; i < path.length; i++) {
+            let children = current[CHILDREN];
+            if(children === null) {
+                children = current[CHILDREN] = {};
+            }
+
+            if(!children.hasOwnProperty(path[i])) {
+                children[path[i]] = new_node(null);
+            }
+
+            current = children[path[i]];
+        }
+
+        let v = current[VALUE];
+        if(v === null) {
+            v = current[VALUE] = [];
+        }
+
+        let index = indexOfSubscription(v, thing);
+        if(index > -1) {
+            v.splice(index, 1);
+        }
+        v.push(thing);
+        return v;
     }
 
     function match(topic) {
-	const path = topic.split("/");
-	let matches = [];
+        const path = topic.split("/");
+        let matches = [];
 
-	collect_matches(path, root, matches);
+        collect_matches(path, root, matches);
 
-	return matches;
+        return matches;
     }
 
     function collect_matches(path, trie, matches) {
         if(trie === undefined) return;
 
-	if(path.length === 0) {
-	    if(trie[VALUE] !== null) {
-		matches.push.apply(matches, trie[VALUE])
-		return;
-	    }
-	}
+        if(path.length === 0) {
+            if(trie[VALUE] !== null) {
+                matches.push.apply(matches, trie[VALUE])
+                return;
+            }
+        }
 
-	let children = trie[CHILDREN];
-	if(children === null) return;
+        let children = trie[CHILDREN];
+        if(children === null) return;
 
-	let sub_path = path.slice(1);
+        let sub_path = path.slice(1);
 
-	collect_matches(sub_path, children[path[0]], matches);
-	collect_matches(sub_path, children["+"], matches);
-	collect_matches([], children["#"], matches);
+        collect_matches(sub_path, children[path[0]], matches);
+        collect_matches(sub_path, children["+"], matches);
+        collect_matches([], children["#"], matches);
     }
 
     function remove(topic, thing) {
-	const path = topic.split("/");
-	let current = root;
-	let i = 0;
-	let visited = [current];
+        const path = topic.split("/");
+        let current = root;
+        let i = 0;
+        let visited = [current];
 
-	for(i = 0; i < path.length; i++) {
-	    let children = current[CHILDREN];
-	    if(children === null) {
-		return;
-	    }
-	    
-	    if(!children.hasOwnProperty(path[i])) {
-		return;
-	    }
+        for(i = 0; i < path.length; i++) {
+            let children = current[CHILDREN];
+            if(children === null) {
+                return;
+            }
 
-	    current = children[path[i]];
-	    visited.unshift(current);
-	}
+            if(!children.hasOwnProperty(path[i])) {
+                return;
+            }
 
-	/* Remove the node, and check for empty nodes along the path */
-	let v = current[VALUE];
-	let index = v.indexOf(thing);
-	if(index > -1) {
-	    v.splice(index, 1);
-	    
-	    if(v.length === 0) {
-		current[VALUE] = null;
-		path.reverse();
-		for(i = 0; i < visited.length - 1; i++) {
-		    let v = visited[i];
-	    
-		    if(v[CHILDREN] === null && v[VALUE] === null) {
-			let v1 = visited[i+1];
-			delete v1[CHILDREN][path[i]];
-			if(Object.keys(v1[CHILDREN]).length == 0) {
-			    v1[CHILDREN] = null;
-			}
-			continue;
-		    }
-		    return;
-		}
-	    }
-	}
+            current = children[path[i]];
+            visited.unshift(current);
+        }
+
+        /* Remove the node, and check for empty nodes along the path */
+        let v = current[VALUE];
+        let index = indexOfSubscription(v, thing);
+        if(index > -1) {
+            v.splice(index, 1);
+
+            if(v.length === 0) {
+                current[VALUE] = null;
+                path.reverse();
+                for(i = 0; i < visited.length - 1; i++) {
+                    let v = visited[i];
+
+                    if(v[CHILDREN] === null && v[VALUE] === null) {
+                        let v1 = visited[i+1];
+                        delete v1[CHILDREN][path[i]];
+                        if(Object.keys(v1[CHILDREN]).length == 0) {
+                            v1[CHILDREN] = null;
+                        }
+                        continue;
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    function indexOfSubscription( v, thing ) {
+        let index = v.indexOf(thing);
+        if (index == -1) {
+            for(index = v.length-1; index >= 0; index--) {
+                let sub = v[index];
+                if (thing.type == sub.type && sub.wid && sub.wid === thing.wid) {
+                    return index;
+                }
+            }
+        }
+        return index;
+    }
+
+    /**
+     * Find all subscribers "below" a certain topic
+     * Used by the bridge to collect all subcriptions after a session restart
+     */
+    function find_subscriptions_below(topic) {
+        const path = topic.split("/");
+        let subs = [];
+        collect_subscribers(path, root, subs);
+        return subs;
+    }
+
+    function collect_subscribers(path, trie, subs) {
+        if(trie === undefined) return;
+
+        if(path.length === 0 && trie[VALUE] !== null) {
+            subs.push.apply(subs, trie[VALUE])
+        }
+
+        let children = trie[CHILDREN];
+        if(children === null) return;
+
+        if (path.length > 0) {
+            let sub_path = path.slice(1);
+
+            collect_subscribers(sub_path, children[path[0]], subs);
+            collect_subscribers(sub_path, children["+"], subs);
+            collect_subscribers([], children["#"], subs);
+        } else {
+            for (let m in children) {
+                collect_subscribers(path, children[m], subs);
+            }
+        }
     }
 
     /* ----- end trie ---- */
-    
+
+
     /* We assume every message is for the broker. */
     cotonic.receive(function(data, wid) {
-	if(!data.cmd) return;
+        if(!data.type) return;
 
-	switch(data.cmd) {
-	case "connect":
-	    return handle_connect(wid, data);
-	case "publish":
-	    return handle_publish(wid, data);
-	case "subscribe":
-	    return handle_subscribe(wid, data);
-	default:
-	    console.error("Received unknown command", data.cmd);
-	};
+        switch(data.type) {
+            case "connect":
+                return handle_connect(wid, data);
+            case "publish":
+                return handle_publish(wid, data);
+            case "subscribe":
+                return handle_subscribe(wid, data);
+            case "unsubscribe":
+                return handle_subscribe(wid, data);
+            case "pingreq":
+                return handle_pingreq(wid, data);
+            default:
+                console.error("Received unknown command", data);
+        };
     });
 
     function handle_connect(wid, data) {
-	// TODO: Start keep-alive timer
-	clients[wid] = data;
-	cotonic.send(wid, {cmd: "connack"});
+        // TODO: Start keep-alive timer for will handling if pingreq missing
+        if (data.client_id !== wid) {
+            console.error("Wrong client_id in connect from " + wid, data);
+        }
+        clients[wid] = data;
+        cotonic.send(wid, {type: "connack", reason_code: 0});
     }
 
     function handle_subscribe(wid, data) {
-        let subscription = {type: "worker", wid: wid};
+        let acks = subscribe_subscriber({type: "worker", wid: wid}, data);
+        cotonic.send(wid, {type: "suback", packet_id: data.packet_id, acks: acks});
+    }
 
-	add(data.topic, subscription);
-        cotonic.send(wid, {cmd: "suback", sub_id: data.id});
-
-        const retained = get_matching_retained(data.topic);
-        for(let i = 0; i < retained.length; i++) {
-            publish_message(subscription, retained[i].topic, retained[i].retained.message);
-        }
+    function handle_unsubscribe(wid, data) {
+        let acks = unsubscribe_subscriber({type: "worker", wid: wid}, data);
+        cotonic.send(wid, {type: "unsuback", packet_id: data.packet_id, acks: acks});
     }
 
     function handle_publish(wid, data) {
-	publish(data.topic, data.message, data.options);
+        publish_mqtt_message(data.topic, data);
     }
 
-    /** 
+    function handle_pingreq(wid, data) {
+        // TODO: reset keep-alive timer
+        cotonic.send(wid, {type: "pingresp"});
+    }
+
+    /**
      * Subscribe from main page
      */
-    function subscribe(topic, callback) {
-        const subscription = {type: "page", topic: topic, callback: callback};
-        const mqtt_topic = cotonic.mqtt.remove_named_wildcards(topic);
+    function subscribe(topics, callback, options) {
+        options = options || {};
+        let subtopics = [];
 
-	add(mqtt_topic, subscription); 
-
-        // TODO optimization possible. Only check all topics when the subscribe
-        // contains a wildcard.
-        const retained = get_matching_retained(mqtt_topic);
-        for(let i = 0; i < retained.length; i++) {
-            publish_message(subscription, retained[i].topic, retained[i].retained.message);
+        if (typeof topics == "string") {
+            topics = [ topics ];
         }
+
+        for (let k = 0; k < topics.length; k++) {
+            if (typeof topics[k] == "string") {
+                subtopics.push({
+                    topic: topics[k],
+                    qos: options.qos || 0,
+                    retain_handling: options.retain_handling || 0,
+                    retain_as_published: options.retain_as_published || false,
+                    no_local: options.no_local || false
+                });
+            } else {
+                subtopics.push(topics[k]);
+            }
+        }
+        const msg = {
+            type: "subscribe",
+            topics: subtopics,
+            properties: options.properties || {}
+        };
+        return subscribe_subscriber({type: "page", wid: options.wid, callback: callback}, msg);
+    }
+
+
+    function subscribe_subscriber(subscription, msg) {
+        let bridge_topics = {};
+        let acks = [];
+        for(let k = 0; k < msg.topics.length; k++) {
+            const t = msg.topics[k];
+            const mqtt_topic = cotonic.mqtt.remove_named_wildcards(t.topic);
+            subscription.sub = t;
+            subscription.topic = t.topic;
+
+            let allSubs = add(mqtt_topic, subscription);
+            acks.push(0);
+
+            if(t.retain_handling < 2) {
+                // TODO optimization possible. Only check all topics when the subscribe
+                // contains a wildcard.
+                const retained = get_matching_retained(mqtt_topic);
+                for(let i = 0; i < retained.length; i++) {
+                    publish_subscriber(subscription, retained[i].retained.message, subscription.wid);
+                }
+            }
+
+            // Collect bridge topics per bridge
+            let m = mqtt_topic.match(/^bridge\/([^\/]+)\/.*/);
+            if (m !== null && m[1] != "+") {
+                if (bridge_topics[ m[1] ] === undefined) {
+                    bridge_topics[ m[1] ] = [];
+                }
+                bridge_topics[ m[1] ].push({ topic: mqtt_topic, subs: allSubs});
+            }
+        }
+
+        // Relay bridge topics to the bridges
+        // Forward the "best" (qos, retain_handling) subscription (assume it is changed)
+        for(let b in bridge_topics) {
+            let topics = [];
+            for (let i = 0; i < bridge_topics[b].length; i++) {
+                let merged = mergeSubscriptions(bridge_topics[b][i].subs);
+                merged.topic = bridge_topics[b][i].topic;
+                topics.push(merged);
+            }
+            let sub = {
+                type: "subscribe",
+                topics: topics,
+                properties: msg.properties || {}
+            };
+            publish("$bridge/" + b + "/control", sub);
+        }
+        return acks;
+    }
+
+    function mergeSubscriptions( subs ) {
+        var best = Object.assign({}, subs[0].sub);
+        for (let i = 1; i < subs.length; i++) {
+            let s = subs[i].sub;
+            best.qos = Math.max(best.qos, s.qos);
+            best.retain_handling = Math.min(best.retain_handling, s.retain_handling);
+            best.retain_as_published = best.retain_as_published || s.retain_as_published;
+            best.no_local = best.no_local && s.no_local;
+        }
+        return best;
+    }
+
+    /**
+      * Unsubscribe
+      */
+    function unsubscribe( topics, options ) {
+        if (typeof topics == "string") {
+            topics = [ topics ];
+        }
+        unsubscribe_subscriber({type: "page", wid: options.wid}, { topics: topics });
+    }
+
+    function unsubscribe_subscriber(sub, msg) {
+        let bridge_topics = {};
+        let acks = [];
+
+        for (let i = 0; i < msg.topics.length; i++) {
+            remove(msg.topics[i], sub);
+            acks.push(0);
+
+            // Collect bridge topics per bridge
+            const mqtt_topic = cotonic.mqtt.remove_named_wildcards(msg.topics[i]);
+            let m = mqtt_topic.match(/^bridge\/([^\/]+)\/.*/);
+            if (m !== null && m[1] != "+") {
+                if (bridge_topics[ m[1] ] === undefined) {
+                    bridge_topics[ m[1] ] = [];
+                }
+                bridge_topics[ m[1] ].push(t);
+            }
+        }
+
+        // Relay bridge topics to the bridges
+        for(let b in bridge_topics) {
+            let unsub = {
+                type: "unsubscribe",
+                topics: bridge_topics[b],
+                properties: msg.properties || {}
+            };
+            publish("$bridge/" + b + "/control", unsub);
+        }
+        return acks;
     }
 
     /**
      * Publish from main page
      */
-    function publish(topic, message, options) {
-	const subscriptions = match(topic);
-
-        if(options && options.retained) {
-            retain(topic, message, options);
-        }
-
-	for(let i = 0; i < subscriptions.length; i++) {
-            publish_message(subscriptions[i], topic, message);
-	}
+    function publish(topic, payload, options) {
+        options = options || {};
+        let msg = {
+            type: "publish",
+            topic: topic,
+            payload: payload,
+            qos: options.qos || 0,
+            retain: options.retain || false,
+            properties: options.properties || {}
+        };
+        publish_mqtt_message(msg, options);
     }
 
-    function publish_message(sub, topic, message) {
+    function publish_mqtt_message(msg, options) {
+        const subscriptions = match(msg.topic);
+        if(msg.retain) {
+            retain(msg);
+        }
+
+        for(let i = 0; i < subscriptions.length; i++) {
+            publish_subscriber(subscriptions[i], msg, options.wid);
+        }
+    }
+
+    function publish_subscriber(sub, mqttmsg, wid) {
+        if (wid && sub.wid && sub.wid === wid && sub.sub.no_local) {
+            return;
+        }
+
         if(sub.type === "worker") {
-            cotonic.send(sub.wid, {cmd: "publish", topic: topic, msg: message})
+            cotonic.send(sub.wid, mqttmsg)
         } else if(sub.type === "page") {
-            const p = cotonic.mqtt.extract(sub.topic, topic);
-            sub.callback(message, p);
+            sub.callback(mqttmsg, cotonic.mqtt.extract(sub.topic, mqttmsg.topic));
         } else {
             console.error("Unkown subscription type", sub);
         }
@@ -224,13 +421,12 @@ var cotonic = cotonic || {};
         return "c_retained$" + topic;
     }
 
-    function retain(topic, message, options) {
-        const key = retain_key(topic);
-        
-        if(message) {
+    function retain(message) {
+        const key = retain_key(message.topic);
+
+        if(message.payload !== undefined && message.payload !== null && message.payload !== "") {
             sessionStorage.setItem(key, JSON.stringify({
-                message: message,
-                options: options
+                message: message
             }));
         } else {
             sessionStorage.removeItem(key);
@@ -240,7 +436,7 @@ var cotonic = cotonic || {};
     function get_matching_retained(topic) {
         const prefix = "c_retained$";
         let matching = [];
-        
+
         for(let i = 0; i < sessionStorage.length; i++) {
             let key = sessionStorage.key(i);
 
@@ -255,7 +451,7 @@ var cotonic = cotonic || {};
 
             const retained = get_retained(retained_topic);
             if(retained !== null)
-                matching.push({topic: topic, retained: retained}); 
+                matching.push({topic: topic, retained: retained});
         }
 
         return matching;
@@ -294,12 +490,17 @@ var cotonic = cotonic || {};
     // For testing
     cotonic.broker._root = root;
     cotonic.broker._add = add;
-    cotonic.broker._match = match;
     cotonic.broker._remove = remove;
     cotonic.broker._flush = flush;
     cotonic.broker._delete_all_retained = delete_all_retained;
 
     // External API
+    cotonic.broker.find_subscriptions_below = find_subscriptions_below;
+    cotonic.broker.match = match;
     cotonic.broker.publish = publish;
     cotonic.broker.subscribe = subscribe;
+    cotonic.broker.unsubscribe = unsubscribe;
+
+    // Bridge API for relaying publish messages
+    cotonic.broker.publish_mqtt_message = publish_mqtt_message;
 }(cotonic));
