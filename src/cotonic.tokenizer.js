@@ -361,12 +361,12 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_comment(data, d) {
-        let c1, c2, c3, offsetStart = d.offset, cont=true;
+        let offsetStart = d.offset, cont=true;
 
         while (cont) {
-            c1 = data.codePointAt(d.offset);
-            c2 = data.codePointAt(d.offset + 1);
-            c3 = data.codePointAt(d.offset + 2);
+            let c1 = data.codePointAt(d.offset);
+            let c2 = data.codePointAt(d.offset + 1);
+            let c3 = data.codePointAt(d.offset + 2);
 
             if (c1 === DASH && c2 === DASH && c3 === GT) {
                 d.builder.comment(data.slice(offsetStart, d.offset));
@@ -402,10 +402,10 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_word(data, quote, d) {
-        let c, charref, acc = [], cont=true;
+        let acc = [], cont=true;
 
         while (cont) {
-            c = data.codePointAt(d.offset);
+            let c = data.codePointAt(d.offset);
             if (c === undefined) {
                 return value(acc.join(""), d);
             }
@@ -416,7 +416,7 @@ var cotonic = cotonic || {};
             }
 
             if (c === AMPERSAND) {
-                charref = tokenize_charref(data, d.inc_col());
+                let charref = tokenize_charref(data, d.inc_col());
                 acc.push(charref.value);
             }
 
@@ -426,10 +426,10 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_data(data, d) {
-        let c, offsetStart = d.offset, cont=true;
+        let offsetStart = d.offset, cont=true;
 
         while (cont) {
-            c = data.codePointAt(d.offset);
+            let c = data.codePointAt(d.offset);
             if (c === undefined || c === LT || c === AMPERSAND) {
                 return value(data.slice(offsetStart, d.offset), d);
             }
@@ -439,8 +439,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_literal(data, d, type) {
-        let literal = [], cont=true,
-            c = data.codePointAt(d.offset);
+        let literal = [], cont=true, c = data.codePointAt(d.offset);
 
         // Handle case where tokenize_literal would consume
         // 0 chars. http://github.com/mochi/mochiweb/pull/13
@@ -588,17 +587,17 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_quoted_attr_value(data, start_quote, d) {
-        let c, v = [], charref, cont = true;
+        let v = [], cont = true;
 
         while (cont) {
-            c = data.codePointAt(d.offset);
+            let c = data.codePointAt(d.offset);
 
             if (c === undefined) {
                 return value(v.join(""), d);
             }
 
             if (c === AMPERSAND) {
-                charref = tokenize_charref(data, d.inc_col());
+                let charref = tokenize_charref(data, d.inc_col());
 
                 v.push(charref.value);
                 continue;
@@ -615,17 +614,17 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_unquoted_attr_value(data, d) {
-        let c, v = [], charref, cont = true;
+        let v = [], cont = true;
 
         while (cont) {
-            c = data.codePointAt(d.offset);
+            let c = data.codePointAt(d.offset);
 
             if (c === undefined) {
                 return value(v.join(""), d);
             }
 
             if (c === AMPERSAND) {
-                charref = tokenize_charref(data, d.inc_col());
+                let charref = tokenize_charref(data, d.inc_col());
                 v.push(charref.value);
                 continue;
             }
@@ -676,10 +675,10 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_charref1(data, d) {
-        let cont = true, c, offsetStart = d.offset, u;
+        let cont = true, offsetStart = d.offset, u;
 
         while (cont) {
-            c = data.codePointAt(d.offset);
+            let c = data.codePointAt(d.offset);
 
             if (c === undefined)
                 throw "invalid_charref";
@@ -718,10 +717,10 @@ var cotonic = cotonic || {};
     }
 
     function skip_whitespace(data, d) {
-        let c, cont=true;
+        let cont=true;
 
         while (cont) {
-            c = data.codePointAt(d.offset);
+            let c = data.codePointAt(d.offset);
             if (is_whitespace(c)) {
                 d.inc_char(c);
             }
