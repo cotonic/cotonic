@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-// TODO: subscribe on the remote routing/client-id topics
-// TODO: strip remote routing/client-id topics before relaying to local tree
-// TODO: unsubscribe
-// TOOD: admin for de-duplication of subscriptions
-
 "use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
     const BRIDGE_LOCAL_TOPIC = "bridge/+remote/#topic";
     const BRIDGE_STATUS_TOPIC = "$bridge/+remote/status";
+    const BRIDGE_AUTH_TOPIC = "$bridge/+remote/auth";
     const BRIDGE_CONTROL_TOPIC = "$bridge/+remote/control";
 
     const SESSION_IN_TOPIC = "session/+remote/in"
@@ -71,8 +67,9 @@ var cotonic = cotonic || {};
         var clientId;
         var routingId;
         var local_topics = {};
-        var remote_subscriptions = {};
         var sessionTopic;
+        var is_connected = false;
+        var session_present = false;
         var self = this;
         var wid;
 
@@ -81,10 +78,11 @@ var cotonic = cotonic || {};
             self.wid = "bridge/" + remote;
             self.remote = remote;
             self.local_topics = {
-                // Comm between system and bridge
-                bridge_status: cotonic.mqtt.fill(BRIDGE_STATUS_TOPIC, {remote: remote}),
+                // Comm between local broker and bridge
                 bridge_local: cotonic.mqtt.fill(BRIDGE_LOCAL_TOPIC, {remote: remote, topic: "#topic"}),
-                bridge_control: cotonic.mqtt.fill(BRIDGE_CONTROL_TOPIC, {remote: remote, topic: "#topic"}),
+                bridge_status: cotonic.mqtt.fill(BRIDGE_STATUS_TOPIC, {remote: remote}),
+                bridge_auth: cotonic.mqtt.fill(BRIDGE_AUTH_TOPIC, {remote: remote}),
+                bridge_control: cotonic.mqtt.fill(BRIDGE_CONTROL_TOPIC, {remote: remote}),
 
                 // Comm between session and bridge
                 session_in: cotonic.mqtt.fill(SESSION_IN_TOPIC, {remote: remote}),
@@ -92,14 +90,14 @@ var cotonic = cotonic || {};
                 session_status: cotonic.mqtt.fill(SESSION_STATUS_TOPIC, {remote: remote}),
                 session_control: cotonic.mqtt.fill(SESSION_CONTROL_TOPIC, {remote: remote})
             };
-            cotonic.broker.subscribe(self.local_topics.bridge_local, relayOut, {wid: wid, no_local: true});
+            cotonic.broker.subscribe(self.local_topics.bridge_local, relayOut, {wid: self.wid, no_local: true});
             cotonic.broker.subscribe(self.local_topics.bridge_control, bridgeControl);
             cotonic.broker.subscribe(self.local_topics.session_in, relayIn);
             cotonic.broker.subscribe(self.local_topics.session_status, sessionStatus);
 
             // 3. Start a mqtt_session WebWorker for the remote
             self.session = mqtt_session.newSession(remote, self.local_topics);
-            publishStatus( false );
+            publishStatus();
         };
 
 
@@ -148,20 +146,23 @@ var cotonic = cotonic || {};
                     sessionConnack(relay);
                     break;
                 case 'disconnect':
+                    self.is_connected = false;
+                    publishStatus();
                     break;
                 case 'auth':
-                    // auth (re-authenticate)
+                    cotonic.broker.publish(self.local_topics.bridge_auth, relay, { wid: self.wid });
                     break;
                 case 'suback':
-                    // suback (per topic)
-                    // non-conformant: add the topic in the ack
-                    // discuss: should this be a publish with payload?
+                    // suback (multiple topics)
+                    // non-conformant: the topics are added to the ack
+                    for (let k = 0; k < relay.acks; k++) {
+
+                    }
                     break;
                 case 'puback':
                 case 'pubrec':
                     // puback (per topic)
                     // non-conformant: add the topic in the ack
-                    // discuss: should this be a publish with payload?
                     break;
                 case 'publish':
                     // status in payload
@@ -202,30 +203,9 @@ var cotonic = cotonic || {};
             }
         }
 
-        // Session status changes
-        function sessionStatus ( msg ) {
-            console.log("sessionStatus", msg);
-        }
-
-        function remoteRoutingTopic ( topic ) {
-            return "bridge/" + self.routingId + "/" + topic;
-        }
-
-        function localRoutingTopic ( topic ) {
-            return "bridge/" + self.remote + "/" + topic;
-        }
-
-        function dropRoutingTopic ( topic ) {
-            return topic.replace(/^bridge\/[^\/]+\//, '');
-        }
-
-
-        this.match = function ( topicId ) {
-            return self.clientId === topicId || self.routingId === topicId;
-        };
-
         function sessionConnack ( msg ) {
             // 1. Register the clientId and the optional 'cotonic-routing-id' property
+            self.is_connected = msg.is_connected;
             if (msg.is_connected) {
                 // Either the existing client-id or an assigned client-id
                 self.clientId = msg.client_id;
@@ -241,58 +221,90 @@ var cotonic = cotonic || {};
                 if (!msg.connack.session_present) {
                     // Subscribe to the client + routing forward topics
                     let topics = [
-                        { topic: "bridge/" + self.clientId + "/#", qos: 2 }
+                        { topic: "bridge/" + self.clientId + "/#", qos: 2, no_local: true }
                     ];
                     if (self.clientId != self.routingId) {
-                        topics.push({ topic: "bridge/" + self.routingId + "/#", qos: 2 });
+                        topics.push({ topic: "bridge/" + self.routingId + "/#", qos: 2, no_local: true });
                     }
                     let subscribe = {
                         type: "subscribe",
                         topics: topics,
                     };
                     cotonic.broker.publish(self.local_topics.session_out, subscribe);
+                    resubscribeTopics()
+                    self.session_present = !!msg.connack.session_present
+                } else {
+                    self.session_present = true;
                 }
-
-                // 2. Check 'session_present' flag
-                //    - If not present then:
-                //      1. Add subscription on server for "bridge/<clientId>/#"
-                //      2. Add subscription on server for "bridge/<routingId>/#"
-                //      3. Resubscribe client subscriptions (fetch all local subscriptions matching 'bridge/<remote>/#')
-                // Publish to '$bridge/<remote>/status' topic that we connected (retained)
-                // Subscribers then handle the 'session_present' flag.
-
-                publishStatus( true );
-            } else {
-                publishStatus( false );
             }
-        };
+            publishStatus();
+        }
 
-        this.sessionAuth = function ( ConnectOrAuth, isConnected ) {
-            // Either:
-            // - Add authentication credentials to the CONNECT packet
-            // - Received an AUTH packet, perform extended (re-)authentication
-        };
+        function resubscribeTopics ( ) {
+            let subs = cotonic.broker.find_subscriptions_below("bridge/" + self.remote);
+            let topics = {};
+            for (let i = 0; i < subs.length; i++) {
+                if (subs[i].wid == self.wid) {
+                    continue;
+                }
+                let sub = Object.assign({}, subs[i].sub);
+                sub.topic = cotonic.mqtt.remove_named_wildcards(sub.topic);
+                if (!topics[sub.topic]) {
+                    topics[sub.topic] = sub;
+                } else {
+                    mergeSubscription(topics[sub.topic], sub);
+                }
+            }
+            let ts = [];
+            for (let t in topics) {
+                ts.push(topics[t]);
+            }
+            if (ts.length > 0) {
+                bridgeControl({ type: 'publish', payload: { type: 'subscribe', topics: ts } });
+            }
+        }
 
-        this.sessionDisconnect = function ( optDisconnect ) {
-            // Publish to '$bridge/<remote>/status' topic that this remote disconnected (retained)
-            publishStatus( false );
-        };
+        function mergeSubscription ( subA, subB ) {
+            let qosA = subA.qos || 0;
+            let qosB = subB.qos || 0;
+            subA.qos = Math.max(qosA, qosB);
 
+            let rhA = subA.retain_handling || 0;
+            let rhB = subB.retain_handling || 0;
+            subA.retain_handling = Math.min(rhA, rhB);
 
-        function publishStatus( session_present ) {
+            subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false
+            subA.no_local = subA.no_local && subB.no_local;
+        }
+
+        // Session status changes
+        function sessionStatus ( msg ) {
+            self.is_connected = msg.is_connected;
+        }
+
+        function remoteRoutingTopic ( topic ) {
+            return "bridge/" + self.routingId + "/" + topic;
+        }
+
+        function localRoutingTopic ( topic ) {
+            return "bridge/" + self.remote + "/" + topic;
+        }
+
+        function dropRoutingTopic ( topic ) {
+            return topic.replace(/^bridge\/[^\/]+\//, '');
+        }
+
+        function publishStatus() {
             cotonic.broker.publish(
                 self.local_topics.bridge_status,
-                { session_present: session_present },
-                { retained: true });
+                {
+                    is_connected: self.is_connected,
+                    session_present: self.session_present
+                },
+                { retain: true });
         }
-    }
 
-    function init() {
-        // 1. Subscribe to 'bridge/#'
-        // 2. Add a mqtt router hook for subscriptions to 'bridge/#'
     }
-
-    init();
 
     // Publish the MQTT bridge functions.
     cotonic.mqtt_bridge = cotonic.mqtt_bridge || {};

@@ -64,6 +64,7 @@ var cotonic = cotonic || {};
             v.splice(index, 1);
         }
         v.push(thing);
+        return v;
     }
 
     function match(topic) {
@@ -154,7 +155,42 @@ var cotonic = cotonic || {};
         return index;
     }
 
+    /**
+     * Find all subscribers "below" a certain topic
+     * Used by the bridge to collect all subcriptions after a session restart
+     */
+    function find_subscriptions_below(topic) {
+        const path = topic.split("/");
+        let subs = [];
+        collect_subscribers(path, root, subs);
+        return subs;
+    }
+
+    function collect_subscribers(path, trie, subs) {
+        if(trie === undefined) return;
+
+        if(path.length === 0 && trie[VALUE] !== null) {
+            subs.push.apply(subs, trie[VALUE])
+        }
+
+        let children = trie[CHILDREN];
+        if(children === null) return;
+
+        if (path.length > 0) {
+            let sub_path = path.slice(1);
+
+            collect_subscribers(sub_path, children[path[0]], subs);
+            collect_subscribers(sub_path, children["+"], subs);
+            collect_subscribers([], children["#"], subs);
+        } else {
+            for (let m in children) {
+                collect_subscribers(path, children[m], subs);
+            }
+        }
+    }
+
     /* ----- end trie ---- */
+
 
     /* We assume every message is for the broker. */
     cotonic.receive(function(data, wid) {
@@ -246,7 +282,7 @@ var cotonic = cotonic || {};
             subscription.sub = t;
             subscription.topic = t.topic;
 
-            add(mqtt_topic, subscription);
+            let allSubs = add(mqtt_topic, subscription);
             acks.push(0);
 
             if(t.retain_handling < 2) {
@@ -264,20 +300,39 @@ var cotonic = cotonic || {};
                 if (bridge_topics[ m[1] ] === undefined) {
                     bridge_topics[ m[1] ] = [];
                 }
-                bridge_topics[ m[1] ].push(t);
+                bridge_topics[ m[1] ].push({ topic: mqtt_topic, subs: allSubs});
             }
         }
 
         // Relay bridge topics to the bridges
+        // Forward the "best" (qos, retain_handling) subscription (assume it is changed)
         for(let b in bridge_topics) {
+            let topics = [];
+            for (let i = 0; i < bridge_topics[b].length; i++) {
+                let merged = mergeSubscriptions(bridge_topics[b][i].subs);
+                merged.topic = bridge_topics[b][i].topic;
+                topics.push(merged);
+            }
             let sub = {
                 type: "subscribe",
-                topics: bridge_topics[b],
+                topics: topics,
                 properties: msg.properties || {}
             };
             publish("$bridge/" + b + "/control", sub);
         }
         return acks;
+    }
+
+    function mergeSubscriptions( subs ) {
+        var best = Object.assign({}, subs[0].sub);
+        for (let i = 1; i < subs.length; i++) {
+            let s = subs[i].sub;
+            best.qos = Math.max(best.qos, s.qos);
+            best.retain_handling = Math.min(best.retain_handling, s.retain_handling);
+            best.retain_as_published = best.retain_as_published || s.retain_as_published;
+            best.no_local = best.no_local && s.no_local;
+        }
+        return best;
     }
 
     /**
@@ -440,6 +495,7 @@ var cotonic = cotonic || {};
     cotonic.broker._delete_all_retained = delete_all_retained;
 
     // External API
+    cotonic.broker.find_subscriptions_below = find_subscriptions_below;
     cotonic.broker.match = match;
     cotonic.broker.publish = publish;
     cotonic.broker.subscribe = subscribe;

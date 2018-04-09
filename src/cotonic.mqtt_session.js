@@ -554,11 +554,12 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'puback':
-                    // TODO: associate the original publish command
-                    sessionToBridge(msg);
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'puback') {
                             console.log("MQTT: Unexpected puback for ", self.awaitingAck[msg.packet_id])
+                        } else {
+                            // TODO: associate the original publish command
+                            // sessionToBridge(msg);
                         }
                         delete self.awaitingAck[msg.packet_id];
                     } else {
@@ -566,8 +567,10 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'pubrec':
-                    // TODO: associate the original publish command
-                    sessionToBridge(msg);
+                    if (msg.awaitingAck[msg.packet_id]) {
+                        // TODO: associate the original publish command
+                        // sessionToBridge(msg);
+                    }
                     if (msg.reason_code < 0x80) {
                         if (self.awaitingAck[msg.packet_id]) {
                             if (self.awaitingAck[msg.packet_id].type != 'pubrec') {
@@ -595,19 +598,30 @@ var cotonic = cotonic || {};
                     break;
                 case 'suback':
                     if (self.awaitingAck[msg.packet_id]) {
-                        sessionToBridge(msg);
                         if (self.awaitingAck[msg.packet_id].type != 'suback') {
                             console.log("MQTT: Unexpected suback for ", self.awaitingAck[msg.packet_id])
+                        } else {
+                            let ackMsg = {
+                                type: 'suback',
+                                topics: self.awaitingAck[msg.packet_id].topics,
+                                acks: msg.acks
+                            };
+                            sessionToBridge(ackMsg);
                         }
                         delete self.awaitingAck[msg.packet_id];
                     }
                     break;
                 case 'unsuback':
-                    // TODO: associate the original subscribe command
                     if (self.awaitingAck[msg.packet_id]) {
-                        sessionToBridge(msg);
                         if (self.awaitingAck[msg.packet_id].type != 'unsuback') {
                             console.log("MQTT: Unexpected unsuback for ", self.awaitingAck[msg.packet_id])
+                        } else {
+                            let ackMsg = {
+                                type: 'unsuback',
+                                topics: self.awaitingAck[msg.packet_id].topics,
+                                acks: msg.acks
+                            };
+                            sessionToBridge(msg);
                         }
                         delete self.awaitingAck[msg.packet_id];
                     }
@@ -750,7 +764,10 @@ var cotonic = cotonic || {};
          * Publish the current connection status
          */
         function publishStatus( isConnected ) {
-            localPublish(self.bridgeTopics.session_status, { is_connected: isConnected }, { retain: true });
+            localPublish(
+                self.bridgeTopics.session_status,
+                { is_connected: isConnected },
+                { retain: true });
         }
 
         /**
