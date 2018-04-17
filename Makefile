@@ -8,6 +8,26 @@ LIBS := $(wildcard lib/*)
 
 download = curl --create-dirs --location -f --output $(1) $(2)
 
+## Build cotonic for Zotonic - includes variant for deprecated wird ui
+
+ifeq (1,$(ZOTONIC_LIB))
+
+.PHONY: zotonic-lib
+
+zotonic-lib: dist dist/zotonic-wired-bundle.js
+	mkdir -p ../../lib/cotonic/.
+	cp lib/* ../../lib/cotonic/.
+	cp dist/* ../../lib/cotonic/.
+	cp src/* ../../lib/cotonic/.
+
+dist/zotonic-wired-bundle.js: lib
+	cat src/cotonic.js \
+		src/cotonic.mqtt.js src/cotonic.mqtt_session.js src/cotonic.mqtt_packet.js \
+		src/cotonic.mqtt_transport.ws.js src/cotonic.mqtt_bridge.js \
+		src/cotonic.broker.js > dist/zotonic-wired-bundle.js
+
+endif
+
 ## Deps
 
 lib: lib/incremental-dom.js lib/incremental-dom.js.map lib/incremental-dom-min.js lib/incremental-dom-min.js.map
