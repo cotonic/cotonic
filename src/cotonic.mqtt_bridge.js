@@ -107,7 +107,7 @@ var cotonic = cotonic || {};
             switch (msg.type) {
                 case 'publish':
                     // - remove "bridge/+remote/" from the topic
-                    // - rewrite response_topic (prefix "bridge/+routingid/")
+                    // - rewrite response_topic (prefix "bridge/+routingId/")
                     // - publish to local_topics.session_out
                     msg.topic = dropRoutingTopic(msg.topic);
                     if (msg.properties && msg.properties.response_topic) {
@@ -129,7 +129,7 @@ var cotonic = cotonic || {};
                     let topic = relay.topic;
                     let m = topic.match(/^bridge\/([^\/]+)\/(.*)/);
                     if (m) {
-                        if (m[1] != self.clientId && m[1] != self.routingid) {
+                        if (m[1] != self.clientId && m[1] != self.routingId) {
                             console.log("Bridge relay for unknown routing-id", topic);
                             return;
                         }
