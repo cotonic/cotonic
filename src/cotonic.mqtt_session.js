@@ -92,7 +92,6 @@ var cotonic = cotonic || {};
         this.awaitingAck = {};
         this.awaitingRel = {};
 
-
         var self = this;
 
         /**
@@ -111,7 +110,7 @@ var cotonic = cotonic || {};
                     unsubscribe(msg.payload);
                     break;
                 case "auth":
-                    // TODO: relay AUTH
+                    self.sendMessage(msg.payload);
                     break;
                 default:
                     // Error: unknown msg to relay
@@ -125,13 +124,6 @@ var cotonic = cotonic || {};
          */
         function sessionToBridge( msg ) {
             localPublish(self.bridgeTopics.session_in, msg);
-        }
-
-        /**
-         * Send a message to the bridge control
-         */
-        function sessionToBridgeControl( msg ) {
-            localPublish(self.bridgeTopics.bridge_control, msg);
         }
 
         /**
@@ -151,7 +143,6 @@ var cotonic = cotonic || {};
                 // TODO: start webRTC dataChannel for p2p
             }
         };
-
 
         this.connected = function ( channel ) {
             // Connection established - try to send out 'connect'

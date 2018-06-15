@@ -22,9 +22,13 @@ zotonic-lib: dist dist/zotonic-wired-bundle.js
 
 dist/zotonic-wired-bundle.js: lib
 	cat src/cotonic.js \
-		src/cotonic.mqtt.js src/cotonic.mqtt_session.js src/cotonic.mqtt_packet.js \
-		src/cotonic.mqtt_transport.ws.js src/cotonic.mqtt_bridge.js \
-		src/cotonic.broker.js > dist/zotonic-wired-bundle.js
+		src/cotonic.mqtt.js \
+		src/cotonic.broker.js \
+		src/cotonic.mqtt_packet.js \
+		src/cotonic.mqtt_transport.ws.js \
+		src/cotonic.mqtt_session.js  \
+		src/cotonic.mqtt_bridge.js \
+		 > dist/zotonic-wired-bundle.js
 
 endif
 
@@ -68,9 +72,17 @@ test/lib/qunit-composite.js:
 
 
 dist/cotonic-bundle.js: lib
-	cat src/cotonic.js src/cotonic.idom.js src/cotonic.tokenizer.js src/cotonic.ui.js \
-src/cotonic.mqtt.js src/cotonic.mqtt_session.js src/cotonic.mqtt_packet.js \
-src/cotonic.mqtt_transport.ws.js src/cotonic.mqtt_bridge.js src/cotonic.broker.js > dist/cotonic-bundle.js
+	cat src/cotonic.js \
+		src/cotonic.idom.js \
+		src/cotonic.tokenizer.js \
+		src/cotonic.ui.js \
+		src/cotonic.mqtt.js \
+		src/cotonic.broker.js \
+		src/cotonic.mqtt_packet.js \
+		src/cotonic.mqtt_transport.ws.js \
+		src/cotonic.mqtt_session.js  \
+		src/cotonic.mqtt_bridge.js \
+		> dist/cotonic-bundle.js
 
 dist/cotonic-worker-bundle.js: lib
 	cat src/cotonic.mqtt.js src/cotonic.worker.js > dist/cotonic-worker-bundle.js

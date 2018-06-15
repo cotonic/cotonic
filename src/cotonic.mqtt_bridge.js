@@ -73,7 +73,6 @@ var cotonic = cotonic || {};
         var self = this;
         var wid;
 
-        // TODO: pass authentication details to the session
         this.connect = function ( remote, mqtt_session ) {
             self.wid = "bridge/" + remote;
             self.remote = remote;
@@ -96,10 +95,9 @@ var cotonic = cotonic || {};
             cotonic.broker.subscribe(self.local_topics.session_status, sessionStatus);
 
             // 3. Start a mqtt_session WebWorker for the remote
-            self.session = mqtt_session.newSession(remote, self.local_topics);
+            self.session = mqtt_session.newSession(remote, self.local_topics, self.authentication);
             publishStatus();
         };
-
 
         // Relay a publish message to the remote
         function relayOut ( msg, props ) {
@@ -150,6 +148,7 @@ var cotonic = cotonic || {};
                     publishStatus();
                     break;
                 case 'auth':
+                    // Publish authentication status changes, might need user interaction
                     cotonic.broker.publish(self.local_topics.bridge_auth, relay, { wid: self.wid });
                     break;
                 case 'suback':
@@ -173,7 +172,7 @@ var cotonic = cotonic || {};
             }
         }
 
-        // Bridge control, called by broker on subscribe and unsubscribe
+        // Bridge control, called by broker on subscribe, unsubscribe, and for auth
         function bridgeControl ( msg ) {
             let payload = msg.payload;
             switch (payload.type) {
@@ -196,6 +195,10 @@ var cotonic = cotonic || {};
                     // If subscriber: remove from unsub list
                     // Remove "bridge/+/" from topic
                     // Relay unsubscribe with new topic list
+                    break;
+                case 'auth':
+                    // Forward AUTH messages as-is via the session to the remote server
+                    cotonic.broker.publish(self.local_topics.session_out, payload);
                     break;
                 default:
                     console.log("Bridge bridgeControl received unknown message", msg);

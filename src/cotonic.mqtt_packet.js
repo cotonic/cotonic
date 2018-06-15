@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * @doc Encoder/decoder for MQTT v5, see also http://docs.oasis-open.org/mqtt/mqtt/v5.0/cs01/mqtt-v5.0-cs01.html
+ */
+
 "use strict";
 var cotonic = cotonic || {};
 
