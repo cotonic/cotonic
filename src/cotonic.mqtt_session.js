@@ -18,6 +18,7 @@
 
 // TODO: Limit in-flight acks (both ways)
 // TODO: Drop QoS 0 messages if sendQueue gets too large
+// TODO: add support for WebRTC and SSE+post
 
 "use strict";
 var cotonic = cotonic || {};
@@ -42,10 +43,12 @@ var cotonic = cotonic || {};
     const MQTT_KEEP_ALIVE = 300;                  // Default PINGREQ interval in seconds
     const MQTT_SESSION_EXPIRY = 1800;             // Expire the session if we couldn't reconnect in 30 minutes
 
-    const MQTT_RC_SUCCESS              = 0;
-    const MQTT_RC_CLIENT_ID_INVALID    = 133;
-    const MQTT_RC_PACKET_ID_IN_USE     = 145;
-    const MQTT_RC_PACKET_ID_NOT_FOUND  = 146;
+    const MQTT_RC_SUCCESS                  = 0;
+    const MQTT_RC_DISCONNECT_WITH_WILL     = 4;
+    const MQTT_RC_CLIENT_ID_INVALID        = 133;
+    const MQTT_RC_BAD_USERNAME_OR_PASSWORD = 134;
+    const MQTT_RC_PACKET_ID_IN_USE         = 145;
+    const MQTT_RC_PACKET_ID_NOT_FOUND      = 146;
 
     var newSession = function( remote, bridgeTopics ) {
         remote = remote || 'origin';
@@ -91,6 +94,7 @@ var cotonic = cotonic || {};
         this.messageNr = 0;
         this.awaitingAck = {};
         this.awaitingRel = {};
+        this.authUserPassword = { username: '', password: '' };
 
         var self = this;
 
@@ -134,6 +138,7 @@ var cotonic = cotonic || {};
 
         /**
          * Start a transport to the remote
+         * Called by the bridge or other components that manage a MQTT connection
          */
         this.connect = function( remote ) {
             if (remote == 'origin') {
@@ -144,24 +149,47 @@ var cotonic = cotonic || {};
             }
         };
 
-        this.connected = function ( channel ) {
+        /**
+         * Called by a transport after it has established a data-connection
+         * Send the MQTT 'connect' message to establish a MQTT session over
+         * the data-connection.
+         */
+        this.connected = function ( transportName ) {
             // Connection established - try to send out 'connect'
-            if (channel == 'ws') {
+            if (transportName == 'ws') {
                 if (isStateNew()) {
-                    self.isSentConnect = self.sendMessage({
+                    let connectMessage = {
                         type: 'connect',
                         client_id: self.clientId,
                         clean_start: self.clientId === '',
                         keep_alive: MQTT_KEEP_ALIVE,
+                        username: self.authUserPassword.username,
+                        password: self.authUserPassword.password,
                         properties: {
                             session_expiry_interval: MQTT_SESSION_EXPIRY
                         }
-                    }, true);
+                    };
+                    self.isSentConnect = self.sendMessage(connectMessage, true);
                     if (self.isSentConnect) {
                         self.isWaitConnack = true;
                     }
                 }
             }
+        };
+
+        this.reconnectWithUsernamePassword = function ( username, password ) {
+            self.authUserPassword.username = username;
+            self.authUserPassword.password = password;
+            disconnect();
+        };
+
+        function disconnect () {
+            let msg = {
+                type: 'disconnect',
+                reason_code: MQTT_RC_DISCONNECT_WITH_WILL
+            };
+            self.sendMessage(msg);
+            self.clientId = '';
         };
 
         function publish( pubmsg ) {
@@ -501,6 +529,10 @@ var cotonic = cotonic || {};
                     self.isWaitConnack = false;
                     switch (msg.reason_code) {
                         case MQTT_RC_SUCCESS:
+                            // Forget the username/password (if any)
+                            self.authUserPassword.username = '';
+                            self.authUserPassword.password = '';
+
                             self.connectProps = msg.properties;
                             if (msg.properties.assigned_client_identifier) {
                                 self.clientId = msg.properties.assigned_client_identifier;
@@ -531,6 +563,10 @@ var cotonic = cotonic || {};
                                 connack: msg
                             });
                             break;
+                        case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
+                            // Bad credentials, retry anonymous
+                            self.authUserPassword.username = '';
+                            self.authUserPassword.password = '';
                         case MQTT_RC_CLIENT_ID_INVALID:
                             // On next retry let the server pick a client id.
                             self.clientId = '';

@@ -71,9 +71,21 @@ var cotonic = cotonic || {};
         this.closeConnection = function () {
             if (isStateConnected() || isStateConnecting()) {
                 self.socket.close();
-                self.isConnected = true;
+                self.isConnected = false;
                 self.isForceClosed = true;
             }
+        }
+
+        /**
+         * Protocol error, close the connection and retry after backoff
+         */
+        this.closeReconnect = function () {
+            if (isStateConnected() || isStateConnecting()) {
+                self.socket.close();
+                self.isConnected = false;
+            }
+            self.isForceClosed = false;
+            setBackoff();
         }
 
         /**
@@ -139,7 +151,7 @@ var cotonic = cotonic || {};
             } else {
                 self.isConnected = (self.socket.readyState == 1);
             }
-            self.backoff = Math.min(20, self.errorsSinceLastData * self.errorsSinceLastData);
+            setBackoff();
             self.session.disconnected('ws', reason);
         }
 
@@ -234,7 +246,7 @@ var cotonic = cotonic || {};
             while (ok && self.data.length > 0) {
                 try {
                     var result = cotonic.mqtt_packet.decode(self.data);
-                    self.errorsSinceLastData = 0;
+                    handleBackoff( result[0] );
                     self.data = result[1];
                     self.session.receiveMessage(result[0]);
                 } catch (e) {
@@ -243,6 +255,25 @@ var cotonic = cotonic || {};
                     }
                     ok = false;
                 }
+            }
+        }
+
+        function setBackoff () {
+            self.backoff = Math.min(30, self.errorsSinceLastData * self.errorsSinceLastData);
+        }
+
+        function handleBackoff ( msg ) {
+            switch (msg.type) {
+                case 'connack':
+                    if (msg.reason_code > 0) {
+                        self.errorsSinceLastData++;
+                    }
+                    break;
+                case 'disconnect':
+                    break;
+                default:
+                    self.errorsSinceLastData = 0
+                    break;
             }
         }
 
