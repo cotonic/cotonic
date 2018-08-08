@@ -23,14 +23,19 @@ var cotonic = cotonic || {};
 (function(self) {
 
     let model = {
-        client_id: undefined,
+        client_id: undefined,   // Set to the wid
+        name: undefined,        // Name if named spawn
+
+        response_topic_prefix: undefined,
+        response_topic_nr: 1,
+        response_handlers: {},  // response_topic -> { timeout, handler }
 
         connected: false,
         connecting: false,
 
         packet_id: 1,
-        subscriptions: {}, // topic -> [callback]
-        pending_acks: {}, // sub-id -> callback
+        subscriptions: {},      // topic -> [callback]
+        pending_acks: {},       // sub-id -> callback
 
         selfClose: self.close
     }
@@ -53,18 +58,29 @@ var cotonic = cotonic || {};
                     }
                     self.postMessage(msg);
                 } else {
-                    // Receive publish from broker, call matching subscription callbacks
-                    for(let pattern in model.subscriptions) {
-                        if(cotonic.mqtt.matches(pattern, data.topic)) {
-                            let subs = model.subscriptions[pattern];
-                            for(let i=0; i < subs.length; i++) {
-                                let subscription = subs[i];
-                                try {
-                                    subscription.callback(data,
-                                                          cotonic.mqtt.extract(
-                                                              subscription.topic, data.topic));
-                                } catch(e) {
-                                    console.error("Error during callback of: " + pattern, e);
+                    if (typeof model.response_handlers[data.topic] === 'object') {
+                        // Reply to a temp response handler for a call
+                        try {
+                            clearTimeout(model.response_handlers[data.topic].timeout);
+                            model.response_handlers[data.topic].handler(data);
+                            delete model.response_handlers[data.topic];
+                        } catch(e) {
+                            console.error("Error during callback of: " + data.topic, e);
+                        }
+                    } else {
+                        // Receive publish from broker, call matching subscription callbacks
+                        for(let pattern in model.subscriptions) {
+                            if(cotonic.mqtt.matches(pattern, data.topic)) {
+                                let subs = model.subscriptions[pattern];
+                                for(let i=0; i < subs.length; i++) {
+                                    let subscription = subs[i];
+                                    try {
+                                        subscription.callback(data,
+                                                              cotonic.mqtt.extract(
+                                                                  subscription.topic, data.topic));
+                                    } catch(e) {
+                                        console.error("Error during callback of: " + pattern, e);
+                                    }
                                 }
                             }
                         }
@@ -135,7 +151,7 @@ var cotonic = cotonic || {};
                             });
                         }
                         if(pending.ack_callback) {
-                            setTimeout(pending.ack_callback, 0, topic, data.acks[k], subreq);
+                            setTimeout(pending.ack_callback, 0, mqtt_topic, data.acks[k], subreq);
                         }
                     }
                     if(pending.ack_callback) {
@@ -197,14 +213,24 @@ var cotonic = cotonic || {};
                 // TODO: Connection and broker are alive, we can stay alive
             }
 
+            // Response topic handling
+            if(data.type == "subscribe_response_handler" && data.from == "client") {
+                model.response_handlers[data.topic] = data.handler;
+                model.response_topic_nr++;
+            }
+
+            if(data.type == "remove_response_handler" && data.from == "client") {
+                delete model.response_handlers[data.topic];
+            }
+
         } else if(state.disconnected(model)) {
             if(data.type == "connect") {
-                model.client_id = data.id;
+                // model.client_id = data.client_id;
                 model.connected = false;
                 model.connecting = true;
                 self.postMessage({
                     type: "connect",
-                    client_id: data.id,
+                    client_id: model.client_id,
                     will_topic: data.will_topic,
                     will_payload: data.will_payload
                 });
@@ -218,9 +244,7 @@ var cotonic = cotonic || {};
                 // register assigned client identifier?
                 model.connecting = false;
                 model.connected = true;
-                if(self.on_connect) {
-                    setTimeout(self.on_connect, 0);
-                }
+                setTimeout(self.connack_received, 0);
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
@@ -305,6 +329,8 @@ var cotonic = cotonic || {};
     actions.unsubscribe = client_cmd.bind(null, "unsubscribe");
     actions.publish = client_cmd.bind(null, "publish");
     actions.pingreq = client_cmd.bind(null, "pingreq");
+    actions.subscribe_response_handler = client_cmd.bind(null, "subscribe_response_handler");
+    actions.remove_response_handler = client_cmd.bind(null, "remove_response_handler");
 
     actions.connect_timeout = function(data, present) {
         present = present || model.present;
@@ -325,9 +351,8 @@ var cotonic = cotonic || {};
         actions.close();
     }
 
-    self.connect = function(id, willTopic, willPayload) {
+    self.connect = function(willTopic, willPayload) {
         actions.connect({
-            client_id: id,
             will_topic: willTopic,
             will_payload: willPayload
         });
@@ -376,14 +401,53 @@ var cotonic = cotonic || {};
         actions.disconnect();
     }
 
-    function init(e) {
-        self.removeEventListener("message", init);
+    // Publish to a topic, return a promise for the response_topic publication
+    self.call = function(topic, payload, options) {
+        options = options || {};
+        let timeout = options.timeout || 15000;
+        var willRespond = new Promise(
+            function(resolve, reject) {
+                let timeout = timeout || 15000;
+                let response_topic = model.response_topic_prefix + model.response_topic_nr;
+                let timer = setTimeout(function() {
+                                actions.remove_response_handler({ topic: response_topic });
+                                let reason = new Error("Timeout waiting for response on " + topic);
+                                reject(reason);
+                            }, timeout);
+                let handler = {
+                    handler: resolve,
+                    timeout: timer
+                };
+                actions.subscribe_response_handler({ topic: response_topic, handler: handler });
+                let pubdata = {
+                    topic: topic,
+                    payload: payload,
+                    options: {
+                        properties: {
+                            response_topic: response_topic
+                        }
+                    }
+                };
+                actions.publish(pubdata);
+            });
+        return willRespond;
+    }
 
+    self.connack_received = function() {
+        self.subscribe(model.response_topic_prefix + "+", self.response, self.on_connect);
+    };
+
+    function init(e) {
         if(e.data[0] !== "init")
             throw("Worker init error. Wrong init message.");
 
+        self.removeEventListener("message", init);
         self.addEventListener("message", actions.on_message);
         self.addEventListener("error", actions.on_error);
+
+        model.client_id = e.data[1].wid;
+        model.name = e.data[1].name || undefined;
+        model.response_topic_prefix = "worker/" + model.client_id + "/response/";
 
         const url = e.data[1].url;
         const args = e.data[1].args;
@@ -391,10 +455,11 @@ var cotonic = cotonic || {};
         if(url) {
             importScripts(url);
         }
-
-        if(self.worker_init)
+        if(self.worker_init) {
             worker_init.apply(null, args);
+        }
     }
 
     self.addEventListener("message", init);
 })(self);
+

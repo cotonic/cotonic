@@ -21,7 +21,7 @@ self.on_connect = function() {
     }, 1000);
 };
 
-self.connect("clock-worker");
+self.connect();
 
 function second_hand(date) {
     const angle = date.getSeconds() * 6;

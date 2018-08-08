@@ -232,7 +232,7 @@ var cotonic = cotonic || {};
     }
 
     function handle_publish(wid, data) {
-        publish_mqtt_message(data.topic, data);
+        publish_mqtt_message(data, { wid: wid });
     }
 
     function handle_pingreq(wid, data) {
@@ -398,8 +398,9 @@ var cotonic = cotonic || {};
             retain(msg);
         }
 
+        const wid = options ? options.wid : undefined;
         for(let i = 0; i < subscriptions.length; i++) {
-            publish_subscriber(subscriptions[i], msg, options.wid);
+            publish_subscriber(subscriptions[i], msg, wid);
         }
     }
 
@@ -411,7 +412,7 @@ var cotonic = cotonic || {};
         if(sub.type === "worker") {
             cotonic.send(sub.wid, mqttmsg)
         } else if(sub.type === "page") {
-            sub.callback(mqttmsg, cotonic.mqtt.extract(sub.topic, mqttmsg.topic));
+            sub.callback(mqttmsg, cotonic.mqtt.extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
         } else {
             console.error("Unkown subscription type", sub);
         }

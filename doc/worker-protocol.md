@@ -105,7 +105,7 @@ The id of a component is its main communication topic.
 The components are easily bound to Javascript events using attributes like *onclick*.
 Example:
 
-    <a href="" id="..." onclick="cotonic.pub('~/my/click')" data-foo="...">...</a>
+    <a href="" id="..." onclick="cotonic.ui.on('my/click', true, event)" data-foo="...">...</a>
 
 The page will walk up in the DOM tree to find the nearest component to expand `~`.
 Click event data, the element id, and dataset is then published to the topic.

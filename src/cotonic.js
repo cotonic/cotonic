@@ -26,9 +26,11 @@ var cotonic = cotonic || {};
             const scripts = document.getElementsByTagName("script");
             return scripts[scripts.length - 1];
         })();
-        if(!currentScript) return null;
-
-        return currentScript.getAttribute("data-base-worker-src")
+        if(currentScript && currentScript.getAttribute("data-base-worker-src")) {
+            return currentScript.getAttribute("data-base-worker-src");
+        } else {
+            return "/lib/cotonic/cotonic-worker-bundle.js?v=1";
+        }
     })();
 
     let next_worker_id = 1;
@@ -67,26 +69,53 @@ var cotonic = cotonic || {};
      * Start a worker
      */
     function spawn(url, args) {
-        if(!BASE_WORKER_SRC)
+        if(!BASE_WORKER_SRC){
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
+        }
+        spawn_named("", url, BASE_WORKER_SRC, args);
+    }
 
-        const blob = new Blob(["importScripts(\"", BASE_WORKER_SRC, "\");"]);
+    /**
+     * Start a named worker - named workers are unique
+     * Use "" or 'undefined' for a nameless worker.
+     */
+    function spawn_named(name, url, base, args) {
+        // TODO: check if the name of the worker is unique (or empty).
+        // Return the existing worker_id if already running.
+        base = base || BASE_WORKER_SRC;
+        if(!base) {
+            throw("Can't spawn worker, no data-base-worker-src attribute set.");
+        }
+        const blob = new Blob(["importScripts(\"", ensure_hostname(base), "\");"]);
         const blobURL = window.URL.createObjectURL(blob);
 
         const worker_id = next_worker_id++;
         let worker = new Worker(blobURL);
 
         worker.postMessage(["init", {
-            url: url,
+            url: ensure_hostname(url),
             args: args,
-            wid: worker_id}]);
+            wid: worker_id,
+            name: name
+        }]);
 
+        worker.name = name;
         worker.onmessage = message_from_worker.bind(this, worker_id);
         worker.onerror = error_from_worker.bind(this, worker_id);
 
         workers[worker_id] = worker;
 
         return worker_id;
+    }
+
+    function ensure_hostname(url) {
+        if (!url.startsWith("http:") && !url.startsWith('https:')) {
+            if (!url.startsWith("/")) {
+                url = "/" + url;
+            }
+            url = window.location.protocol + "//" + window.location.host + url;
+        }
+        return url;
     }
 
     /**
@@ -111,6 +140,7 @@ var cotonic = cotonic || {};
     cotonic.set_worker_base_src = set_worker_base_src;
 
     cotonic.spawn = spawn;
+    cotonic.spawn_named = spawn_named;
     cotonic.send = send;
     cotonic.receive = receive;
 }(cotonic));
