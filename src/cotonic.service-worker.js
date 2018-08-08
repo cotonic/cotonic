@@ -17,24 +17,22 @@
 "use strict";
 
 self.addEventListener('install', function(event) {
-    console.log("Service INSTALL 6", event);
     event.waitUntil( self.skipWaiting() );
 });
 
-self.addEventListener('fetch', function(event) {
-    console.log("Service FETCH", event);
-    event.respondWith( fetch(event.request) );
-});
-
-// Immediately claim any new clients.
 self.addEventListener('activate', function(event) {
-  event.waitUntil( self.clients.claim() );
+    event.waitUntil( self.clients.claim() );
 });
 
-// Relay broadcast messages
+self.addEventListener('fetch', function(event) {
+    // console.log("Service FETCH", event);
+    event.respondWith( fetch( event.request ) );
+});
+
 self.addEventListener('message', function(event) {
     switch (event.data.type)  {
         case "broadcast":
+            // Relay broadcast messages
             let message = event.data;
             message.sender_id = event.source.id;
             let promise = message_clients(message);

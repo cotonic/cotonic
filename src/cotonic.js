@@ -96,7 +96,16 @@ var cotonic = cotonic || {};
             url: ensure_hostname(url),
             args: args,
             wid: worker_id,
-            name: name
+            name: name,
+            location: {
+                origin: window.location.origin,
+                protocol: window.location.protocol,
+                hostname: window.location.hostname,
+                host: window.location.host,
+                pathname: window.location.pathname,
+                search: window.location.search,
+                hash: window.location.hash
+            },
         }]);
 
         worker.name = name;

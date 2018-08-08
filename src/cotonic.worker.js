@@ -407,7 +407,6 @@ var cotonic = cotonic || {};
         let timeout = options.timeout || 15000;
         var willRespond = new Promise(
             function(resolve, reject) {
-                let timeout = timeout || 15000;
                 let response_topic = model.response_topic_prefix + model.response_topic_nr;
                 let timer = setTimeout(function() {
                                 actions.remove_response_handler({ topic: response_topic });
@@ -437,6 +436,10 @@ var cotonic = cotonic || {};
         self.subscribe(model.response_topic_prefix + "+", self.response, self.on_connect);
     };
 
+    self.abs_url = function(path) {
+        return model.location.origin + path;
+    }
+
     function init(e) {
         if(e.data[0] !== "init")
             throw("Worker init error. Wrong init message.");
@@ -447,6 +450,7 @@ var cotonic = cotonic || {};
 
         model.client_id = e.data[1].wid;
         model.name = e.data[1].name || undefined;
+        model.location = e.data[1].location;
         model.response_topic_prefix = "worker/" + model.client_id + "/response/";
 
         const url = e.data[1].url;

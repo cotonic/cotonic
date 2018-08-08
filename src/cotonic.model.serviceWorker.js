@@ -26,7 +26,6 @@ var cotonic = cotonic || {};
         navigator.serviceWorker.register('/service-worker.js');
 
         navigator.serviceWorker.addEventListener('message', function(event) {
-            console.log(event);
             switch (event.data.type) {
                 case "broadcast":
                     let message = event.data.message;
