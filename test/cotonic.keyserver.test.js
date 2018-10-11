@@ -40,20 +40,54 @@ QUnit.test("Encrypt connect message", function(assert) {
     let done = assert.async();
     let nonce = cotonic.keyserver.randomNonce();
 
-    cotonic.keyserver.publicEncKey().then(function(enckey) {
-        cotonic.keyserver.generateKey().then(function(key) {
-            let msg = cotonic.keyserver.encryptConnectMessage("test", key, nonce, enckey); 
+    let enckey;
+
+    cotonic.keyserver.publicEncKey()
+        .then(function(keydata) {
+            enckey = keydata;
+            return cotonic.keyserver.generateKey();
+        })
+        .then(function(key) {
+            return cotonic.keyserver.encryptConnectMessage("test", key, nonce, enckey); 
+        })
+        .then(function(msg) {
+            console.log(msg);
             assert.ok(msg, "Encrypted the connect message")
             done();
-        }).catch(function(err) {
-            console.log("generate key", err);
-            assert.ok(false, "Could not generate key.");
         })
-    }).catch(function(err) {
-        console.log(err);
-        assert.ok(false, "Could server enc key.");
-    })
+        .catch(function(err) {
+            console.log("Something went wrong", err);
+            assert.ok(false, "Could not encrypt message.");
+            done();
+        })
 })
+
+QUnit.test("Encrypt request", function(assert) {
+    let done = assert.async();
+
+    let nonce = cotonic.keyserver.randomNonce();
+    let iv = cotonic.keyserver.randomIV();
+    
+    cotonic.keyserver.generateKey()
+        .then(function(key) {
+            return cotonic.keyserver.encryptRequest("test",
+                                                    nonce,
+                                                    {type: cotonic.keyserver.PUBLISH,
+                                                     topic: "test/test/123"},
+                                                    key, iv)
+        })
+        .then(function(cipherText) {
+            console.log("cipherText", cipherText);
+            // TODO... js subtle crypto adds the tag to the end of the ciphertext.
+            assert.ok(true, "got ciphertext");
+            done();
+        })
+        .catch(function(err) {
+            console.log("Something went wrong", err);
+            assert.ok(false, "Could not encrypt request.");
+            done();
+        })
+});
 
 
  
