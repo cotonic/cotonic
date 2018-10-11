@@ -18,13 +18,14 @@
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-    const KEY_BYTES = 32;   // 256 bits
-    const IV_BYTES = 16;    // 128 bits
-    const KEY_ID_BYTES = 4; // 32 bits
-    const NONCE_BYTES = 8;  // 64 bits
-
+    // Sizes of keys, iv's and such.
+    const KEY_BYTES = 32;        // 256 bits
+    const IV_BYTES = 16;         // 128 bits
+    const KEY_ID_BYTES = 4;      // 32 bits
+    const NONCE_BYTES = 8;       // 64 bits
     const AES_GCM_TAG_SIZE = 16; // 128 bits
 
+    // Codes used in messages
     const V1 = 49;
     const PUBLISH = 80; 
     const SUBSCRIBE = 83; 
@@ -97,7 +98,7 @@ var cotonic = cotonic || {};
 
     function encodeSubscribe(request) {
         const topic = textEncoder.encode(request.topic);
-        let msg = new Uint8Array(1 + KEY_ID_BYES + topic.length);
+        let msg = new Uint8Array(1 + KEY_ID_BYTES + topic.length);
 
         msg[0] = SUBSCRIBE;
         msg.set(request.key_id, 1);
@@ -107,10 +108,11 @@ var cotonic = cotonic || {};
     }
 
     function encodeDirect(request) {
-        let msg = new Uint8Array(1 + request.other_id.length)
+        const otherId = textEncoder.encode(request.otherId);
+        let msg = new Uint8Array(1 + otherId.length)
 
         msg[0] = DIRECT;
-        msg.set(request.other_id, 1);
+        msg.set(otherId, 1);
 
         return msg;
     }
@@ -137,11 +139,7 @@ var cotonic = cotonic || {};
         msg.set(nonce, 1);
         msg.set(req, 1 + NONCE_BYTES);
 
-        console.log("msg", msg);
-        console.log("encId", encId);
-        console.log("key", key);
-        console.log("iv", iv);
-
+        // In js subtle crypto the tag is appended to the ciphertext.
         return crypto.subtle.encrypt({name: "AES-GCM",
                                       iv: iv, 
                                       additionalData: encId,
