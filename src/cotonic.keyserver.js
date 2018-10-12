@@ -30,8 +30,11 @@ var cotonic = cotonic || {};
     const PUBLISH = 80; 
     const SUBSCRIBE = 83; 
     const DIRECT = 68; 
+    const TICKETS = 84;
+    const SESSION_KEY = 75;
 
     let textEncoder = new TextEncoder("utf-8");
+    let textDecoder = new TextDecoder("utf-8");
 
     function randomNonce() {
         let nonce = new Uint8Array(NONCE_BYTES);
@@ -148,6 +151,78 @@ var cotonic = cotonic || {};
                                      msg);
     }
 
+    function decryptResponse(id, nonce, response, key, iv) {
+        const encId = textEncoder.encode(id);
+        
+        return crypto.subtle.decrypt({name: "AES-GCM",
+                               iv: iv, 
+                               additionalData: encId,
+                               tagLength: AES_GCM_TAG_SIZE * 8},
+                              key,
+                              response)
+            .then(function(plain) {
+                console.log(new Uint8Array(plain));
+                return decodeResponse(plain);
+            })
+    }
+
+    function decodeResponse(data) {
+        const d = new Uint8Array(data); 
+        
+        if(d[0] != V1)
+            throw new Error("Unexpected message");
+
+        const nonce = d.slice(1, NONCE_BYTES+1);
+        const PAYLOAD = NONCE_BYTES+1;
+        let result = {nonce: nonce};
+
+        switch(d[PAYLOAD]) {
+        case PUBLISH:
+            result.payload = {type: PUBLISH,
+                              topic: textDecoder.decode(d.slice(PAYLOAD+1))};
+            break;
+        case DIRECT:
+            result.payload = {type: DIRECT,
+                              otherId: textDecoder.decode(d.slice(PAYLOAD+1))};
+            break;
+        case SUBSCRIBE:
+            result.payload = {type: SUBSCRIBE,
+                              key_id: payload.slice(PAYLOAD+1, PAYLOAD+KEY_ID_BYTES+1),
+                              topic: textDecoder.decode(payload.slice(PAYLOAD+KEY_ID_BYTES+1))};
+            break;
+        case TICKETS:
+            result.payload = {type: TICKETS};
+             
+
+            break;
+        case SESSION_KEY:
+            const key_id = payload.slice(PAYLOAD+1, PAYLOAD+KEY_ID_BYTES+1);
+            const key_data = payload.slice(PAYLOAD+KEY_ID_BYTES+1,
+                                           PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1);
+            const timestamp = toBigUnsignedInt64(
+                payload.slice(PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1,
+                              PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8));
+            const lifetime = toBigUnsignedInt16(
+                payload.slice(PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8,
+                              PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8+2));  
+
+            result.payload = {type: SESSION_KEY};
+            break;
+        default:
+            throw new Error("Unknown payload type");
+        }
+
+        return result;
+    }
+
+    function toBigUnsignedInt16(buf) {
+        return buf[0] << 8 + buf[1];
+    }
+
+    function toBigUnsignedInt64(buf) {
+        return buf[0] << 56 + buf[1] << 48 + buf[2] << 40 + buf[3] << 32
+            + buf[4] << 24 + buf[5] << 16 + buf[6] << 8 + buf[7];
+    }
 
     cotonic.keyserver = cotonic.keyserver || {};
 
@@ -164,5 +239,7 @@ var cotonic = cotonic || {};
 
     cotonic.keyserver.encryptConnectMessage = encryptConnectMessage;
     cotonic.keyserver.encryptRequest = encryptRequest;
+
+    cotonic.keyserver.decryptResponse = decryptResponse;
 
 }(cotonic));

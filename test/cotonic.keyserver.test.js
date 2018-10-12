@@ -139,3 +139,38 @@ QUnit.test("Encrypt direct request", function(assert) {
         })
 });
 
+QUnit.test("Decrypt direct request", function(assert) {
+    let done = assert.async();
+
+    let nonce = cotonic.keyserver.randomNonce();
+    let iv = cotonic.keyserver.randomIV();
+
+    let keyId = new Uint8Array(4);
+    crypto.getRandomValues(keyId);
+
+    let key;
+    
+    cotonic.keyserver.generateKey()
+        .then(function(k) {
+            key = k;
+            assert.ok(true, "got the key");
+            return cotonic.keyserver.encryptRequest("test",
+                                                    nonce,
+                                                    {type: cotonic.keyserver.DIRECT,
+                                                     otherId: "another-identifier"},
+                                                    key, iv)
+        })
+        .then(function(cipherText) {
+            assert.ok(cipherText, "got ciphertext");
+            return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
+        }).then(function(stuff) {
+            console.log(stuff);
+            assert.ok(true, "Got stuff.");
+            done();
+        })
+        .catch(function(err) {
+            console.log(err);
+            assert.ok(false, "Could not decrypt the response.", err);
+            done();
+        })
+});
