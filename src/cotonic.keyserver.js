@@ -225,7 +225,6 @@ var cotonic = cotonic || {};
     function toDate(t) {
         let d = new Date();
         d.setTime(t);
-
         return d;
     }
 

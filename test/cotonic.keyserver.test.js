@@ -197,10 +197,10 @@ QUnit.test("Decrypt subscribe request", function(assert) {
             assert.ok(cipherText, "Got ciphertext");
             return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
         }).then(function(stuff) {
-            assert.deepEqual(nonce, stuff.nonce, "Wrong nonce");
-            assert.equal(cotonic.keyserver.SUBSCRIBE, stuff.payload.type, "Wrong type");
-            assert.deepEqual(keyId, stuff.payload.keyId, "Wrong key-id");
-            assert.equal("this/is/a/test/topic", stuff.payload.topic, "Wrong topic");
+            assert.deepEqual(nonce, stuff.nonce, "The nonce is correct");
+            assert.equal(cotonic.keyserver.SUBSCRIBE, stuff.payload.type, "The type is correct.");
+            assert.deepEqual(keyId, stuff.payload.keyId, "The key-id is correct.");
+            assert.equal("this/is/a/test/topic", stuff.payload.topic, "The topic is correct.");
             done();
         })
         .catch(function(err) {
@@ -231,9 +231,9 @@ QUnit.test("Decrypt publish request", function(assert) {
             assert.ok(cipherText, "Got ciphertext");
             return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
         }).then(function(stuff) {
-            assert.deepEqual(nonce, stuff.nonce, "Wrong nonce");
-            assert.equal(cotonic.keyserver.PUBLISH, stuff.payload.type, "Wrong type");
-            assert.equal("this/is/a/test/topic", stuff.payload.topic, "Wrong topic");
+            assert.deepEqual(nonce, stuff.nonce, "The nonce is correct.");
+            assert.equal(cotonic.keyserver.PUBLISH, stuff.payload.type, "The type is correct.");
+            assert.equal("this/is/a/test/topic", stuff.payload.topic, "The topic is correct.");
             done();
         })
         .catch(function(err) {
