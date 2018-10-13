@@ -96,7 +96,7 @@ QUnit.test("Encrypt subscribe request", function(assert) {
             return cotonic.keyserver.encryptRequest("test",
                                                     nonce,
                                                     {type: cotonic.keyserver.SUBSCRIBE,
-                                                     key_id: keyId,
+                                                     keyId: keyId,
                                                      topic: "test/test/123"},
                                                     key, iv)
         })
@@ -109,7 +109,6 @@ QUnit.test("Encrypt subscribe request", function(assert) {
             done();
         })
 });
-
 
  
 QUnit.test("Encrypt direct request", function(assert) {
@@ -130,7 +129,7 @@ QUnit.test("Encrypt direct request", function(assert) {
                                                     key, iv)
         })
         .then(function(cipherText) {
-            assert.ok(cipherText, "got ciphertext");
+            assert.ok(cipherText, "Got the ciphertext");
             done();
         })
         .catch(function(err) {
@@ -145,6 +144,39 @@ QUnit.test("Decrypt direct request", function(assert) {
     let nonce = cotonic.keyserver.randomNonce();
     let iv = cotonic.keyserver.randomIV();
 
+    let key;
+    
+    cotonic.keyserver.generateKey()
+        .then(function(k) {
+            key = k;
+            assert.ok(true, "Got the key");
+            return cotonic.keyserver.encryptRequest("test",
+                                                    nonce,
+                                                    {type: cotonic.keyserver.DIRECT,
+                                                     otherId: "another-identifier"},
+                                                    key, iv)
+        })
+        .then(function(cipherText) {
+            assert.ok(cipherText, "Got ciphertext");
+            return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
+        }).then(function(stuff) {
+            assert.deepEqual(nonce, stuff.nonce, "The nonce is correct");
+            assert.equal(cotonic.keyserver.DIRECT, stuff.payload.type, "The type is correct");
+            assert.equal("another-identifier", stuff.payload.otherId, "The identifier is correct");
+            done();
+        })
+        .catch(function(err) {
+            assert.ok(false, "Could not decrypt the response.", err);
+            done();
+        })
+});
+
+QUnit.test("Decrypt subscribe request", function(assert) {
+    let done = assert.async();
+
+    let nonce = cotonic.keyserver.randomNonce();
+    let iv = cotonic.keyserver.randomIV();
+
     let keyId = new Uint8Array(4);
     crypto.getRandomValues(keyId);
 
@@ -153,23 +185,25 @@ QUnit.test("Decrypt direct request", function(assert) {
     cotonic.keyserver.generateKey()
         .then(function(k) {
             key = k;
-            assert.ok(true, "got the key");
+            assert.ok(true, "Got the key");
             return cotonic.keyserver.encryptRequest("test",
                                                     nonce,
-                                                    {type: cotonic.keyserver.DIRECT,
-                                                     otherId: "another-identifier"},
+                                                    {type: cotonic.keyserver.SUBSCRIBE,
+                                                     keyId: keyId,
+                                                     topic: "this/is/a/test/topic"},
                                                     key, iv)
         })
         .then(function(cipherText) {
-            assert.ok(cipherText, "got ciphertext");
+            assert.ok(cipherText, "Got ciphertext");
             return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
         }).then(function(stuff) {
-            console.log(stuff);
-            assert.ok(true, "Got stuff.");
+            assert.deepEqual(nonce, stuff.nonce, "Wrong nonce");
+            assert.equal(cotonic.keyserver.SUBSCRIBE, stuff.payload.type, "Wrong type");
+            assert.deepEqual(keyId, stuff.payload.keyId, "Wrong key-id");
+            assert.equal("this/is/a/test/topic", stuff.payload.topic, "Wrong topic");
             done();
         })
         .catch(function(err) {
-            console.log(err);
             assert.ok(false, "Could not decrypt the response.", err);
             done();
         })

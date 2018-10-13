@@ -88,7 +88,6 @@ var cotonic = cotonic || {};
             });
     }
 
-
     function encodePublish(request) {
         const topic = textEncoder.encode(request.topic);
         let msg = new Uint8Array(1 + topic.length);
@@ -104,7 +103,7 @@ var cotonic = cotonic || {};
         let msg = new Uint8Array(1 + KEY_ID_BYTES + topic.length);
 
         msg[0] = SUBSCRIBE;
-        msg.set(request.key_id, 1);
+        msg.set(request.keyId, 1);
         msg.set(topic, 1 + KEY_ID_BYTES);
 
         return msg;
@@ -161,7 +160,6 @@ var cotonic = cotonic || {};
                               key,
                               response)
             .then(function(plain) {
-                console.log(new Uint8Array(plain));
                 return decodeResponse(plain);
             })
     }
@@ -187,13 +185,17 @@ var cotonic = cotonic || {};
             break;
         case SUBSCRIBE:
             result.payload = {type: SUBSCRIBE,
-                              key_id: payload.slice(PAYLOAD+1, PAYLOAD+KEY_ID_BYTES+1),
-                              topic: textDecoder.decode(payload.slice(PAYLOAD+KEY_ID_BYTES+1))};
+                              keyId: d.slice(PAYLOAD+1, PAYLOAD+KEY_ID_BYTES+1),
+                              topic: textDecoder.decode(d.slice(PAYLOAD+KEY_ID_BYTES+1))};
             break;
         case TICKETS:
-            result.payload = {type: TICKETS};
-             
+            const ticketASize = payload[PAYLOAD+1]; 
+            const ticketBSize = payload[ticketASize+PAYLOAD+2];
 
+            const ticketA = payload.slice(PAYLOAD+2, ticketASize+PAYLOAD+2); 
+            const ticketB = payload.slice(ticketASize+PAYLOAD+3, ticketASize+PAYLOAD+3+ticketBSize); 
+
+            result.payload = {type: TICKETS, ticketA: ticketA, ticketB: ticketB};
             break;
         case SESSION_KEY:
             const key_id = payload.slice(PAYLOAD+1, PAYLOAD+KEY_ID_BYTES+1);
@@ -206,13 +208,20 @@ var cotonic = cotonic || {};
                 payload.slice(PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8,
                               PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8+2));  
 
-            result.payload = {type: SESSION_KEY};
+            result.payload = {type: SESSION_KEY, keyId: key_id, timestamp: toDate(timestamp), lifetime: lifetime};
             break;
         default:
             throw new Error("Unknown payload type");
         }
 
         return result;
+    }
+
+    function toDate(t) {
+        let d = new Date();
+        d.setTime(t);
+
+        return d;
     }
 
     function toBigUnsignedInt16(buf) {
@@ -226,10 +235,13 @@ var cotonic = cotonic || {};
 
     cotonic.keyserver = cotonic.keyserver || {};
 
+    // Payload types
     cotonic.keyserver.PUBLISH = PUBLISH;
     cotonic.keyserver.DIRECT = DIRECT;
     cotonic.keyserver.SUBSCRIBE = SUBSCRIBE;
-    
+    cotonic.keyserver.TICKETS = TICKETS;
+    cotonic.keyserver.SESSION_KEY = SESSION_KEY;
+
     cotonic.keyserver.publicEncKey = publicEncKey;
 
     cotonic.keyserver.randomNonce = randomNonce;
