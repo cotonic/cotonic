@@ -208,3 +208,36 @@ QUnit.test("Decrypt subscribe request", function(assert) {
             done();
         })
 });
+
+QUnit.test("Decrypt publish request", function(assert) {
+    let done = assert.async();
+
+    let nonce = cotonic.keyserver.randomNonce();
+    let iv = cotonic.keyserver.randomIV();
+
+    let key;
+    
+    cotonic.keyserver.generateKey()
+        .then(function(k) {
+            key = k;
+            assert.ok(true, "Got the key");
+            return cotonic.keyserver.encryptRequest("test",
+                                                    nonce,
+                                                    {type: cotonic.keyserver.PUBLISH,
+                                                     topic: "this/is/a/test/topic"},
+                                                    key, iv)
+        })
+        .then(function(cipherText) {
+            assert.ok(cipherText, "Got ciphertext");
+            return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
+        }).then(function(stuff) {
+            assert.deepEqual(nonce, stuff.nonce, "Wrong nonce");
+            assert.equal(cotonic.keyserver.PUBLISH, stuff.payload.type, "Wrong type");
+            assert.equal("this/is/a/test/topic", stuff.payload.topic, "Wrong topic");
+            done();
+        })
+        .catch(function(err) {
+            assert.ok(false, "Could not decrypt the response.", err);
+            done();
+        })
+});
