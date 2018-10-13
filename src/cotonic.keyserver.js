@@ -27,6 +27,8 @@ var cotonic = cotonic || {};
 
     // Codes used in messages
     const V1 = 49;
+
+    const HELLO = 72;
     const PUBLISH = 80; 
     const SUBSCRIBE = 83; 
     const DIRECT = 68; 
@@ -69,13 +71,16 @@ var cotonic = cotonic || {};
     }
 
     function encodeHelloMessage(id, encodedKey, encodedNonce) {
-        const hello = new Uint8Array([104, 101, 108, 108, 111]);
+        const encodedId = textEncoder.encode(id);
         const eKey = new Uint8Array(encodedKey);
-        let msg = new Uint8Array(5 + KEY_BYTES + NONCE_BYTES);
+        
+        let msg = new Uint8Array(2 + KEY_BYTES + NONCE_BYTES + encodedId.length);
 
-        msg.set(hello);
-        msg.set(encodedKey, hello.length);
-        msg.set(encodedNonce, hello.length + KEY_BYTES);
+        msg[0] = V1;
+        msg[1] = HELLO;
+        msg.set(encodedKey, 2);
+        msg.set(encodedNonce, 2 + KEY_BYTES);
+        msg.set(encodedId, 2 + KEY_BYTES + NONCE_BYTES);
 
         return msg;
     }
