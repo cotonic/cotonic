@@ -176,8 +176,9 @@ var cotonic = cotonic || {};
             throw new Error("Unexpected message");
 
         const nonce = d.slice(1, NONCE_BYTES+1);
-        const PAYLOAD = NONCE_BYTES+1;
         let result = {nonce: nonce};
+
+        const PAYLOAD = NONCE_BYTES+1;
 
         switch(d[PAYLOAD]) {
         case PUBLISH:
@@ -206,10 +207,10 @@ var cotonic = cotonic || {};
             const key_id = payload.slice(PAYLOAD+1, PAYLOAD+KEY_ID_BYTES+1);
             const key_data = payload.slice(PAYLOAD+KEY_ID_BYTES+1,
                                            PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1);
-            const timestamp = toBigUnsignedInt64(
+            const timestamp = toBigUnsignedInt(64,
                 payload.slice(PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1,
                               PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8));
-            const lifetime = toBigUnsignedInt16(
+            const lifetime = toBigUnsignedInt(16,
                 payload.slice(PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8,
                               PAYLOAD+KEY_ID_BYTES+KEY_BYTES+1+8+2));  
 
@@ -225,16 +226,27 @@ var cotonic = cotonic || {};
     function toDate(t) {
         let d = new Date();
         d.setTime(t);
+
         return d;
     }
 
-    function toBigUnsignedInt16(buf) {
-        return buf[0] << 8 + buf[1];
-    }
+    function toBigUnsignedInt(bits, buf) {
+        if(bits % 8 != 0)
+            throw new Error("Bits must be a multiple of 8");
 
-    function toBigUnsignedInt64(buf) {
-        return buf[0] << 56 + buf[1] << 48 + buf[2] << 40 + buf[3] << 32
-            + buf[4] << 24 + buf[5] << 16 + buf[6] << 8 + buf[7];
+        const nrBytes = bits / 8;
+        let lshift = bits - 8;
+        let r = 0;
+
+        if(buf.length < nrBytes)
+            throw new Error("Buffer too small to convert.");
+
+        for(let i=0; i < nrBytes; i++) {
+            r += (buf[i] * Math.pow(2, lshift));
+            lshift -= 8;
+        }
+
+        return r;
     }
 
     cotonic.keyserver = cotonic.keyserver || {};
@@ -257,5 +269,7 @@ var cotonic = cotonic || {};
     cotonic.keyserver.encryptRequest = encryptRequest;
 
     cotonic.keyserver.decryptResponse = decryptResponse;
+
+    cotonic.keyserver.toBigUnsignedInt = toBigUnsignedInt;
 
 }(cotonic));

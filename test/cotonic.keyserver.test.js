@@ -241,3 +241,32 @@ QUnit.test("Decrypt publish request", function(assert) {
             done();
         })
 });
+
+
+QUnit.test("Unsigned int conversions", function(assert) {
+    assert.equal(cotonic.keyserver.toBigUnsignedInt(16, new Uint8Array([0, 44])), 44,
+                "Converted 16 bit value.");
+
+    assert.equal(cotonic.keyserver.toBigUnsignedInt(16, new Uint8Array([1, 44])), 300,
+                "Converted 16 bit value.");
+
+    assert.equal(cotonic.keyserver.toBigUnsignedInt(16, new Uint8Array([1, 44])), 300,
+                "Converted 16 bit value.");
+
+    assert.equal(cotonic.keyserver.toBigUnsignedInt(32, new Uint8Array([0, 0, 1, 44])),
+                 300,
+                "Converted 32 bit value.");
+
+    assert.equal(cotonic.keyserver.toBigUnsignedInt(32, new Uint8Array([149,165,21,116])),
+                 2510624116,
+                 "Converted 32 bit value.");
+
+    assert.equal(cotonic.keyserver.toBigUnsignedInt(64, new Uint8Array([197,226,171,40,59,22,1,133])),
+                 14259147559486751109,
+                 "Converted a 64 bit value.");
+
+
+
+
+
+})
