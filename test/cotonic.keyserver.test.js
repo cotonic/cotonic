@@ -242,6 +242,28 @@ QUnit.test("Decrypt publish request", function(assert) {
         })
 });
 
+QUnit.test("Encrypt and decrypt a secure publish", function(assert) {
+    let done = assert.async();
+    let key;
+    const keyId = new Uint8Array([10,20,30,40]);
+
+    cotonic.keyserver.generateKey()
+        .then(function(k) {
+            let msg = new Uint8Array([1,2,3,4,5,6,7,8,9,0]);
+            key = k;
+            assert.ok(true, "Got a key");
+            return cotonic.keyserver.encryptSecurePublish(msg, keyId, key);
+        }).then(function(cipherText) {
+            assert.ok(true, "Got the ciphertext");
+            return cotonic.keyserver.decryptSecurePublish(cipherText, keyId, key); 
+        }).then(function(plainText) {
+            assert.deepEqual(new Uint8Array(plainText), new Uint8Array([1,2,3,4,5,6,7,8,9,0]), "The plaintext is ok.");
+            done();
+        }).catch(function(err) {
+            assert.ok(false, "Could not encrypt and decrypt.", err);
+            done();
+        })
+})
 
 QUnit.test("Unsigned int conversions", function(assert) {
     assert.equal(cotonic.keyserver.toBigUnsignedInt(16, new Uint8Array([0, 44])), 44,

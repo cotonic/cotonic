@@ -34,6 +34,7 @@ var cotonic = cotonic || {};
     const DIRECT = 68; 
     const TICKETS = 84;
     const SESSION_KEY = 75;
+    const SECURE_PUBLISH = 69;
 
     let textEncoder = new TextEncoder("utf-8");
     let textDecoder = new TextDecoder("utf-8");
@@ -172,8 +173,7 @@ var cotonic = cotonic || {};
     function decodeResponse(data) {
         const d = new Uint8Array(data); 
         
-        if(d[0] != V1)
-            throw new Error("Unexpected message");
+        if(d[0] != V1) throw new Error("Unexpected message");
 
         const nonce = d.slice(1, NONCE_BYTES+1);
         let result = {nonce: nonce};
@@ -223,6 +223,50 @@ var cotonic = cotonic || {};
         return result;
     }
 
+    function encryptSecurePublish(message, keyId, key) {
+        const iv = randomIV();
+        const alg = {name: "AES-GCM",
+                     iv: iv, 
+                     additionalData: keyId,
+                     tagLength: AES_GCM_TAG_SIZE * 8};
+
+        return crypto.subtle.encrypt(alg, key, message)
+            .then(function(cipherText) {
+                return encodeSecurePublish(iv, new Uint8Array(cipherText));
+            })
+    }
+
+    function encodeSecurePublish(iv, cipherText) {
+        let msg = new Uint8Array(2 + iv.length + cipherText.length);
+
+        msg[0] = V1;
+        msg[1] = SECURE_PUBLISH;
+        msg.set(iv, 2);
+        msg.set(cipherText, 2+iv.length);
+
+        return msg;
+    }
+
+    function decodeSecurePublish(data) {
+        if(data[0] != V1) throw new Error("Unknown message");
+        if(data[1] != SECURE_PUBLISH) throw new Error("Wrong message type");
+
+        let iv = data.slice(2, IV_BYTES+2);
+        let message = data.slice(IV_BYTES+2);
+
+        return {type: SECURE_PUBLISH, iv: iv, message: message};
+    }
+
+    function decryptSecurePublish(message, keyId, key) {
+        const d = decodeSecurePublish(message);
+        const alg = {name: "AES-GCM",
+                     iv: d.iv, 
+                     additionalData: keyId,
+                     tagLength: AES_GCM_TAG_SIZE * 8};
+
+        return crypto.subtle.decrypt(alg, key, d.message);
+    }
+
     function toDate(t) {
         let d = new Date();
         d.setTime(t);
@@ -258,6 +302,9 @@ var cotonic = cotonic || {};
     cotonic.keyserver.TICKETS = TICKETS;
     cotonic.keyserver.SESSION_KEY = SESSION_KEY;
 
+    cotonic.keyserver.encryptSecurePublish = encryptSecurePublish;
+    cotonic.keyserver.decryptSecurePublish = decryptSecurePublish;
+
     cotonic.keyserver.publicEncKey = publicEncKey;
 
     cotonic.keyserver.randomNonce = randomNonce;
@@ -269,6 +316,9 @@ var cotonic = cotonic || {};
     cotonic.keyserver.encryptRequest = encryptRequest;
 
     cotonic.keyserver.decryptResponse = decryptResponse;
+
+    cotonic.keyserver.encryptSecurePublish = encryptSecurePublish;
+    cotonic.keyserver.decryptSecurePublish = decryptSecurePublish;
 
     cotonic.keyserver.toBigUnsignedInt = toBigUnsignedInt;
 
