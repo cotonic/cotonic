@@ -31,6 +31,7 @@ dist/zotonic-wired-bundle.js: lib
 		src/cotonic.mqtt_session.js  \
 		src/cotonic.mqtt_bridge.js \
 		src/cotonic.model.*.js \
+		src/cotonic.keyserver.js \
 		 > dist/zotonic-wired-bundle.js
 
 endif
@@ -87,6 +88,7 @@ dist/cotonic-bundle.js: lib
 		src/cotonic.mqtt_session.js  \
 		src/cotonic.mqtt_bridge.js \
 		src/cotonic.model.*.js \
+		src/cotonic.keyserver.js \
 		> dist/cotonic-bundle.js
 
 dist/cotonic-worker-bundle.js: lib
