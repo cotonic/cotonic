@@ -72,7 +72,8 @@ var cotonic = cotonic || {};
         if(!BASE_WORKER_SRC){
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
-        spawn_named("", url, BASE_WORKER_SRC, args);
+
+        return spawn_named("", url, BASE_WORKER_SRC, args);
     }
 
     /**
