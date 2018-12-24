@@ -18,22 +18,31 @@
 var cotonic = cotonic || {};
 
 (function(cotonic) {
-    var state = {};
-    var order = [];
+    const state = {};
+    const order = [];
 
     /**
      * insert element to the prioritized patch list.
      */
     function insert(id, inner, initialData, priority) {
-        state[id] = {id: id, inner: inner, data: initialData};
-        insertSorted(order, {id: id, priority: priority}, function(a, b) { return a.priority <  b.priority})
+        state[id] = {
+            id: id,
+            inner: inner,
+            data: initialData
+        };
+
+        insertSorted(order, 
+            {id: id, priority: priority},
+            function(a, b) {
+                return a.priority < b.priority
+            });
     }
 
     function insertSorted(arr, item, compare) {
         // get the index we need to insert the item at
-        var min = 0;
-        var max = arr.length;
-        var index = Math.floor((min + max) / 2);
+        let min = 0;
+        let max = arr.length;
+        let index = Math.floor((min + max) / 2);
 
         while (max > min) {
             if (compare(item, arr[index]) < 0) {
@@ -49,14 +58,12 @@ var cotonic = cotonic || {};
     };
 
     /**
-     * Remove element from the patch list
+     * Remove element from the patch list.
      */
     function remove(id) {
-        var i;
-
         delete state[id];
         
-        for(i = 0; i < order.length; i++) {
+        for(let i = 0; i < order.length; i++) {
             if(order.id != id) {
                 continue;
             }
@@ -65,8 +72,11 @@ var cotonic = cotonic || {};
         }
     }
 
+    /**
+     * Update representation of `id`  
+     */
     function update(id, htmlOrTokens) {
-        var currentState = state[id];
+        let currentState = state[id];
 
         if(!currentState) {
             return;
@@ -76,11 +86,10 @@ var cotonic = cotonic || {};
     }
 
     function renderId(id) {
-        var elt;
-
         /* Lookup the element we want to update */
-        elt = document.getElementById(id);
-        if(elt == undefined)  {
+        const elt = document.getElementById(id);
+
+        if(elt === undefined)  {
             /* It is not here, maybe it is the next time around */
             return;
         }
@@ -89,9 +98,9 @@ var cotonic = cotonic || {};
     }
 
     function renderElement(elt, id) {
-        var s = state[id];
+        const s = state[id];
 
-        if(s == undefined || s.data == undefined) {
+        if(s === undefined || s.data === undefined) {
             /* The element is not here anymore or does not have data yet */
             return;
         }
@@ -105,25 +114,25 @@ var cotonic = cotonic || {};
     }
 
     function render() {
-        var i;
-
-        for(i = 0; i < order.length; i++) {
+        for(let i = 0; i < order.length; i++) {
             renderId(order[i].id);
         }
     }
 
     function on(topic, msg, event, options) {
         options = options || {};
-        var payload = {
+        const payload = {
             message: msg,
             event: event ? cloneableEvent(event) : undefined,
             value: event ? eventTargetValue(event) : undefined,
             data: event ? eventDataAttributes(event) : undefined
         };
-        var pubopts = {
+        const pubopts = {
             qos: typeof(options.qos) == 'number' ? options.qos : 0
         };
+
         cotonic.broker.publish(topic, payload, pubopts);
+
         if (typeof event.type == 'string') {
             switch (options.cancel) {
                 case false:
@@ -193,31 +202,34 @@ var cotonic = cotonic || {};
     }
 
     function eventDataAttributes(event) {
-        var d = {};
-        if (event.target) {
-            var attrs = event.target.attributes;
-            var i, n = attrs.length;
-            for (i=0; i<n; i++) {
-                if (attrs[i].name.startsWith("data-")) {
-                    d[attrs[i].name.substr(5)] = attrs[i].value;
-                }
+        const d = {};
+
+        if(!event.target)
+            return d;
+
+        let attrs = event.target.attributes;
+
+        for (let i=0; i < attrs.length; i++) {
+            if (attrs[i].name.startsWith("data-")) {
+                d[attrs[i].name.substr(5)] = attrs[i].value;
             }
         }
+
         return d;
     }
 
-    function  eventTargetValue(event) {
+    function eventTargetValue(event) {
         if (event.target && !event.target.disabled) {
-            var elt = event.target;
+            const elt = event.target;
             switch (event.target.nodeName) {
                 case 'FORM':
                     return serializeForm(elt);
                 case 'INPUT':
                 case 'SELECT':
                     if (elt.type == 'select-multiple') {
-                        var l = elt.options.length;
-                        var v = [];
-                        for (var j=0; j<l; j++) {
+                        const l = elt.options.length;
+                        const v = [];
+                        for (let j=0; j<l; j++) {
                             if(field.options[j].selected) {
                                 v[v.length] = elt.options[j].value;
                             }
@@ -244,10 +256,10 @@ var cotonic = cotonic || {};
 
     // From https://plainjs.com/javascript/ajax/serialize-form-data-into-an-array-46/
     function serializeForm(form) {
-        var field, l, v, s = {};
+        let field, l, v, s = {};
         if (typeof form == 'object' && form.nodeName == "FORM") {
-            var len = form.elements.length;
-            for (var i=0; i<len; i++) {
+            const len = form.elements.length;
+            for (let i=0; i<len; i++) {
                 field = form.elements[i];
                 if (   field.name
                     && !field.disabled
