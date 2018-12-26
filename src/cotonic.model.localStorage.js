@@ -47,7 +47,6 @@ var cotonic = cotonic || {};
         cotonic.broker.publish("model/localStorage/event/" + bindings.key, undefined);
     });
 
-
     window.addEventListener(
         'storage',
         function(evt) {
