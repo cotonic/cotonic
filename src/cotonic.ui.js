@@ -37,6 +37,10 @@ var cotonic = cotonic || {};
                 return a.priority < b.priority
             });
     }
+    
+    function get(id) {
+        return state[id];
+    }
 
     function insertSorted(arr, item, compare) {
         // get the index we need to insert the item at
@@ -56,6 +60,13 @@ var cotonic = cotonic || {};
         // insert the item
         arr.splice(index, 0, item);
     };
+
+    /**
+     * Get the representation of an element. 
+     */
+    function retrieve(id) {
+        return state[id];
+    }
 
     /**
      * Remove element from the patch list.
@@ -289,6 +300,7 @@ var cotonic = cotonic || {};
     cotonic.ui = cotonic.ui || {};
 
     cotonic.ui.insert = insert;
+    cotonic.ui.get = get;
     cotonic.ui.update = update;
     cotonic.ui.remove = remove;
     cotonic.ui.render = render;

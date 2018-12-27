@@ -225,6 +225,7 @@ var cotonic = cotonic || {};
 
         } else if(state.disconnected(model)) {
             if(data.type == "connect") {
+                console.log("worker - connect");
                 // model.client_id = data.client_id;
                 model.connected = false;
                 model.connecting = true;

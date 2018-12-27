@@ -12,6 +12,7 @@
         </style>
     </head>
     <body>
+
         <div id="root">
           <!-- The svg can be placed as is.  -->
           <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -31,26 +32,20 @@
         </div>
 
         <script type="text/javascript" src="../lib/incremental-dom.js"></script>
+
         <script type="text/javascript" src="../src/cotonic.js"
-                data-base-worker-src="http://localhost:6227/dist/cotonic_worker.js"></script>
+                data-base-worker-src="http://localhost:6227/dist/cotonic-worker-bundle.js"></script>
+
         <script type="text/javascript" src="../src/cotonic.tokenizer.js"></script>
         <script type="text/javascript" src="../src/cotonic.idom.js"></script>
-        <script type="text/javascript" src="../src/cotonic.ui.js"></script>
+
 	<script type="text/javascript" src="../src/cotonic.mqtt.js"></script>
         <script type="text/javascript" src="../src/cotonic.broker.js"></script>
 
+        <script type="text/javascript" src="../src/cotonic.ui.js"></script>
+        <script type="text/javascript" src="../src/cotonic.model.ui.js"></script>
 
         <script>
-          cotonic.broker.subscribe("ui/render", function() {
-	      cotonic.ui.render();
-          });
-          cotonic.broker.subscribe("ui/insert", function(msg) {
-              cotonic.ui.insert(msg.id, msg.inner, msg.snippet, msg.priority); 
-          });
-          cotonic.broker.subscribe("ui/update", function(msg) {
-	      cotonic.ui.update(msg.id, msg.snippet);
-          });
-          
           cotonic.spawn("http://localhost:6227/examples/clock_worker.js");
         </script>
     </body>

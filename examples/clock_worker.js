@@ -1,27 +1,37 @@
 
 "use strict";
 
-console.log("clock worker here");
+console.log("Clock worker starting");
 
 self.on_connect = function() {
-    console.log("connected");
+    console.log("Clock worker connected");
 
     let date = new Date();
-    self.publish("ui/insert", {id: "second", inner: true, snippet: second_hand(date),  priority: 10});
-    self.publish("ui/insert", {id: "minute", inner: true, snippet: minute_hand(date), priority: 10});
-    self.publish("ui/insert", {id: "hour", inner: true, snippet: hour_hand(date), priority: 10});
-    self.publish("ui/render");
+
+    self.publish("model/ui/insert/second", {inner: true, initialData: second_hand(date),  priority: 10});
+    self.publish("model/ui/insert/minute", {inner: true, initialData: minute_hand(date), priority: 10});
+    self.publish("model/ui/insert/hour", {inner: true, initialData: hour_hand(date), priority: 10});
+
+    self.publish("model/ui/render");
 
     setInterval(function() {
-        let date = new Date();
-        self.publish("ui/update", {id: "second", snippet: second_hand(date)});
-        self.publish("ui/update", {id: "minute", snippet: minute_hand(date)});
-        self.publish("ui/update", {id: "hour", snippet: hour_hand(date)});
-        self.publish("ui/render");
+        date = new Date();
+
+        self.publish("model/ui/update/second", second_hand(date));
+        self.publish("model/ui/update/minute", minute_hand(date));
+        self.publish("model/ui/update/hour", hour_hand(date));
+
+        self.publish("model/ui/render");
     }, 1000);
 };
 
+self.on_error = function(error) {
+    console.log("Clock worker error", error);
+}
+
 self.connect();
+
+console.log("Clock worker connecting....");
 
 function second_hand(date) {
     const angle = date.getSeconds() * 6;
