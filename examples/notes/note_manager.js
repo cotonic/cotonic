@@ -6,6 +6,7 @@
 
 console.log("Note manager starting");
 
+// Should probably be a cotonic lib function
 function request(topic, timeout) {
     return new Promise(
         function(resolve, reject) {
@@ -36,7 +37,7 @@ function request(topic, timeout) {
                 },
                 timeout);
 
-            self.publish("model/localStorage/get/notes", undefined, {
+            self.publish(topic, undefined, {
                 properties: {
                     response_topic: resp_topic
                 }});
@@ -59,14 +60,7 @@ self.on_connect = function() {
         .catch(
             function(err) {
                 console.log("request-catch", err);
-            })
-
-        /*
-    self.publish("model/localStorage/get/notes", undefined, {
-        properties: {
-            response_topic: "note-manager/response"
-        }});
-        */
+            });
 }
 
 self.on_error = function(error) {
