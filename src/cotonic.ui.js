@@ -218,11 +218,13 @@ var cotonic = cotonic || {};
         if(!event.target)
             return d;
 
-        let attrs = event.target.attributes;
+        if(event.target.hasOwnProperty("attributes")) {
+            const attrs = event.target.attributes;
 
-        for (let i=0; i < attrs.length; i++) {
-            if (attrs[i].name.startsWith("data-")) {
-                d[attrs[i].name.substr(5)] = attrs[i].value;
+            for (let i=0; i < attrs.length; i++) {
+                if (attrs[i].name.startsWith("data-")) {
+                    d[attrs[i].name.substr(5)] = attrs[i].value;
+                }
             }
         }
 
