@@ -204,7 +204,7 @@ var cotonic = cotonic || {};
             case "subscribe":
                 return handle_subscribe(wid, data);
             case "unsubscribe":
-                return handle_subscribe(wid, data);
+                return handle_unsubscribe(wid, data);
             case "pingreq":
                 return handle_pingreq(wid, data);
             default:

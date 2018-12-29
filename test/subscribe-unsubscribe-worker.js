@@ -4,30 +4,25 @@
 
 "use strict";
 
-importScripts("../src/cotonic.mqtt.js", "../src/cotonic.worker.js");
+importScripts("http://localhost:6227/src/cotonic.mqtt.js");
+
+console.log("subscribe-unsubscribe-worker start")
+
 
 self.on_connect = function() {
-    var pubct = -100;
-
-    function onpubcheck(msg, params) {
-        self.postMessage(pubct);
+    console.log("subscribe-unsubscribe-worker connect")
+     
+    function ab() {
     }
 
-    function unsuback(msg, params) {
-        pubct = 0;
-    }
+    self.subscribe("test/a/b", ab);
+    self.publish("subscribe-unsubscribe-worker/sub");
 
-    function onpub(msg, params) {
-        if (pubct == -100) {
-            self.unsubscribe("test/a/b", unsuback);
-            pubct = 1;
-        } else {
-            pubct++;
-        }
-    }
+    self.unsubscribe("test/a/b", ab);
+    self.publish("subscribe-unsubscribe-worker/unsub");
 
-    self.subscribe("test/a/b", onpub);
-    self.subscribe("test/check", onpubcheck);
+    // We are done
+    self.publish("subscribe-unsubscribe-worker/done");
 }
 
 self.connect("subscribe-unsubscribe-worker");
