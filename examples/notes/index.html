@@ -55,7 +55,7 @@
           cotonic.spawn("http://localhost:6227/examples/notes/note_manager.js");
 
           cotonic.broker.subscribe("#", function(msg, bindings) {
-              console.log(msg.topic, msg.payload.data);
+              console.log(msg.topic, msg.payload);
           });
         </script>
     </body>

@@ -4,70 +4,130 @@
 
 "use strict";
 
-console.log("Note manager starting");
+/**
+ * Model
+ */
 
-// Should probably be a cotonic lib function
-function request(topic, timeout) {
-    return new Promise(
-        function(resolve, reject) {
-            const resp_topic = "nm/response"
-            let timeout_ref;
+let model = {
+    displayTopic: "ui/note-manager",
 
-            function response_handler(msg, bindings) {
-                try {
-                    resolve(msg, bindings);
-                } finally {
-                    if(timeout_ref !== undefined) {
-                        clearTimeout(timeout_ref)
-                        timeout_ref = undefined;
-                    }
-                    self.unsubscribe(resp_topic, response_handler);
-                }
-            }
-
-            self.subscribe(resp_topic, response_handler);
-
-            timeout_ref = setTimeout(
-                function() {
-                    try {
-                        reject("timeout");
-                    } finally {
-                        self.unsubscribe(resp_topic, response_handler);
-                    }
-                },
-                timeout);
-
-            self.publish(topic, undefined, {
-                properties: {
-                    response_topic: resp_topic
-                }});
-        });
+    connected: false,
+    note_ids: undefined
 }
 
-self.on_connect = function() {
-    console.log("Note manager connected");
+model.present = function(proposal) {
+    if(state.connected(model)) {
+        if(proposal.note_ids !== undefined) {
+            console.log("setting note ids", proposal);
+            model.note_ids = proposal.note_ids;
+        }
+    } else {
+        model.connected = proposal.connected || false;
+    }
 
-    self.subscribe("id/add-note/click",
-        function() {
-            console.log("Adding note");
-        })
-
-    request("model/localStorage/get/notes", 1000)
-        .then(
-            function(msg, bindings) {
-                console.log("request-then", msg, bindings);
-            })
-        .catch(
-            function(err) {
-                console.log("request-catch", err);
-            });
+    state.render(model);
 }
 
-self.on_error = function(error) {
+/*
+ * View
+ */
+
+let view = {}
+view.init = function(model)  {
+}
+
+view.display = function(representation, model) {
+    if(!model.displayTopic) {
+        return;
+    }
+
+    self.publish(model.displayTopic + "/update", representation);
+}
+
+/*
+ * State
+ */
+
+let state = {
+    view: view
+}
+
+model.state = state;
+
+state.connected = function(model)  {
+    return model.connected;
+}
+
+state.representation = function(model) {
+    const representation = "<p>Note Manager</p>";
+    state.view.display(representation, model);
+}
+
+state.nextAction = function(model) {
+    if(!state.connected(model)) {
+        actions.connect();
+    } else {
+        if(model.note_ids === null) {
+            actions.init_note_ids();
+        }
+    }
+}
+
+state.render = function(model) {
+    state.representation(model);
+    state.nextAction(model);
+}
+
+/*
+ * Actions
+ */
+
+let actions = {}
+
+actions.on_connect = function() {
+    console.log(self)
+    self.subscribe("id/add-note/click", actions.add_note);
+
+    self.call("model/localStorage/get/notes", undefined, {timeout: 1000})
+        .then(actions.note_ids)
+        .catch(actions.error_note_ids);
+
+    model.present({connected: true});
+}
+self.on_connect = actions.on_connect;
+
+actions.on_error = function(error) {
     console.log("Note manager error", error);
 }
+self.on_error = actions.on_error;
 
-self.connect();
+actions.add_note = function() {
+    console.log("Adding note");
+}
+
+actions.note_ids = function(msg, bindings) {
+    if(msg.payload === null) {
+        model.present({note_ids: null});
+    } else {
+        model.present({note_ids: JSON.parse(msg.payload)});
+    }
+}
+
+actions.error_note_ids = function(err) {
+    console.log("error note ids", err);
+}
+
+actions.init_note_ids = function(msg, bindings) {
+    self.call("model/localStorage/post/notes", JSON.stringify([]), {timeout: 1000})
+        .then(actions.note_ids)
+        .catch(actions.error_note_ids);
+}
+
+actions.connect = function() {
+    self.connect();
+}
+
+state.nextAction(model);
 
 
 
