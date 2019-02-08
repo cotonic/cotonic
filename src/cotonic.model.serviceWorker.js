@@ -47,6 +47,9 @@ var cotonic = cotonic || {};
                 channel: bindings.channel
             };
             navigator.serviceWorker.controller.postMessage(data);
+        } else {
+            msg.topic = "model/serviceWorker/event/broadcast/" + bindings.channel;
+            cotonic.broker.publish_mqtt_message(msg);
         }
     });
 
