@@ -28,21 +28,34 @@ var cotonic = cotonic || {};
     });
 
     cotonic.broker.subscribe("model/sessionStorage/post/+key", function(msg, bindings) {
-        if (typeof msg.payload == 'undefined') {
-            window.sessionStorage.removeItem(bindings.key);
-        } else {
-            window.sessionStorage.setItem(bindings.key, msg.payload);
-        }
+        window.sessionStorage.setItem(bindings.key, JSON.stringify(msg.payload));
         if (msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, msg.payload);
         }
+        cotonic.broker.publish("model/sessionStorage/event/" + bindings.key, msg.payload);
     });
 
     cotonic.broker.subscribe("model/sessionStorage/delete/+key", function(msg, bindings) {
         window.sessionStorage.removeItem(bindings.key);
         if (msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, undefined);
+            cotonic.broker.publish(msg.properties.response_topic, null);
         }
+        cotonic.broker.publish("model/sessionStorage/event/" + bindings.key, null);
     });
+
+    // Called if sessionStorage is changed in an iframe in the same tab
+    window.addEventListener(
+        'storage',
+        function(evt) {
+            if (evt.type == 'storage' && evt.storageArea === window.sessionStorage) {
+                let value = evt.newValue;
+                if (typeof value == "string") {
+                    try { value = JSON.parse(value); }
+                    catch (e) { }
+                }
+                cotonic.broker.publish("model/sessionStorage/event/" + evt.key, value);
+            }
+        },
+        false);
 
 }(cotonic));

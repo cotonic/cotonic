@@ -29,21 +29,23 @@ var cotonic = cotonic || {};
             switch (event.data.type) {
                 case "broadcast":
                     let message = event.data.message;
-                    message.topic = "model/serviceWorker/event";
+                    message.topic = "model/serviceWorker/event/broadcast/" + event.data.channel;
                     cotonic.broker.publish_mqtt_message(message);
                     break;
                 default:
+                    console.log("Unknown event from service worker", event);
                     break;
             }
         });
     }
 
-    cotonic.broker.subscribe("model/serviceWorker/post/broadcast", function(msg) {
+    cotonic.broker.subscribe("model/serviceWorker/post/broadcast/+channel", function(msg, bindings) {
         if (navigator.serviceWorker.controller) {
             let data = {
                 type: "broadcast",
-                message: msg
-            }
+                message: msg,
+                channel: bindings.channel
+            };
             navigator.serviceWorker.controller.postMessage(data);
         }
     });

@@ -28,11 +28,7 @@ var cotonic = cotonic || {};
     });
 
     cotonic.broker.subscribe("model/localStorage/post/+key", function(msg, bindings) {
-        if (typeof msg.payload == 'undefined') {
-            window.localStorage.removeItem(bindings.key);
-        } else {
-            window.localStorage.setItem(bindings.key, msg.payload);
-        }
+        window.localStorage.setItem(bindings.key, JSON.stringify(msg.payload));
         if (msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, msg.payload);
         }
@@ -42,16 +38,22 @@ var cotonic = cotonic || {};
     cotonic.broker.subscribe("model/localStorage/delete/+key", function(msg, bindings) {
         window.localStorage.removeItem(bindings.key);
         if (msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, undefined);
+            cotonic.broker.publish(msg.properties.response_topic, null);
         }
-        cotonic.broker.publish("model/localStorage/event/" + bindings.key, undefined);
+        cotonic.broker.publish("model/localStorage/event/" + bindings.key, null);
     });
 
+    // Called if localStorage is changed in another window
     window.addEventListener(
         'storage',
         function(evt) {
             if (evt.type == 'storage' && evt.storageArea === window.localStorage) {
-                cotonic.broker.publish("model/localStorage/event/" + evt.key, evt.newValue);
+                let value = evt.newValue;
+                if (typeof value == "string") {
+                    try { value = JSON.parse(value); }
+                    catch (e) { }
+                }
+                cotonic.broker.publish("model/localStorage/event/" + evt.key, value);
             }
         },
         false);
