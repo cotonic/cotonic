@@ -95,13 +95,13 @@ var cotonic = cotonic || {};
             cotonic.broker.subscribe(self.local_topics.session_status, sessionStatus);
 
             // 3. Start a mqtt_session WebWorker for the remote
-            self.session = mqtt_session.newSession(remote, self.local_topics, self.authentication);
+            self.session = mqtt_session.newSession(remote, self.local_topics);
             publishStatus();
         };
 
         // Relay a publish message to the remote
         function relayOut ( msg, props ) {
-            console.log("handleBridgeLocal", msg, props)
+            // console.log("handleBridgeLocal", msg, props)
             switch (msg.type) {
                 case 'publish':
                     // - remove "bridge/+remote/" from the topic

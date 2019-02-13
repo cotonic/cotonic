@@ -142,6 +142,8 @@ var cotonic = cotonic || {};
             qos: typeof(options.qos) == 'number' ? options.qos : 0
         };
 
+        console.log("ui.on", topic, payload);
+
         cotonic.broker.publish(topic, payload, pubopts);
 
         if (typeof event.type == 'string') {

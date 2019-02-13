@@ -59,6 +59,9 @@ var cotonic = cotonic || {};
             if (isStateConnected()) {
                 var b = cotonic.mqtt_packet.encode( message );
                 self.socket.send( b.buffer );
+                if (message.type == 'disconnect') {
+                    self.closeConnection();
+                }
                 return true;
             } else {
                 return false;
@@ -79,13 +82,18 @@ var cotonic = cotonic || {};
         /**
          * Protocol error, close the connection and retry after backoff
          */
-        this.closeReconnect = function () {
+        this.closeReconnect = function ( isNoBackOff ) {
             if (isStateConnected() || isStateConnecting()) {
                 self.socket.close();
                 self.isConnected = false;
             }
             self.isForceClosed = false;
-            setBackoff();
+            if (isNoBackOff === true) {
+                self.backoff = 0;
+                connect();
+            } else {
+                setBackoff();
+            }
         }
 
         /**

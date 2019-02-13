@@ -39,6 +39,7 @@ var cotonic = cotonic || {};
     // Lookup list of all remotes with their connections
     // One of them is 'origin' (which is a special case)
     var sessions = {};
+    var bridge_topics = {};
 
     const MQTT_KEEP_ALIVE = 300;                  // Default PINGREQ interval in seconds
     const MQTT_SESSION_EXPIRY = 1800;             // Expire the session if we couldn't reconnect in 30 minutes
@@ -52,7 +53,7 @@ var cotonic = cotonic || {};
 
     var newSession = function( remote, bridgeTopics ) {
         remote = remote || 'origin';
-        if (sessions[ remote ]) {
+        if (sessions[remote]) {
             return sessions[remote];
         } else {
             var ch = new mqttSession(bridgeTopics);
@@ -65,6 +66,26 @@ var cotonic = cotonic || {};
     var findSession = function( remote ) {
         remote = remote || 'origin';
         return sessions[remote];
+    };
+
+    function init() {
+        /**
+         * Called if the authentication on the origin connection is changing
+         */
+        cotonic.broker.subscribe('model/auth/event/auth-changing', function(_msg) {
+            if (sessions['origin']) {
+                sessions['origin'].disconnect( 'auth-changing' );
+            }
+        });
+
+        /**
+         * Called if a new origin identity has been established
+         */
+        cotonic.broker.subscribe('model/auth/event/auth-user-id', function(_msg) {
+            if (sessions['origin']) {
+                sessions['origin'].reconnect('origin');
+            }
+        });
     };
 
 
@@ -95,6 +116,7 @@ var cotonic = cotonic || {};
         this.awaitingAck = {};
         this.awaitingRel = {};
         this.authUserPassword = { username: '', password: '' };
+        this.disconnectReason = '';
 
         var self = this;
 
@@ -149,6 +171,21 @@ var cotonic = cotonic || {};
             }
         };
 
+        this.disconnect = function () {
+            let msg = {
+                type: 'disconnect',
+                reason_code: MQTT_RC_DISCONNECT_WITH_WILL
+            };
+            self.sendMessage(msg);
+            self.clientId = '';
+        };
+
+        this.reconnect = function( remote ) {
+            if (remote == 'origin' && self.connections['ws']) {
+                self.connections['ws'].openConnection();
+            }
+        };
+
         /**
          * Called by a transport after it has established a data-connection
          * Send the MQTT 'connect' message to establish a MQTT session over
@@ -175,21 +212,6 @@ var cotonic = cotonic || {};
                     }
                 }
             }
-        };
-
-        this.reconnectWithUsernamePassword = function ( username, password ) {
-            self.authUserPassword.username = username;
-            self.authUserPassword.password = password;
-            disconnect();
-        };
-
-        function disconnect () {
-            let msg = {
-                type: 'disconnect',
-                reason_code: MQTT_RC_DISCONNECT_WITH_WILL
-            };
-            self.sendMessage(msg);
-            self.clientId = '';
         };
 
         function publish( pubmsg ) {
@@ -235,7 +257,7 @@ var cotonic = cotonic || {};
             self.sendMessage(msg);
         };
 
-        function subscribe( submsg ) {
+        function subscribe ( submsg ) {
             let topics = submsg.topics;
             if (typeof topics == "string") {
                 topics = [ { topic: topics } ];
@@ -529,10 +551,6 @@ var cotonic = cotonic || {};
                     self.isWaitConnack = false;
                     switch (msg.reason_code) {
                         case MQTT_RC_SUCCESS:
-                            // Forget the username/password (if any)
-                            self.authUserPassword.username = '';
-                            self.authUserPassword.password = '';
-
                             self.connectProps = msg.properties;
                             if (msg.properties.assigned_client_identifier) {
                                 self.clientId = msg.properties.assigned_client_identifier;
@@ -801,7 +819,6 @@ var cotonic = cotonic || {};
          * Initialize, connect to local topics
          */
         function init() {
-            console.log(self.bridgeTopics);
             publishStatus( false );
             localSubscribe(self.bridgeTopics.session_out, sessionToRemote);
             localSubscribe(self.bridgeTopics.session_control, sessionControl);
@@ -814,5 +831,7 @@ var cotonic = cotonic || {};
     cotonic.mqtt_session = cotonic.mqtt_session || {};
     cotonic.mqtt_session.newSession = newSession;
     cotonic.mqtt_session.findSession = findSession;
+
+    init();
 
 }(cotonic));

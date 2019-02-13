@@ -22,8 +22,12 @@ var cotonic = cotonic || {};
 
     cotonic.broker.subscribe("model/localStorage/get/+key", function(msg, bindings) {
         if (msg.properties.response_topic) {
-            let v = window.localStorage.getItem(bindings.key);
-            cotonic.broker.publish(msg.properties.response_topic, v);
+            let value = window.localStorage.getItem(bindings.key);
+            if (typeof value == "string") {
+                try { value = JSON.parse(value); }
+                catch (e) { }
+            }
+            cotonic.broker.publish(msg.properties.response_topic, value);
         }
     });
 
