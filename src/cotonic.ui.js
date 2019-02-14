@@ -21,6 +21,9 @@ var cotonic = cotonic || {};
     const state = {};
     const order = [];
 
+    const stateData = {};
+    const stateClass = {};
+
     /**
      * insert element to the prioritized patch list.
      */
@@ -301,6 +304,89 @@ var cotonic = cotonic || {};
         return s;
     }
 
+    /**
+     * Manage the model state and classes
+     */
+
+    function updateStateData( model, states ) {
+        stateData[model] = states;
+        syncStateData();
+    }
+
+    function updateStateClass( model, classes ) {
+        stateClass[model] = classes;
+        syncStateClass();
+    }
+
+    // Synchronize all the model classes with the ui-state- classes
+    function syncStateClass() {
+        let attr = document.body.parentElement.getAttribute("class") || "";
+        let classes = attr.split(/\s+/);
+        let keep = [];
+        var i, j;
+
+        for (i = classes.length - 1; i >= 0; i--) {
+            if (!classes[i].startsWith("ui-state-")) {
+                keep.push(classes[i]);
+            }
+        }
+        let ms = Object.keys(stateClass);
+        for (i = ms.length - 1; i >= 0; i--) {
+            let m = ms[i];
+            for (j = stateClass[m].length - 1; j >= 0; j--) {
+                keep.push("ui-state-" + m + "-" + stateClass[m][j]);
+            }
+        }
+        let new_attr = keep.sort().join(" ");
+        if (new_attr != attr) {
+            document.body.parentElement.setAttribute("class", new_attr);
+        }
+    }
+
+    // Synchronize the model status data with the 'data-ui-state-' attributes
+    function syncStateData() {
+        let root = document.body.parentElement;
+        var current = {};
+        var attrs = {};
+        var i, j;
+        var ks;
+
+        if (root.hasAttributes()) {
+            var rs = root.attributes;
+            for (i = rs.length-1; i >= 0; i--) {
+                if (rs[i].name.startsWith("data-ui-state-")) {
+                    current[rs[i].name] = rs[i].value;
+                }
+            }
+        }
+        let ms = Object.keys(stateData);
+        for (i = ms.length - 1; i >= 0; i--) {
+            let m = ms[i];
+            let ks = Object.keys(stateData[m]);
+            for (j = ks.length - 1; j >= 0; j--) {
+                attrs["data-ui-state-" + m + "-" + ks[j]] = stateData[m][ks[j]];
+            }
+        }
+
+        // Remove all attributes in current and not in attrs
+        ks = Object.keys(current);
+        for (i = ks.length-1; i >= 0; i--) {
+            if (! (ks[i] in attrs)) {
+                root.removeAttribute(ks[i]);
+            }
+        }
+
+        // Add all new or changed attributes
+        ks = Object.keys(attrs);
+        for (i = ks.length-1; i >= 0; i--) {
+            var k = ks[i];
+            if (!(k in current) || attrs[k] != current[k]) {
+                root.setAttribute(k, attrs[k]);
+            }
+        }
+    }
+
+
     cotonic.ui = cotonic.ui || {};
 
     cotonic.ui.insert = insert;
@@ -309,5 +395,7 @@ var cotonic = cotonic || {};
     cotonic.ui.remove = remove;
     cotonic.ui.render = render;
     cotonic.ui.renderId = renderId;
+    cotonic.ui.updateStateData = updateStateData;
+    cotonic.ui.updateStateClass = updateStateClass;
     cotonic.ui.on = on;
 }(cotonic));

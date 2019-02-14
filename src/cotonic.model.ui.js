@@ -142,15 +142,32 @@ var cotonic = cotonic || {};
             // - Do nothing (the ui will adapt itself)
             let onauth = msg.payload.onauth || document.body.parentNode.getAttribute("data-onauth");
 
-            if (onauth === null || onauth === '#reload') {
-                window.location.reload(true);
-            } else if (onauth.charAt(0) == '/') {
-                window.location.href = onauth;
-            } else if (onauth.charAt(0) == '#') {
-                window.location.hash = onauth;
+            setTimeout(function() {
+               if (onauth === null || onauth === '#reload') {
+                    // console.log("SHOULD RELOAD");
+                    window.location.reload(true);
+                } else if (onauth.charAt(0) == '/') {
+                    window.location.href = onauth;
+                } else if (onauth.charAt(0) == '#') {
+                    window.location.hash = onauth;
+                }
+            }, 0);
+        }
+    );
+
+    // Bind to the model ui-status events and update the cotonic.ui
+
+    cotonic.broker.subscribe("model/+model/event/ui-status",
+        function(msg, bindings) {
+            if ("status" in msg.payload) {
+                cotonic.ui.updateStateData(bindings.model, msg.payload.status);
+            }
+            if ("classes" in msg.payload) {
+                cotonic.ui.updateStateClass(bindings.model, msg.payload.classes);
             }
         }
     );
+
 
     init();
 
