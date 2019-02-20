@@ -21,6 +21,7 @@ var cotonic = cotonic || {};
 (function(cotonic) {
     let clients;
     let root;
+    let response_nr = 0;
 
     /* Trie implementation */
     const CHILDREN = 0;
@@ -486,6 +487,39 @@ var cotonic = cotonic || {};
         }
     }
 
+    // Call a topic, return a promise for the response
+    function call(topic, payload, options) {
+        options = options || {};
+        payload = payload || null;
+        let timeout = options.timeout || 15000;
+        var willRespond = new Promise(
+            function(resolve, reject) {
+                let resp_topic = response_topic();
+                let wid = "wid-" + Math.random();
+
+                let timer = setTimeout(function() {
+                    unsubscribe(resp_topic, { wid: wid });
+                    let reason = new Error("Timeout waiting for response on " + topic);
+                    reject(reason);
+                }, timeout);
+
+                subscribe(resp_topic, function(msg) {
+                    clearTimeout(timer);
+                    unsubscribe(resp_topic, { wid: wid });
+                    resolve(msg);
+                }, { wid: wid });
+
+                options.properties = options.properties || {};
+                options.properties.response_topic = resp_topic;
+                publish(topic, payload, options);
+            });
+        return willRespond;
+    }
+
+    function response_topic() {
+        return "reply/page-" + (response_nr++) + "-" + Math.random();
+    }
+
     cotonic.broker = cotonic.broker || {};
 
     // For testing
@@ -501,6 +535,7 @@ var cotonic = cotonic || {};
     cotonic.broker.publish = publish;
     cotonic.broker.subscribe = subscribe;
     cotonic.broker.unsubscribe = unsubscribe;
+    cotonic.broker.call = call;
 
     // Bridge API for relaying publish messages
     cotonic.broker.publish_mqtt_message = publish_mqtt_message;
