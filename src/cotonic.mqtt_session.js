@@ -86,6 +86,18 @@ var cotonic = cotonic || {};
                 sessions['origin'].reconnect('origin');
             }
         });
+
+        /**
+         * Called if there are new language / timezone preferences
+         */
+        cotonic.broker.subscribe("model/auth/event/auth", function(msg) {
+            if (typeof msg.payload == 'object' && typeof msg.payload.preferences == 'object') {
+                if (sessions['origin'] && sessions['origin'].isConnected()) {
+                    let topic = 'bridge/origin/client/' + sessions['origin'].clientId + "/config";
+                    cotonic.broker.publish(topic, msg.payload.preferences, { qos: 0 });
+                }
+            }
+        });
     };
 
 
@@ -184,6 +196,10 @@ var cotonic = cotonic || {};
             if (remote == 'origin' && self.connections['ws']) {
                 self.connections['ws'].openConnection();
             }
+        };
+
+        this.isConnected = function() {
+            return isStateConnected();
         };
 
         /**
