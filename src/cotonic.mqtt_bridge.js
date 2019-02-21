@@ -289,6 +289,10 @@ var cotonic = cotonic || {};
             return "bridge/" + self.routingId + "/" + topic;
         }
 
+        function remoteClientTopic ( topic ) {
+            return "bridge/" + self.routingId + "/" + topic;
+        }
+
         function localRoutingTopic ( topic ) {
             return "bridge/" + self.remote + "/" + topic;
         }
@@ -305,6 +309,10 @@ var cotonic = cotonic || {};
                     session_present: self.session_present
                 },
                 { retain: true });
+
+            cotonic.broker.publish(
+                'model/sessionStorage/post/mqtt$clientBridgeTopic',
+                remoteClientTopic(""));
         }
 
     }
