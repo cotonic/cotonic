@@ -20,6 +20,7 @@ var cotonic = cotonic || {};
 
 (function(cotonic) {
 
+    // Direct key / value
     cotonic.broker.subscribe("model/sessionStorage/get/+key", function(msg, bindings) {
         if (msg.properties.response_topic) {
             let value = window.sessionStorage.getItem(bindings.key);
@@ -46,6 +47,49 @@ var cotonic = cotonic || {};
         }
         cotonic.broker.publish("model/sessionStorage/event/" + bindings.key, null);
     });
+
+
+    // Item with subkeys
+    cotonic.broker.subscribe("model/sessionStorage/get/+key/+subkey", function(msg, bindings) {
+        if (msg.properties.response_topic) {
+            let value = window.sessionStorage.getItem(bindings.key);
+            if (typeof value == "string") {
+                try { value = JSON.parse(value); }
+                catch (e) { value = {}; }
+            }
+            value = value || {};
+            cotonic.broker.publish(msg.properties.response_topic, value[bindings.subkey]);
+        }
+    });
+
+    cotonic.broker.subscribe("model/sessionStorage/post/+key/+subkey", function(msg, bindings) {
+        let value = window.sessionStorage.getItem(bindings.key);
+        if (typeof value == "string") {
+            try { value = JSON.parse(value); }
+            catch (e) { value = {}; }
+        }
+        value = value || {};
+        value[bindings.subkey] = msg.payload;
+        window.sessionStorage.setItem(bindings.key, JSON.stringify(value));
+        if (msg.properties.response_topic) {
+            cotonic.broker.publish(msg.properties.response_topic, value);
+        }
+    });
+
+    cotonic.broker.subscribe("model/sessionStorage/delete/+key/+subkey", function(msg, bindings) {
+        let value = window.sessionStorage.getItem(bindings.key);
+        if (typeof value == "string") {
+            try { value = JSON.parse(value); }
+            catch (e) { value = {}; }
+        }
+        value = value || {};
+        delete value[bindings.subkey];
+        window.sessionStorage.setItem(bindings.key, JSON.stringify(value));
+        if (msg.properties.response_topic) {
+            cotonic.broker.publish(msg.properties.response_topic, value);
+        }
+    });
+
 
     // Called if sessionStorage is changed in an iframe in the same tab
     window.addEventListener(
