@@ -20,8 +20,6 @@ self.on_connect = function() {
         self.publish("model/ui/update/second", second_hand(date));
         self.publish("model/ui/update/minute", minute_hand(date));
         self.publish("model/ui/update/hour", hour_hand(date));
-
-        self.publish("model/ui/render");
     }, 1000);
 };
 
