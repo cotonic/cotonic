@@ -72,15 +72,17 @@ test/lib/qunit.js:
 
 test/lib/qunit-composite.css:
 	$(call download, "$@", \
-	    	"https://cdn.rawgit.com/jquery/qunit-composite/master/qunit-composite.css")
+	    	"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.css")
 
 test/lib/qunit-composite.js:
 	$(call download, "$@", \
-	    	"https://cdn.rawgit.com/jquery/qunit-composite/master/qunit-composite.js")
+	    	"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.js")
 
 
 dist/cotonic-bundle.js: lib
-	cat polyfill/*.js \
+	cat lib/incremental-dom-min.js \
+		src/empty.js \
+		polyfill/*.js \
 		src/cotonic.js \
 		src/cotonic.idom.js \
 		src/cotonic.tokenizer.js \
