@@ -21,9 +21,12 @@ zotonic-lib: dist dist/zotonic-wired-bundle.js
 	cp src/* ../../lib/cotonic/.
 
 dist/zotonic-wired-bundle.js: lib
-	cat polyfill/*.js \
+	cat lib/incremental-dom-min.js \
+		src/empty.js \
+		polyfill/*.js \
 		src/cotonic.js \
 		src/cotonic.ui.js \
+		src/cotonic.tokenizer.js \
 		src/cotonic.mqtt.js \
 		src/cotonic.broker.js \
 		src/cotonic.mqtt_packet.js \
@@ -32,6 +35,7 @@ dist/zotonic-wired-bundle.js: lib
 		src/cotonic.mqtt_bridge.js \
 		src/cotonic.model.*.js \
 		src/cotonic.keyserver.js \
+		src/cotonic.idom.js \
 		 > dist/zotonic-wired-bundle.js
 
 endif

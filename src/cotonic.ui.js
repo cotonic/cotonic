@@ -24,6 +24,8 @@ var cotonic = cotonic || {};
     const stateData = {};
     const stateClass = {};
 
+    var dirty = false;
+
     /**
      * insert element to the prioritized patch list.
      */
@@ -31,16 +33,17 @@ var cotonic = cotonic || {};
         state[id] = {
             id: id,
             inner: inner,
-            data: initialData
+            data: initialData,
+            dirty: true
         };
 
-        insertSorted(order, 
+        insertSorted(order,
             {id: id, priority: priority},
             function(a, b) {
                 return a.priority < b.priority
             });
     }
-    
+
     function get(id) {
         return state[id];
     }
@@ -62,6 +65,8 @@ var cotonic = cotonic || {};
 
         // insert the item
         arr.splice(index, 0, item);
+
+        dirty = true;
     };
 
     /**
@@ -76,7 +81,7 @@ var cotonic = cotonic || {};
      */
     function remove(id) {
         delete state[id];
-        
+
         for(let i = 0; i < order.length; i++) {
             if(order.id != id) {
                 continue;
@@ -97,6 +102,8 @@ var cotonic = cotonic || {};
         }
 
         currentState.data = htmlOrTokens;
+        currentState.dirty = true;
+        dirty = true;
     }
 
     function renderId(id) {
@@ -114,7 +121,7 @@ var cotonic = cotonic || {};
     function renderElement(elt, id) {
         const s = state[id];
 
-        if(s === undefined || s.data === undefined) {
+        if(s === undefined || s.data === undefined || s.dirty === false) {
             /* The element is not here anymore or does not have data yet */
             return;
         }
@@ -125,12 +132,14 @@ var cotonic = cotonic || {};
         } else {
             cotonic.idom.patchOuter(elt, s.data);
         }
+        s.dirty = false;
     }
 
     function render() {
         for(let i = 0; i < order.length; i++) {
             renderId(order[i].id);
         }
+        dirty = false;
     }
 
     function on(topic, msg, event, options) {
@@ -386,6 +395,13 @@ var cotonic = cotonic || {};
         }
     }
 
+    function renderLoop(){
+        window.requestAnimationFrame(renderLoop);
+        if (dirty) {
+            render();
+        }
+    }
+    renderLoop();
 
     cotonic.ui = cotonic.ui || {};
 
