@@ -223,8 +223,18 @@ var cotonic = cotonic || {};
     }
 
     function handle_subscribe(wid, data) {
-        let acks = subscribe_subscriber({type: "worker", wid: wid}, data);
-        cotonic.send(wid, {type: "suback", packet_id: data.packet_id, acks: acks});
+        let result = subscribe_subscriber({type: "worker", wid: wid}, data);
+        cotonic.send(wid, {type: "suback", packet_id: data.packet_id, acks: result.acks});
+        send_retained(result.retained);
+    }
+
+    function send_retained( retained ) {
+        for(let i = 0; i < retained.length; i++) {
+            const r = retained[i];
+            for (let j = 0; j < r.retained.length; j++) {
+                publish_subscriber(r.subscription, r.retained[j].retained.message, r.subscription.wid);
+            }
+        }
     }
 
     function handle_unsubscribe(wid, data) {
@@ -277,6 +287,7 @@ var cotonic = cotonic || {};
     function subscribe_subscriber(subscription, msg) {
         let bridge_topics = {};
         let acks = [];
+        let retained = [];
         for(let k = 0; k < msg.topics.length; k++) {
             const t = msg.topics[k];
             const mqtt_topic = cotonic.mqtt.remove_named_wildcards(t.topic);
@@ -289,9 +300,12 @@ var cotonic = cotonic || {};
             if(t.retain_handling < 2) {
                 // TODO optimization possible. Only check all topics when the subscribe
                 // contains a wildcard.
-                const retained = get_matching_retained(mqtt_topic);
-                for(let i = 0; i < retained.length; i++) {
-                    publish_subscriber(subscription, retained[i].retained.message, subscription.wid);
+                const rs = get_matching_retained(mqtt_topic);
+                if (rs.length > 0) {
+                    retained.push({
+                        subscription: subscription,
+                        retained: rs
+                    })
                 }
             }
 
@@ -321,7 +335,7 @@ var cotonic = cotonic || {};
             };
             publish("$bridge/" + b + "/control", sub);
         }
-        return acks;
+        return { acks: acks, retained: retained };
     }
 
     function mergeSubscriptions( subs ) {
