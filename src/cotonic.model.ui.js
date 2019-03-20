@@ -112,16 +112,27 @@ var cotonic = cotonic || {};
 
     cotonic.broker.subscribe("model/ui/insert/+key",
         function(msg, bindings) {
-            const p = msg.payload;
-            maybeRespond(cotonic.ui.insert(bindings.key, p.inner, p.initialData, p.priority), msg.properties);
+            const p = msg.payload || {};
+            if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
+                maybeRespond(cotonic.ui.insert(bindings.key, true, p.result, undefined), msg.properties);
+            } else {
+                maybeRespond(cotonic.ui.insert(bindings.key, p.inner, p.initialData, p.priority), msg.properties);
+            }
             cotonic.broker.publish("model/ui/event/" + bindings.key, p.initialData);
         }
     );
 
     cotonic.broker.subscribe("model/ui/update/+key",
         function(msg, bindings) {
-            maybeRespond(cotonic.ui.update(bindings.key, msg.payload), msg.properties);
-            cotonic.broker.publish("model/ui/event/" + bindings.key, msg.payload);
+            const p = msg.payload || {};
+            var html;
+            if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
+                html = p.result;
+            } else {
+                html = p;
+            }
+            maybeRespond(cotonic.ui.update(bindings.key, html), msg.properties);
+            cotonic.broker.publish("model/ui/event/" + bindings.key, html);
         }
     );
 
