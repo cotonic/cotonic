@@ -143,29 +143,6 @@ var cotonic = cotonic || {};
         }
     );
 
-    // Bind to the authentication change events
-
-    cotonic.broker.subscribe("model/auth/event/auth-changing",
-        function(msg, bindings) {
-            // Authentication is changing, possible actions:
-            // - Reload page
-            // - Redirect to other page (from the 'p' query argument, passed via 'onauth')
-            // - Do nothing (the ui will adapt itself)
-            let onauth = msg.payload.onauth || document.body.parentNode.getAttribute("data-onauth");
-
-            setTimeout(function() {
-               if (onauth === null || onauth === '#reload') {
-                    // console.log("SHOULD RELOAD");
-                    window.location.reload(true);
-                } else if (onauth.charAt(0) == '/') {
-                    window.location.href = onauth;
-                } else if (onauth.charAt(0) == '#') {
-                    window.location.hash = onauth;
-                }
-            }, 0);
-        }
-    );
-
     // Bind to the model ui-status events and update the cotonic.ui
 
     cotonic.broker.subscribe("model/+model/event/ui-status",
@@ -178,7 +155,6 @@ var cotonic = cotonic || {};
             }
         }
     );
-
 
     init();
 
