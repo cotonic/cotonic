@@ -23,15 +23,11 @@ var cotonic = cotonic || {};
     let location = {};
 
     function init() {
+        cotonic.broker.publish("model/location/event/ping", "pong", { retain: true });
+
         publishLocation( true );
         // Track navigation
         window.addEventListener("hashchange", publishLocation, false);
-    }
-
-    function maybeRespond(result, properties) {
-        if(properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, result);
-        }
     }
 
     // Publish all info about our current location
@@ -57,9 +53,9 @@ var cotonic = cotonic || {};
             // Merge query args from the dispatcher and the query string
             // The dispatcher's query args are derived from the pathname.
             let q = parseQs(window.location.search);
-            const pathq = parseQs(pathname_search);
+            const pathq = parseQs("?" + pathname_search);
             for (let k in pathq) {
-                q[k] = pathq[q];
+                q[k] = pathq[k];
             }
             location.q = q;
         }
@@ -76,7 +72,7 @@ var cotonic = cotonic || {};
                 { retain: true });
         }
 
-        if (oldsearch !== location.search || oldpathname_search !== locaion.pathname_search) {
+        if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
             cotonic.broker.publish(
                 "model/location/event/q",
                 location.q,
@@ -97,7 +93,7 @@ var cotonic = cotonic || {};
         let ps = [];
 
         if (typeof(URLSearchParams) === 'function') {
-            const searchParams = new URLSearchParams(window.location.search);
+            const searchParams = new URLSearchParams(qs);
             for (let p of searchParams) {
                 ps.push(p);
             }
@@ -153,17 +149,32 @@ var cotonic = cotonic || {};
             // - Do nothing (the ui will adapt itself)
             let onauth = msg.payload.onauth || document.body.parentNode.getAttribute("data-onauth");
 
-            setTimeout(function() {
-               if (onauth === null || onauth === '#reload') {
-                    window.location.reload(true);
-                } else if (onauth.charAt(0) == '/') {
-                    window.location.href = onauth;
-                } else if (onauth.charAt(0) == '#') {
-                    window.location.hash = onauth;
-                }
-            }, 0);
+            if (onauth === null || onauth !== "#") {
+                setTimeout(function() {
+                   if (onauth === null || onauth === '#reload') {
+                        window.location.reload(true);
+                    } else if (onauth.charAt(0) == '/') {
+                        window.location.href = onauth;
+                    } else if (onauth.charAt(0) == '#') {
+                        window.location.hash = onauth;
+                    }
+                }, 0);
+            }
         }
     );
+
+    // Model functions
+
+    cotonic.broker.subscribe("model/location/get/+what", function(msg, bindings) {
+        var resp = location[bindings.what];
+        maybeRespond(resp, msg);
+    });
+
+    function maybeRespond(result, msg) {
+        if(msg.properties.response_topic) {
+            cotonic.broker.publish(msg.properties.response_topic, result);
+        }
+    }
 
     init();
 

@@ -53,4 +53,6 @@ var cotonic = cotonic || {};
         }
     });
 
+    cotonic.broker.publish("model/serviceWorker/event/ping", "pong", { retain: true });
+
 }(cotonic));

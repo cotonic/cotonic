@@ -21,11 +21,21 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 
     var is_activity_event = false;
+    var render_cache = {};
+    var render_serial = 1;
 
     function maybeRespond(result, properties) {
         if(properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, result);
+            cotonic.broker.publish(properties.response_topic, result);
         }
+    }
+
+    function hashCode( s ) {
+        var hash = 0, i = 0, len = s.length;
+        while ( i < len ) {
+            hash  = ((hash << 5) - hash + s.charCodeAt(i++)) << 0;
+        }
+        return hash;
     }
 
     function init() {
@@ -124,8 +134,8 @@ var cotonic = cotonic || {};
 
     cotonic.broker.subscribe("model/ui/update/+key",
         function(msg, bindings) {
-            const p = msg.payload || {};
-            var html;
+            const p = msg.payload || "";
+            let html;
             if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
                 html = p.result;
             } else {
@@ -133,6 +143,47 @@ var cotonic = cotonic || {};
             }
             maybeRespond(cotonic.ui.update(bindings.key, html), msg.properties);
             cotonic.broker.publish("model/ui/event/" + bindings.key, html);
+        }
+    );
+
+    cotonic.broker.subscribe("model/ui/render-template/+key",
+        function(msg, bindings) {
+            const topic = msg.payload.topic;
+            const data = msg.payload.data || {};
+            const key = bindings.key;
+            const dedup = msg.payload.dedup || false;
+            const newHash = hashCode( JSON.stringify([topic,data]) );
+
+            if (!dedup || !render_cache[key] || render_cache[key].hash != newHash) {
+                const serial = render_serial++;
+
+                render_cache[key] = {
+                    serial: serial,
+                    dedup: dedup,
+                    hash: newHash,
+                    topic: topic,
+                    data: data
+                };
+
+                cotonic.broker.call(topic, data, { qos: dedup ? 1 : 0 })
+                    .then(function(rendermsg) {
+                        if (serial === render_cache[key].serial) {
+                            const p = rendermsg.payload || "";
+                            let html;
+                            if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
+                                html = p.result;
+                            } else {
+                                html = p;
+                            }
+                            maybeRespond(cotonic.ui.update(key, html), msg.properties);
+                            cotonic.broker.publish("model/ui/event/" + key, html);
+                        } else {
+                            maybeRespond({ is_changed: false }, msg.properties);
+                        }
+                    });
+            } else {
+                maybeRespond({ is_changed: false }, msg.properties);
+            }
         }
     );
 

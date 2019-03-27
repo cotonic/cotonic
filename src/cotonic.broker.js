@@ -1,5 +1,5 @@
 /**
- * Copyright 2017, 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2017-2019 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@ var cotonic = cotonic || {};
         clients = {};
         root = new_node(null);
     }
-
-    flush();
 
     function add(topic, thing) {
         const path = topic.split("/");
@@ -533,6 +531,11 @@ var cotonic = cotonic || {};
     function response_topic() {
         return "reply/page-" + (response_nr++) + "-" + Math.random();
     }
+
+
+    // Start fresh
+    flush();
+    delete_all_retained();
 
     cotonic.broker = cotonic.broker || {};
 

@@ -62,4 +62,6 @@ var cotonic = cotonic || {};
         },
         false);
 
+    cotonic.broker.publish("model/localStorage/event/ping", "pong", { retain: true });
+
 }(cotonic));
