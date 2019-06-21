@@ -305,22 +305,25 @@ QUnit.test("puback_et_al", function(assert) {
     var vs = ['puback', 'pubrec', 'pubrel', 'pubcomp'];
     for (var i = 0; i < vs.length; i++) {
         var v = vs[i];
-        var b = mqtt_packet.encode({
-            type: v
-        });
-        var m = mqtt_packet.decode(b);
-        assert.deepEqual(
-            m,
-            [
-                {
-                    type: v,
-                    packet_id: 0,
-                    reason_code: 0,
-                    properties: {}
-                },
-                new Uint8Array([])
-            ],
-            v);
+        for (var rc = 0; rc < 2; rc++) {
+            var b = mqtt_packet.encode({
+                type: v,
+                reason_code: rc
+            });
+            var m = mqtt_packet.decode(b);
+            assert.deepEqual(
+                m,
+                [
+                    {
+                        type: v,
+                        packet_id: 0,
+                        reason_code: rc,
+                        properties: {}
+                    },
+                    new Uint8Array([])
+                ],
+                v);
+        }
 
         var b = mqtt_packet.encode({
             type: v,

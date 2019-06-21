@@ -200,6 +200,8 @@ var cotonic = cotonic || {};
     function encodePubackEtAl( msg ) {
         var first;
         var v = new binary();
+        var rc = msg.reason_code || 0;
+        var ps = msg.properties || {};
         switch (msg.type) {
             case 'puback':
                 first |= MESSAGE_TYPE.PUBACK << 4;
@@ -208,15 +210,17 @@ var cotonic = cotonic || {};
                 first |= MESSAGE_TYPE.PUBREC << 4;
                 break;
             case 'pubrel':
-                first |= MESSAGE_TYPE.PUBREL << 4;
+                first |= MESSAGE_TYPE.PUBREL << 4 | 2;
                 break;
             case 'pubcomp':
                 first |= MESSAGE_TYPE.PUBCOMP << 4;
                 break;
         }
         v.appendUint16(msg.packet_id);
-        v.append1(msg.reason_code || 0);
-        v.appendProperties(msg.properties || {});
+        if (rc != 0 || Object.keys(ps).length != 0) {
+            v.append1(rc);
+            v.appendProperties(ps);
+        }
         return packet(first, v);
     }
 
@@ -330,8 +334,13 @@ var cotonic = cotonic || {};
                     break;
                 case MESSAGE_TYPE.PUBACK:
                 case MESSAGE_TYPE.PUBREC:
-                case MESSAGE_TYPE.PUBREL:
                 case MESSAGE_TYPE.PUBCOMP:
+                    m = decodePubackEtAl(first, vb);
+                    break;
+                case MESSAGE_TYPE.PUBREL:
+                    if ((first & 15) !== 2) {
+                        throw "invalid_packet";
+                    }
                     m = decodePubackEtAl(first, vb);
                     break;
                 case MESSAGE_TYPE.SUBSCRIBE:
@@ -470,10 +479,14 @@ var cotonic = cotonic || {};
 
     function decodePubackEtAl( first, vb ) {
         var packetId = vb.decodeUint16();
-        var reasonCode = vb.decode1();
-        var props = vb.decodeProperties();
+        var reasonCode = 0;
+        var props = {};
         var type;
 
+        if (vb.remainingLength() > 0) {
+            reasonCode = vb.decode1();
+            props = vb.decodeProperties();
+        }
         switch (first >> 4) {
             case MESSAGE_TYPE.PUBACK:
                 type = 'puback';
