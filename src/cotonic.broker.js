@@ -373,7 +373,7 @@ var cotonic = cotonic || {};
                 if (bridge_topics[ m[1] ] === undefined) {
                     bridge_topics[ m[1] ] = [];
                 }
-                bridge_topics[ m[1] ].push(t);
+                bridge_topics[ m[1] ].push(mqtt_topic);
             }
         }
 
