@@ -37,6 +37,7 @@ dist/zotonic-wired-bundle.js: lib
 		src/cotonic.keyserver.js \
 		src/cotonic.idom.js \
 		src/cotonic.event.js \
+		| grep -v '^//# sourceMappingURL=' \
 		 > dist/zotonic-wired-bundle.js
 
 endif
@@ -65,19 +66,19 @@ testlib: test/lib/qunit.js test/lib/qunit.css test/lib/qunit.css test/lib/qunit-
 
 test/lib/qunit.css:
 	$(call download, "$@", \
-	    	"https://code.jquery.com/qunit/qunit-2.5.0.css")
+			"https://code.jquery.com/qunit/qunit-2.5.0.css")
 
 test/lib/qunit.js:
 	$(call download, "$@", \
-	    	"https://code.jquery.com/qunit/qunit-2.5.0.js")
+			"https://code.jquery.com/qunit/qunit-2.5.0.js")
 
 test/lib/qunit-composite.css:
 	$(call download, "$@", \
-	    	"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.css")
+			"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.css")
 
 test/lib/qunit-composite.js:
 	$(call download, "$@", \
-	    	"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.js")
+			"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.js")
 
 
 dist/cotonic-bundle.js: lib
@@ -97,6 +98,7 @@ dist/cotonic-bundle.js: lib
 		src/cotonic.model.*.js \
 		src/cotonic.keyserver.js \
 		src/cotonic.event.js \
+		| grep -v '^//# sourceMappingURL=' \
 		> dist/cotonic-bundle.js
 
 dist/cotonic-worker-bundle.js: lib
