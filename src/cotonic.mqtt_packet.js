@@ -458,7 +458,7 @@ var cotonic = cotonic || {};
         var qos    = (first >> 1) & 0x03;
         var retain = !!(first & 0x01);
         var topic = vb.decodeUtf8();
-        var packetId;
+        var packetId = null;
 
         if (qos > 0) {
             packetId = vb.decodeUint16();
