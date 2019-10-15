@@ -1,9 +1,21 @@
+.PHONY: all lib dist testlib clean test
+
 GNUMAKE?= gmake
 
 all:
-	${GNUMAKE} $@
+	${GNUMAKE} all
 
-.DEFAULT:
-	${GNUMAKE} $@
+lib:
+	${GNUMAKE} lib
 
-.PHONY: all
+dist:
+	${GNUMAKE} dist
+
+testlib:
+	${GNUMAKE} testlib
+
+clean:
+	${GNUMAKE} clean
+
+test:
+	${GNUMAKE} test
