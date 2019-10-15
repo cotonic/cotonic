@@ -1,4 +1,4 @@
-.PHONY: dist lib testlib
+.PHONY: all dist lib clean testlib
 
 DIRS=dist
 $(shell mkdir -p $(DIRS))
@@ -13,6 +13,8 @@ download = curl --create-dirs --location -f --output $(1) $(2)
 ifeq (1,$(ZOTONIC_LIB))
 
 .PHONY: zotonic-lib
+
+all: lib zotonic-lib
 
 zotonic-lib: dist dist/zotonic-wired-bundle.js
 	mkdir -p ../../lib/cotonic/.
@@ -39,6 +41,9 @@ dist/zotonic-wired-bundle.js: lib
 		src/cotonic.event.js \
 		| grep -v '^//# sourceMappingURL=' \
 		 > dist/zotonic-wired-bundle.js
+else
+
+all: lib
 
 endif
 
@@ -114,6 +119,11 @@ dist/cotonic-service-worker-bundle.js: lib
 dist: dist/cotonic-bundle.js \
 	  dist/cotonic-worker-bundle.js \
 	  dist/cotonic-service-worker-bundle.js
+
+clean:
+	rm -f dist/*
+	rm -f lib/*
+	rm -f test/lib/*
 
 test: lib testlib
 	./start_dev.sh
