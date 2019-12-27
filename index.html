@@ -1,0 +1,309 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta name="viewport" content="target-densitydpi=device-dpi" />
+        <meta name="HandheldFriendly" content="true"/>
+
+        <title>Cotonic</title>
+
+        <style>
+body {
+    font-size: 14px;
+    line-height: 22px;
+    background: #f4f4f4 url(docs/images/background.png);
+    color: #000;
+    font-family: Helvetica Neue, Helvetica, Arial;
+}
+
+section#sidebar {
+    background: #fff;
+    position: fixed;
+
+    top: 0; left: 0; bottom: 0;
+    width: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px 0 30px 30px;
+    border-right: 1px solid #bbb;
+    box-shadow: 0 0 20px #ccc; 
+}
+
+section#documentation {
+    width: 550px;
+    margin: 40px 0 50px 260px;
+}
+
+a.toc_title, a.toc_title:visited {
+    display: block;
+    color: #0778B0; //black;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+ul.toc_section {
+    font-size: 11px;
+    line-height: 14px;
+    margin: 5px 0 0 0;
+    padding-left: 0px;
+    list-style-type: none;
+    font-family: Lucida Grande;
+}
+
+ul.toc_section ul {
+    padding-top: 0.66ex; 
+    padding-left: 2em;
+    list-style-type: none;
+}
+
+.toc_section li {
+    cursor: pointer;
+    margin: 0 0 3px 0;
+}
+.toc_section li a {
+    text-decoration: none;
+    color: black;
+}
+.toc_section li a:hover {
+    text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    padding-top: 20px;
+}
+
+strong.header {
+    color: #0778B0; //black;
+    font-size: 16px;
+    line-height: 30px;
+}
+
+code, pre, tt {
+    font-family: Monaco, Consolas, "Lucida Console", monospace;
+    font-size: 12px;
+    line-height: 18px;
+    font-style: normal;
+}
+
+code {
+    margin-left: 20px;
+}
+
+pre {
+    font-size: 12px;
+    padding: 2px 0 2px 15px;
+    border-left: 5px solid #bbb;
+    margin: 0px 0 30px;
+}
+        </style>
+    </head>
+    <body>
+        <section id="sidebar">
+            <div>
+
+                <a class="toc_title" href="#">
+                    Cotonic <span class="version">(0.5.0)</span>
+                </a>
+
+                <ul class="toc_section">
+                    <li>&raquo; <a href="https://github.com/cotonic/cotonic">Github Repository</a></li>
+                    <li>&raquo; <a href="#">Introduction</a></li>
+                </ul>
+
+
+                <a class="toc_title" href="#functions">
+                    Functions
+                </a>
+
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.spawn">spawn</a>
+                    <li> - <a href="#cotonic.spawn_named">spawn_named</a>
+                    <li> - <a href="#cotonic.send">send</a>
+                    <li> - <a href="#cotonic.receive">receive</a>
+                </ul>
+
+                <!-- Broker -->
+                <a href="#cotonic.broker" class="toc_title">
+                    broker
+                </a>
+
+                <ul class="toc_section">
+                     <li> - <a href="#cotonic.broker.find_subscriptions_below">find_subscriptions_below</a>
+                     <li> - <a href="#cotonic.broker.match">match</a>
+                     <li> - <a href="#cotonic.broker.publish">publish</a>
+                     <li> - <a href="#cotonic.broker.subscribe">subscribe</a>
+                     <li> - <a href="#cotonic.broker.unsubscribe">unsubscribe</a>
+                     <li> - <a href="#cotonic.broker.call">call</a>
+                </ul>
+
+                <!-- MQTT -->
+                <a href="#cotonic.mqtt.matches" class="toc_title">
+                    mqtt
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.mqtt.extract">extract</a>
+                    <li> - <a href="#cotonic.mqtt.exec">exec</a>
+                    <li> - <a href="#cotonic.mqtt.fill">fill</a>
+                    <li> - <a href="#cotonic.mqtt.remove_named_wildcards">remove_named_wildcards</a>
+                </ul>
+
+                <!-- UI -->
+                <a href="cotonic.ui.insert" class="toc_title">
+                    ui
+                </a>
+
+                <!-- Service Worker -->
+
+                <a href="cotonic.service_worker" class="toc_title">
+                    service_worker
+                </a>
+
+                <!-- Worker -->
+                <a href="cotonic.worker" class="toc_title">
+                    worker
+                </a>
+
+                <a class="toc_title" href="#models">
+                    Models
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="model.document">document</a>
+                    <li> - <a href="model.location">location</a>
+                    <li> - <a href="model.ui">ui</a>
+                    <li> - <a href="model.serviceWorker">serviceWorker</a>
+                    <li> - <a href="model.sessionStorage">sessionStorage</a>
+                    <li> - <a href="model.localStorage">localStorage</a>
+                </ul>
+            </div>
+
+            <div>
+                <a class="toc_title" href="#topics">
+                    Topics
+                </a>
+                <ul class="toc_section">
+                    <li><strong>Document</strong>
+                    <li> - <a href="topic.document.get.all">model/document/get/all</a>
+                    <li> - <a href="topic.document.get.intl">model/document/get/intl</a>
+                    <li><strong>Location</strong>
+                    <li> - <a href="topic.location.get.protocol">model/location/get/protocol</a>
+                    <li> - <a href="topic.location.get.hash">model/location/get/hash</a>
+                </ul>
+            </div>
+        </section>
+
+        <section id="documentation">
+
+            <p id="introduction">
+            [TODO] COTONIC Logo
+            </p>
+
+            <p>
+            <a href="https://github.com/cotonic/cotonic">Cotonic</a> is a Javascript
+            library which makes it possible to split the javascript code of your
+            page into truly isolated components. By doing this a crash in one component
+            can never affect another component.
+            </p>
+
+            <p>
+            Cotonic provides tools to make it possible for these components to cooperate
+            by providing an MQTT publish/subscribe bus. This makes it possible for
+            components to communicate via topics.
+            </p>
+
+            <h2 id="functions">Functions</h2>
+
+            <p id="cotonic.spawn">
+            <strong class="header">spawn</strong> <code>cotonic.spawn()</code>
+            </br>
+            Spawn a new worker.
+            </p>
+            <pre>
+cotonic.spawn("example-worker.js");
+            </pre>
+
+            <p id="cotonic.spawn_named">
+            <strong class="header">spawn_named</strong> <code>cotonic.spawn_named()</code>
+            </br>
+            Spawn a new named worker.
+            </p>
+            <pre>
+cotonic.spawn_named("example", "example-worker.js");</pre>
+
+            <p id="cotonic.send">
+            <strong class="header">send</strong> <code>cotonic.send()</code>
+            </br>
+            Send a message to a worker.
+            </p>
+            <pre>
+cotonic.send("example", "hello");</pre>
+
+            <p id="cotonic.receive">
+            <strong class="header">receive</strong> <code>cotonic.receive()</code>
+            </br>
+            Receive messages from a worker.
+            </p>
+            <pre>
+// [TODO]
+cotonic.receive("example", "hello");</pre>
+
+
+
+            <h3 id="cotonic.broker">Broker</h3>
+
+            <h3 id="cotonic.mqtt">MQTT</h3>
+
+            <h2 id="models">Models</h2>
+
+            <h3 id="model.document">Document</h3>
+
+            <p>
+            "model/document/get/+key" 
+            </p>
+            
+            <h4 id="model.document.all">key = "all"</h4>
+
+<pre>            
+            screen_width
+            screen_height
+            inner_width
+            inner_height
+            is_touch
+            timezone
+            language
+</pre>
+
+            <h4 id="model.document.intl">key = "intl"</h4>
+
+<pre>
+            timezone
+            language
+</pre>
+
+            <h3 id="model.location">Location</h3>
+
+            <p>
+            "model/location/get/+what"
+            </p>
+
+            <p>
+            "model/location/event"
+
+            ping, search (q), pathname, hash
+            </p>
+
+            <h3 id="model.ui">User Interface Composer</h3>
+
+            <h3 id="model.serviceWorker">Service Worker</h3>
+            <h3 id="model.localStorage">Local Storage</h3>
+            <h3 id="model.sessionStorage">Session Storage</h3>
+
+
+        </section>
+
+
+
+    </body>
+</html>
