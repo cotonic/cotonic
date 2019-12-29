@@ -111,8 +111,8 @@ pre {
                 <ul class="toc_section">
                     <li>&raquo; <a href="https://github.com/cotonic/cotonic">Github Repository</a></li>
                     <li>&raquo; <a href="#">Introduction</a></li>
+                    <li>&raquo; <a href="#workers">Implementing Workers</a></li>
                 </ul>
-
 
                 <a class="toc_title" href="#functions">
                     Functions
@@ -140,10 +140,11 @@ pre {
                 </ul>
 
                 <!-- MQTT -->
-                <a href="#cotonic.mqtt.matches" class="toc_title">
+                <a href="#cotonic.mqtt" class="toc_title">
                     mqtt
                 </a>
                 <ul class="toc_section">
+                    <li> - <a href="#cotonic.mqtt.matches">matches</a>
                     <li> - <a href="#cotonic.mqtt.extract">extract</a>
                     <li> - <a href="#cotonic.mqtt.exec">exec</a>
                     <li> - <a href="#cotonic.mqtt.fill">fill</a>
@@ -151,20 +152,20 @@ pre {
                 </ul>
 
                 <!-- UI -->
-                <a href="cotonic.ui.insert" class="toc_title">
+                <a href="cotonic.ui" class="toc_title">
                     ui
                 </a>
-
-                <!-- Service Worker -->
-
-                <a href="cotonic.service_worker" class="toc_title">
-                    service_worker
-                </a>
-
-                <!-- Worker -->
-                <a href="cotonic.worker" class="toc_title">
-                    worker
-                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.ui.insert">insert</a>
+                    <li> - <a href="#cotonic.ui.get">get</a>
+                    <li> - <a href="#cotonic.ui.update">update</a>
+                    <li> - <a href="#cotonic.ui.remove">remove</a>
+                    <li> - <a href="#cotonic.ui.render">render</a>
+                    <li> - <a href="#cotonic.ui.renderId">renderId</a>
+                    <li> - <a href="#cotonic.ui.updateStateData">updateStateData</a>
+                    <li> - <a href="#cotonic.ui.updateStateClass">updateStateClass</a>
+                    <li> - <a href="#cotonic.ui.on">on</a>
+                </ul>
 
                 <a class="toc_title" href="#models">
                     Models
@@ -213,47 +214,246 @@ pre {
             components to communicate via topics.
             </p>
 
+            <h2 id="workers">Workers</h2>
+
+            <p>
+            Implementing workers
+            </p>
+
+
             <h2 id="functions">Functions</h2>
 
+            <!-- spawn -->
             <p id="cotonic.spawn">
-            <strong class="header">spawn</strong> <code>cotonic.spawn()</code>
+            <strong class="header">spawn</strong> <code>cotonic.spawn(worker_src_url, [args])</code>
             </br>
-            Spawn a new worker.
+            Spawn a new worker. Returns the worker-id of the process.
             </p>
             <pre>
-cotonic.spawn("example-worker.js");
-            </pre>
+let worker_id1 = cotonic.spawn("/js/example-worker.js");
+let worker_id2 = cotonic.spawn("/js/another-worker.js", ["Arg1", 1]);</pre>
 
+            <!-- spawn_named -->
             <p id="cotonic.spawn_named">
-            <strong class="header">spawn_named</strong> <code>cotonic.spawn_named()</code>
+            <strong class="header">spawn_named</strong> <code>cotonic.spawn_named(name, worker_src_url, [base], [args])</code>
             </br>
-            Spawn a new named worker.
+            Spawn a new named worker. Named workers are unique. Use <code>""</code> or
+            <code>undefined</code> for a nameless worker. Return the worker_id of the newly spawned
+            worker. If the worker was already running, the existing worker_id is returned.
             </p>
+
             <pre>
 cotonic.spawn_named("example", "example-worker.js");</pre>
 
+            <!-- send -->
             <p id="cotonic.send">
-            <strong class="header">send</strong> <code>cotonic.send()</code>
+            <strong class="header">send</strong> <code>cotonic.send(worker_id, message)</code>
             </br>
             Send a message to a worker.
             </p>
             <pre>
 cotonic.send("example", "hello");</pre>
 
+            <!-- receive -->
             <p id="cotonic.receive">
-            <strong class="header">receive</strong> <code>cotonic.receive()</code>
+            <strong class="header">receive</strong> <code>cotonic.receive(handler)</code>
             </br>
-            Receive messages from a worker.
+            Receive messages from workers. The handler should be a function which takes 
+            two parameters, the message, and the worker_id.
             </p>
             <pre>
-// [TODO]
-cotonic.receive("example", "hello");</pre>
-
-
+cotonic.receive(function(message, worker_id) {
+    console.log("Received", message, "from worker", worker_id);
+});</pre>
 
             <h3 id="cotonic.broker">Broker</h3>
 
+            <!-- find_subscriptions_below -->
+            <p id="cotonic.broker.find_subscriptions_below">
+            <strong class="header">find_subscriptions_below</strong> <code>cotonic.broker.find_subscriptions_below()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.find_subscriptions_below();</pre>
+
+            <!-- match -->
+            <p id="cotonic.broker.match">
+            <strong class="header">match</strong> <code>cotonic.broker.match()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.match();</pre>
+
+            <!-- publish -->
+            <p id="cotonic.broker.publish">
+            <strong class="header">publish</strong> <code>cotonic.broker.publish()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.publish();</pre>
+
+            <!-- subscribe -->
+            <p id="cotonic.broker.subscribe">
+            <strong class="header">subscribe</strong> <code>cotonic.broker.subscribe()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.subscribe();</pre>
+
+            <!-- unsubscribe -->
+            <p id="cotonic.broker.unsubscribe">
+            <strong class="header">unsubscribe</strong> <code>cotonic.broker.unsubscribe()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.unsubscribe();</pre>
+
+            <!-- call -->
+            <p id="cotonic.broker.call">
+            <strong class="header">call</strong> <code>cotonic.broker.call()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.call();</pre>
+
+
             <h3 id="cotonic.mqtt">MQTT</h3>
+
+            <!-- matches -->
+            <p id="cotonic.mqtt.matches">
+            <strong class="header">matches</strong> <code>cotonic.mqtt.matches()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.matches();</pre>
+
+            <!-- extract -->
+            <p id="cotonic.mqtt.extract">
+            <strong class="header">extract</strong> <code>cotonic.mqtt.extract()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.extract();</pre>
+
+            <!-- exec -->
+            <p id="cotonic.mqtt.exec">
+            <strong class="header">exec</strong> <code>cotonic.mqtt.exec()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.exec();</pre>
+
+            <!-- fill -->
+            <p id="cotonic.mqtt.fill">
+            <strong class="header">fill</strong> <code>cotonic.mqtt.fill()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.fill();</pre>
+
+            <!-- remove_named_wildcards -->
+            <p id="cotonic.mqtt.remove_named_wildcards">
+            <strong class="header">fill</strong> <code>cotonic.mqtt.remove_named_wildcards()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.remove_named_wildcards();</pre>
+
+
+            <h3 id="cotonic.ui">ui</h3>
+
+            <!-- insert -->
+            <p id="cotonic.ui.insert">
+            <strong class="header">insert</strong> <code>cotonic.ui.insert()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.insert();</pre>
+
+            <!-- get -->
+            <p id="cotonic.ui.get">
+            <strong class="header">get</strong> <code>cotonic.ui.get()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.get();</pre>
+
+            <!-- remove -->
+            <p id="cotonic.ui.remove">
+            <strong class="header">remove</strong> <code>cotonic.ui.remove()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.remove();</pre>
+
+
+            <!-- update -->
+            <p id="cotonic.ui.update">
+            <strong class="header">update</strong> <code>cotonic.ui.update()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.update();</pre>
+
+            <!-- render -->
+            <p id="cotonic.ui.render">
+            <strong class="header">render</strong> <code>cotonic.ui.render()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.render();</pre>
+
+            <!-- renderId -->
+            <p id="cotonic.ui.renderId">
+            <strong class="header">renderId</strong> <code>cotonic.ui.renderId()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.renderId();</pre>
+
+            <!-- updateStateData -->
+            <p id="cotonic.ui.updateStateData">
+            <strong class="header">updateStateData</strong> <code>cotonic.ui.updateStateData()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.updateStateData();</pre>
+
+            <!-- updateStateClass -->
+            <p id="cotonic.ui.updateStateClass">
+            <strong class="header">updateStateClass</strong> <code>cotonic.ui.updateStateClass()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.updateStateClass();</pre>
+
+            <!-- on -->
+            <p id="cotonic.ui.on">
+            <strong class="header">on</strong> <code>cotonic.ui.on()</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.on();</pre>
 
             <h2 id="models">Models</h2>
 
