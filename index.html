@@ -111,13 +111,12 @@ pre {
                 <ul class="toc_section">
                     <li>&raquo; <a href="https://github.com/cotonic/cotonic">Github Repository</a></li>
                     <li>&raquo; <a href="#">Introduction</a></li>
-                    <li>&raquo; <a href="#workers">Implementing Workers</a></li>
+                    <li>&raquo; <a href="#workers">Workers</a></li>
                 </ul>
 
                 <a class="toc_title" href="#functions">
                     Functions
                 </a>
-
                 <ul class="toc_section">
                     <li> - <a href="#cotonic.spawn">spawn</a>
                     <li> - <a href="#cotonic.spawn_named">spawn_named</a>
@@ -217,9 +216,52 @@ pre {
             <h2 id="workers">Workers</h2>
 
             <p>
-            Implementing workers
+            Cotonic uses Web Workers which all run in separate calling context. This
+            means that they will not block the main user interface thread. They are
+            also truly isolated from each other. This means that a crash or another
+            kind of problem in worker A can crash worker B. 
             </p>
 
+            <p>
+            You can run whatever code you like in workers, with some exceptions. You
+            can't access the DOM, and a lot of things from the window object. This also
+            makes them more secure because you don't have to worry that worker code
+            from an external resource can steal the a credit-card number entered 
+            somewhere in the DOM tree.
+            </p>
+
+            <p>
+            Cotonic adds a MQTT like publish subscribe mechanism to the standard javascript
+            web worker api. This makes it easy for web workers to communicate with each other.
+            </p>
+
+<pre>
+// worker-a
+"use strict";
+
+self.subscribe("some/topic", function(message) {
+    self.publish("model/ui/update", "&lt;p&gt;Worker A got message&lt;/p&gt;")
+});
+
+self.publish("model/ui/insert", "&lt;p&gt;Worker A started&lt;/p&gt;");</pre>
+
+<pre>
+// worker-b
+"use strict";
+
+self.subscribe("some/topic", function(message) {
+    self.publish("model/ui/update", "&lt;p&gt;Worker B got message&lt;/p&gt;")
+});
+
+self.publish("model/ui/insert", "&lt;p&gt;Worker B started&lt;/p&gt;");</pre>
+
+
+<pre>
+let worker_a = cotonic.spawn("worker-a.js");
+let worker_a = cotonic.spawn("worker-b.js");
+
+cotonic.broker.publish("some/topic", "hello workers!");
+</pre>
 
             <h2 id="functions">Functions</h2>
 
