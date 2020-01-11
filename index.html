@@ -268,6 +268,11 @@ cotonic.broker.publish("some/topic", "hello workers!");
 
             <h2 id="functions">Functions</h2>
 
+            <p>
+            Cotonics main functions are available in the <tt>cotonic</tt> namespace. The functions
+            are mostly used to control and allow messaging between workers.
+            </p>
+
             <!-- spawn -->
             <p id="cotonic.spawn">
             <strong class="header">spawn</strong> <code>cotonic.spawn(worker_src_url, [args])</code>
@@ -313,23 +318,38 @@ cotonic.receive(function(message, worker_id) {
 
             <h3 id="cotonic.broker">Broker</h3>
 
+            <p>
+            The broker module handles all local publish subscribe connections. The subscriptions
+            are stored in a trie datastructure allowing quick action. They are available in the
+            <tt>cotonic.broker</tt> namespace.
+            </p>
+
             <!-- find_subscriptions_below -->
             <p id="cotonic.broker.find_subscriptions_below">
-            <strong class="header">find_subscriptions_below</strong> <code>cotonic.broker.find_subscriptions_below()</code>
+            <strong class="header">find_subscriptions_below</strong> <code>cotonic.broker.find_subscriptions_below(topic)</code>
             </br>
+            Find all subscribers below a certain topic. Used by the bridge to collect all subscriptions
+            after a session restart.
             </p>
             <pre>
-// [TODO]
-cotonic.broker.find_subscriptions_below();</pre>
+cotonic.broker.find_subscriptions_below("/my/topic/#");</pre>
 
             <!-- match -->
             <p id="cotonic.broker.match">
-            <strong class="header">match</strong> <code>cotonic.broker.match()</code>
+            <strong class="header">match</strong> <code>cotonic.broker.match(topic)</code>
             </br>
+            Collect all subscribers which match the topic.
             </p>
             <pre>
-// [TODO]
-cotonic.broker.match();</pre>
+cotonic.broker.subscribe("/a/test"
+    function(msg) {
+        console.log("test topic a");
+    })
+cotonic.broker.subscribe("/b/test"
+    function(msg) {
+        console.log("test topic b");
+    })
+cotonic.broker.match("+/test");</pre>
 
             <!-- publish -->
             <p id="cotonic.broker.publish">
