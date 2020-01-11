@@ -12,14 +12,18 @@ let model = {
     displayTopic: "ui/note-manager",
 
     connected: false,
-    note_ids: undefined
+
+    note_ids: undefined,
+    notes: undefined,
+
+    add_note: false
 }
 
 model.present = function(proposal) {
     if(state.connected(model)) {
         if(proposal.note_ids !== undefined) {
-            console.log("setting note ids", proposal);
             model.note_ids = proposal.note_ids;
+            model.notes = {};
         }
     } else {
         model.connected = proposal.connected || false;
@@ -33,11 +37,19 @@ model.present = function(proposal) {
  */
 
 let view = {}
-view.init = function(model)  {
+ 
+view.normal = function(model) {
+}
+
+view.adding_note = function(model) {
 }
 
 view.display = function(representation, model) {
     if(!model.displayTopic) {
+        return;
+    }
+
+    if(!representation) {
         return;
     }
 
@@ -58,8 +70,13 @@ state.connected = function(model)  {
     return model.connected;
 }
 
+state.adding_note = function(model) {
+    return model.connected && model.add_note;
+}
+
 state.representation = function(model) {
     const representation = "<p>Note Manager</p>";
+
     state.view.display(representation, model);
 }
 
@@ -85,7 +102,6 @@ state.render = function(model) {
 let actions = {}
 
 actions.on_connect = function() {
-    console.log(self)
     self.subscribe("id/add-note/click", actions.add_note);
 
     self.call("model/localStorage/get/notes", undefined, {timeout: 1000})
@@ -103,6 +119,8 @@ self.on_error = actions.on_error;
 
 actions.add_note = function() {
     console.log("Adding note");
+
+    model.present({add_note: true});
 }
 
 actions.note_ids = function(msg, bindings) {
@@ -128,6 +146,4 @@ actions.connect = function() {
 }
 
 state.nextAction(model);
-
-
 
