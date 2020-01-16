@@ -308,7 +308,7 @@ cotonic.spawn_named("example", "example-worker.js");</pre>
             Send a message to a worker.
             </p>
             <pre>
-cotonic.send("example", "hello");</pre>
+cotonic.send(worker_id1, "hello");</pre>
 
             <!-- receive -->
             <p id="cotonic.receive">
@@ -359,8 +359,9 @@ cotonic.broker.match("+/test");</pre>
 
             <!-- publish -->
             <p id="cotonic.broker.publish">
-            <strong class="header">publish</strong> <code>cotonic.broker.publish()</code>
+            <strong class="header">publish</strong> <code>cotonic.broker.publish(topic, payload, options)</code>
             </br>
+            Publish a message on a topic.
             </p>
             <pre>
 // [TODO]
@@ -368,8 +369,10 @@ cotonic.broker.publish();</pre>
 
             <!-- subscribe -->
             <p id="cotonic.broker.subscribe">
-            <strong class="header">subscribe</strong> <code>cotonic.broker.subscribe()</code>
+            <strong class="header">subscribe</strong> <code>cotonic.broker.subscribe(topics, callback, [options])</code>
             </br>
+            Subscribe to the topics. The callback will be called when a message which matches one of the topics
+            is published.
             </p>
             <pre>
 // [TODO]
@@ -377,8 +380,9 @@ cotonic.broker.subscribe();</pre>
 
             <!-- unsubscribe -->
             <p id="cotonic.broker.unsubscribe">
-            <strong class="header">unsubscribe</strong> <code>cotonic.broker.unsubscribe()</code>
+            <strong class="header">unsubscribe</strong> <code>cotonic.broker.unsubscribe(topics, [options])</code>
             </br>
+            Unsubscribe from the topics.
             </p>
             <pre>
 // [TODO]
@@ -386,8 +390,9 @@ cotonic.broker.unsubscribe();</pre>
 
             <!-- call -->
             <p id="cotonic.broker.call">
-            <strong class="header">call</strong> <code>cotonic.broker.call()</code>
+            <strong class="header">call</strong> <code>cotonic.broker.call(topic, payload, [options])</code>
             </br>
+            Call a topic, returns a promise for the response.
             </p>
             <pre>
 // [TODO]
@@ -398,7 +403,7 @@ cotonic.broker.call();</pre>
 
             <!-- matches -->
             <p id="cotonic.mqtt.matches">
-            <strong class="header">matches</strong> <code>cotonic.mqtt.matches()</code>
+            <strong class="header">matches</strong> <code>cotonic.mqtt.matches(pattern, topic)</code>
             </br>
             </p>
             <pre>
@@ -407,7 +412,7 @@ cotonic.mqtt.matches();</pre>
 
             <!-- extract -->
             <p id="cotonic.mqtt.extract">
-            <strong class="header">extract</strong> <code>cotonic.mqtt.extract()</code>
+            <strong class="header">extract</strong> <code>cotonic.mqtt.extract(pattern, topic)</code>
             </br>
             </p>
             <pre>
@@ -416,7 +421,7 @@ cotonic.mqtt.extract();</pre>
 
             <!-- exec -->
             <p id="cotonic.mqtt.exec">
-            <strong class="header">exec</strong> <code>cotonic.mqtt.exec()</code>
+            <strong class="header">exec</strong> <code>cotonic.mqtt.exec(pattern, topic)</code>
             </br>
             </p>
             <pre>
@@ -425,7 +430,7 @@ cotonic.mqtt.exec();</pre>
 
             <!-- fill -->
             <p id="cotonic.mqtt.fill">
-            <strong class="header">fill</strong> <code>cotonic.mqtt.fill()</code>
+            <strong class="header">fill</strong> <code>cotonic.mqtt.fill(pattern, params)</code>
             </br>
             </p>
             <pre>
@@ -434,7 +439,7 @@ cotonic.mqtt.fill();</pre>
 
             <!-- remove_named_wildcards -->
             <p id="cotonic.mqtt.remove_named_wildcards">
-            <strong class="header">fill</strong> <code>cotonic.mqtt.remove_named_wildcards()</code>
+            <strong class="header">fill</strong> <code>cotonic.mqtt.remove_named_wildcards(pattern)</code>
             </br>
             </p>
             <pre>
@@ -446,62 +451,71 @@ cotonic.mqtt.remove_named_wildcards();</pre>
 
             <!-- insert -->
             <p id="cotonic.ui.insert">
-            <strong class="header">insert</strong> <code>cotonic.ui.insert()</code>
+            <strong class="header">insert</strong> <code>cotonic.ui.insert(targetId, isInner, initialHTML, [priority])</code>
             </br>
+            Insert a new html snippet into the user interface composer. The snippet will be stored under the given
+            targetId. The element will not be placed in the dom-tree immediately. This will happen when one of the 
+            render functions is called. The isInner boolean flag indicates if only innerHTML of the target element must
+            be updated, or the outerHTML. The optional priority parameter indicates the render order of the elements.
+            Elements with a high priority are rendedered before lower priorities. This makes it possible to nest
+            elements.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.insert();</pre>
+cotonic.ui.insert("root", false, "&lt;p&gt;Hello World!&lt;/p&gt;");
+cotonic.ui.render();</pre>
 
             <!-- get -->
             <p id="cotonic.ui.get">
-            <strong class="header">get</strong> <code>cotonic.ui.get()</code>
+            <strong class="header">get</strong> <code>cotonic.ui.get(id)</code>
             </br>
+            Retrieve the current html snippet registered at id.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.get();</pre>
+let currentHTML = cotonic.ui.get("root");</pre>
 
             <!-- remove -->
             <p id="cotonic.ui.remove">
-            <strong class="header">remove</strong> <code>cotonic.ui.remove()</code>
+            <strong class="header">remove</strong> <code>cotonic.ui.remove(id)</code>
             </br>
+            Remove the html snippet registered at id. Note that this will not remove the element from the dom-tree,
+            it will only remove it from the user interface composer. When the element must be removed it should first
+            be updated and set to a blank string and a render operation should be done.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.remove();</pre>
+cotonic.ui.remove("root");</pre>
 
 
             <!-- update -->
             <p id="cotonic.ui.update">
-            <strong class="header">update</strong> <code>cotonic.ui.update()</code>
+            <strong class="header">update</strong> <code>cotonic.ui.update(id, htmlOrTokens)</code>
             </br>
+            Update the registered snippet for the registered element with the given id. The new snippet will be visible
+            after a render operation.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.update();</pre>
+cotonic.ui.update("root", "&lt;p&gt;Hello Everybody!&lt;/p&gt;");</pre>
 
             <!-- render -->
             <p id="cotonic.ui.render">
             <strong class="header">render</strong> <code>cotonic.ui.render()</code>
             </br>
+            Render all registered elements.
             </p>
             <pre>
-// [TODO]
 cotonic.ui.render();</pre>
 
             <!-- renderId -->
             <p id="cotonic.ui.renderId">
-            <strong class="header">renderId</strong> <code>cotonic.ui.renderId()</code>
+            <strong class="header">renderId</strong> <code>cotonic.ui.renderId(id)</code>
             </br>
+            Just render the element with the given id.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.renderId();</pre>
+cotonic.ui.renderId("root");</pre>
 
             <!-- updateStateData -->
             <p id="cotonic.ui.updateStateData">
-            <strong class="header">updateStateData</strong> <code>cotonic.ui.updateStateData()</code>
+            <strong class="header">updateStateData</strong> <code>cotonic.ui.updateStateData(model, states)</code>
             </br>
             </p>
             <pre>
@@ -510,7 +524,7 @@ cotonic.ui.updateStateData();</pre>
 
             <!-- updateStateClass -->
             <p id="cotonic.ui.updateStateClass">
-            <strong class="header">updateStateClass</strong> <code>cotonic.ui.updateStateClass()</code>
+            <strong class="header">updateStateClass</strong> <code>cotonic.ui.updateStateClass(model, classes)</code>
             </br>
             </p>
             <pre>
@@ -519,7 +533,7 @@ cotonic.ui.updateStateClass();</pre>
 
             <!-- on -->
             <p id="cotonic.ui.on">
-            <strong class="header">on</strong> <code>cotonic.ui.on()</code>
+            <strong class="header">on</strong> <code>cotonic.ui.on(topic, msg, event, [options])</code>
             </br>
             </p>
             <pre>
