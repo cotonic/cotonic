@@ -148,7 +148,6 @@ var cotonic = cotonic || {};
     }
 
     cotonic.set_worker_base_src = set_worker_base_src;
-
     cotonic.spawn = spawn;
     cotonic.spawn_named = spawn_named;
     cotonic.send = send;

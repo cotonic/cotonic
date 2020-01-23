@@ -1,4 +1,4 @@
-.PHONY: all dist lib clean testlib
+.PHONY: all dist release lib clean testlib
 
 DIRS=dist
 $(shell mkdir -p $(DIRS))
@@ -14,7 +14,7 @@ ifeq (1,$(ZOTONIC_LIB))
 
 .PHONY: zotonic-lib
 
-all: lib zotonic-lib
+all: release lib zotonic-lib
 
 zotonic-lib: dist dist/zotonic-wired-bundle.js
 	mkdir -p ../../lib/cotonic/.
@@ -119,6 +119,19 @@ dist/cotonic-service-worker-bundle.js: lib
 dist: dist/cotonic-bundle.js \
 	  dist/cotonic-worker-bundle.js \
 	  dist/cotonic-service-worker-bundle.js
+
+# Release
+
+cotonic.js: dist/cotonic-bundle.js
+	cp dist/cotonic-bundle.js cotonic.js
+
+cotonic-worker.js: dist/cotonic-worker-bundle.js
+	cp dist/cotonic-worker-bundle.js cotonic-worker.js
+
+cotonic-service-worker.js: dist/cotonic-service-worker-bundle.js
+	cp dist/cotonic-service-worker-bundle.js cotonic-service-worker.js
+
+release: cotonic.js cotonic-worker.js cotonic-service-worker.js
 
 clean:
 	rm -f dist/*

@@ -1,4 +1,4 @@
-.PHONY: all w lib dist testlib clean test
+.PHONY: all w lib dist testlib clean test release
 
 GNUMAKE?= gmake
 
@@ -22,3 +22,6 @@ clean:
 
 test:
 	${GNUMAKE} test
+
+release:
+	${GNUMAKE} release 
