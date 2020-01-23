@@ -114,7 +114,7 @@ pre {
             <div>
 
                 <a class="toc_title" href="#">
-                    Cotonic <span class="version">(?.?.?)</span>
+                    Cotonic <span class="version">(1.0.0)</span>
                 </a>
 
                 <ul class="toc_section">
@@ -131,6 +131,7 @@ pre {
                     <li> - <a href="#cotonic.spawn_named">spawn_named</a>
                     <li> - <a href="#cotonic.send">send</a>
                     <li> - <a href="#cotonic.receive">receive</a>
+                    <li> - <a href="#cotonic.set_worker_base_src">set_worker_base_src</a>
                 </ul>
 
                 <!-- Broker -->
@@ -321,6 +322,27 @@ cotonic.send(worker_id1, "hello");</pre>
 cotonic.receive(function(message, worker_id) {
     console.log("Received", message, "from worker", worker_id);
 });</pre>
+            
+            <!-- set_worker_base_src -->
+            <p id="cotonic.set_worker_base_src">
+            <strong class="header">set_worker_base_src</strong> <code>cotonic.set_worker_base_src(baseUrl)</code>
+            </br>
+            Set the base url to load additional importable cotonic modules from. This is used to locate the base
+            worker script which is needed to communicate with the other workers.
+            </br>
+            By default the location is <tt>/lib/cotonic/cotonic-worker-bundle.js </tt>. It is also possible to 
+            configure this via the script via which cotonic itself is loaded on the page.
+            Note: When this is not setup correctly, it will not be possible to spawn workers.
+            </p>
+
+            <pre>
+cotonic.set_worker_base_src("/lib/js/cotonic-worker.js");
+=> Cotonic will now use the '/lib/js/cotonic-worker.js' when workers are spawned.</pre>
+
+            <pre>
+&ltscript data-worker-base-src="/lib/cotonic-worker.js" src="/lib/cotonic.js"&gt;&lt;/script&gt;
+=> Cotonic will use '/lib/cotonic-worker.js' when new workers are spawned.</pre>
+
 
             <h3 id="cotonic.broker">Broker</h3>
 
