@@ -15,8 +15,6 @@ self.on_connect = function() {
     self.publish("model/ui/insert/hour",
         {inner: true, initialData: hour_hand(date), priority: 10});
 
-    self.publish("model/ui/render", {});
-
     setInterval(function() {
         let date = new Date();
 
@@ -24,7 +22,6 @@ self.on_connect = function() {
         self.publish("model/ui/update/minute", minute_hand(date));
         self.publish("model/ui/update/hour", hour_hand(date));
 
-        self.publish("model/ui/render", {});
     }, 1000);
 };
 
