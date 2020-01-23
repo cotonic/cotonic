@@ -19,8 +19,8 @@
             <g transform="translate(150,150)">
                 <g>
                     <circle fill="none" r="108" stroke="gray" stroke-width="4"></circle>
-                    <circle fill="none" r="97" stroke="black" stroke-dasharray="4,46.789082" stroke-width="11" transform="rotate(-1.5)"></circle>
-                    <circle fill="none" r="100" stroke="black" stroke-dasharray="2,8.471976" stroke-width="5" transform="rotate(-.873)"></circle>
+                    <circle fill="none" r="97" stroke="black" stroke-dasharray="4, 46.789082" stroke-width="11" transform="rotate(-1.5)"></circle>
+                    <circle fill="none" r="100" stroke="black" stroke-dasharray="2, 8.471976" stroke-width="5" transform="rotate(-.873)"></circle>
                 </g>
                 <g id="hands" transform="rotate(180)">
                     <g id="hour"></g>
@@ -31,22 +31,11 @@
           </svg>
         </div>
 
-        <script type="text/javascript" src="../lib/incremental-dom.js"></script>
-
-        <script type="text/javascript" src="../src/cotonic.js"
-                data-base-worker-src="http://localhost:6227/dist/cotonic-worker-bundle.js"></script>
-
-        <script type="text/javascript" src="../src/cotonic.tokenizer.js"></script>
-        <script type="text/javascript" src="../src/cotonic.idom.js"></script>
-
-	<script type="text/javascript" src="../src/cotonic.mqtt.js"></script>
-        <script type="text/javascript" src="../src/cotonic.broker.js"></script>
-
-        <script type="text/javascript" src="../src/cotonic.ui.js"></script>
-        <script type="text/javascript" src="../src/cotonic.model.ui.js"></script>
+        <script type="text/javascript" src="/cotonic.js"
+                data-base-worker-src="/cotonic-worker.js"></script>
 
         <script>
-          cotonic.spawn("http://localhost:6227/examples/clock_worker.js");
+          cotonic.spawn("/examples/clock_worker.js");
         </script>
     </body>
 </html>
