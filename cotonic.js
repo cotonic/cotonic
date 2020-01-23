@@ -862,9 +862,14 @@ if (!('Promise' in globalNS)) {
  */
 
 "use strict";
+
 var cotonic = cotonic || {};
 
+/* Current cotonic version */
+cotonic.VERSION = "1.0.0";
+
 (function(cotonic) {
+
     /* Get the data-base-worker-src from the script tag that loads
      * cotonic on this page.
      */
@@ -879,6 +884,7 @@ var cotonic = cotonic || {};
             return "/lib/cotonic/cotonic-worker-bundle.js?v=1";
         }
     })();
+
 
     let next_worker_id = 1;
     let workers = {};
@@ -995,7 +1001,6 @@ var cotonic = cotonic || {};
     }
 
     cotonic.set_worker_base_src = set_worker_base_src;
-
     cotonic.spawn = spawn;
     cotonic.spawn_named = spawn_named;
     cotonic.send = send;
