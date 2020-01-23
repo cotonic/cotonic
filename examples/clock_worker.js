@@ -4,9 +4,7 @@
 console.log("clock worker here");
 
 self.on_connect = function() {
-    console.log("connected");
-
-    let date = new Date();
+    const date = new Date();
 
     self.publish("model/ui/insert/second", 
         {initialData: second_hand(date), inner: true, priority: 10});
@@ -16,20 +14,19 @@ self.on_connect = function() {
         {inner: true, initialData: hour_hand(date), priority: 10});
 
     setInterval(function() {
-        let date = new Date();
+        const date = new Date();
 
         self.publish("model/ui/update/second", second_hand(date));
         self.publish("model/ui/update/minute", minute_hand(date));
         self.publish("model/ui/update/hour", hour_hand(date));
 
-    }, 1000);
+    }, 125);
 };
 
 self.connect("clock-worker");
-console.log("called connect");
 
 function second_hand(date) {
-    const angle = date.getSeconds() * 6;
+    const angle = ((date.getSeconds() * 1000) + date.getMilliseconds()) * 0.006;
 
     // Return svg snippet
     return `<g transform="rotate(${angle})">
