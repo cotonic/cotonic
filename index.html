@@ -1,0 +1,605 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta name="HandheldFriendly" content="true"/>
+
+        <link rel="apple-touch-icon" sizes="180x180" href="./doc/favicon/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="./doc/favicon/32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="./doc/favicon/16x16.png">
+        <link rel="manifest" href="./doc/favicon/site.webmanifest">
+
+        <title>Cotonic</title>
+
+        <style>
+body {
+    font-size: 14px;
+    line-height: 22px;
+    background: #f4f4f4;
+    color: #000;
+    font-family: sans-serif;
+}
+
+section#sidebar {
+    background: #fff;
+    position: fixed;
+
+    top: 0; left: 0; bottom: 0;
+    width: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px 0 30px 30px;
+    border-right: 1px solid #bbb;
+    box-shadow: 0 0 20px #ccc; 
+}
+
+section#documentation {
+    width: 550px;
+    margin: 40px 0 50px 260px;
+}
+
+h1.logo {
+    color: #0778B0;
+    font-size: 48px;
+    padding-top: 0px;
+}
+
+a.toc_title, a.toc_title:visited {
+    display: block;
+    color: #0778B0;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+ul.toc_section {
+    font-size: 11px;
+    line-height: 14px;
+    margin: 5px 0 0 0;
+    padding-left: 0px;
+    list-style-type: none;
+}
+
+ul.toc_section ul {
+    padding-top: 0.66ex; 
+    padding-left: 2em;
+    list-style-type: none;
+}
+
+.toc_section li {
+    cursor: pointer;
+    margin: 0 0 3px 0;
+}
+.toc_section li a {
+    text-decoration: none;
+    color: black;
+}
+.toc_section li a:hover {
+    text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    padding-top: 20px;
+}
+
+strong.header {
+    color: #0778B0;
+    font-size: 16px;
+    line-height: 30px;
+}
+
+code, pre, tt {
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 18px;
+    font-style: normal;
+}
+
+code {
+    margin-left: 20px;
+}
+
+pre {
+    font-size: 12px;
+    padding: 2px 0 2px 15px;
+    border-left: 5px solid #bbb;
+    margin: 0px 0 30px;
+}
+        </style>
+    </head>
+    <body>
+        <section id="sidebar">
+            <div>
+
+                <a class="toc_title" href="#">
+                    Cotonic <span class="version">(?.?.?)</span>
+                </a>
+
+                <ul class="toc_section">
+                    <li>&raquo; <a href="https://github.com/cotonic/cotonic">Github Repository</a></li>
+                    <li>&raquo; <a href="#">Introduction</a></li>
+                    <li>&raquo; <a href="#workers">Workers</a></li>
+                </ul>
+
+                <a class="toc_title" href="#functions">
+                    Functions
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.spawn">spawn</a>
+                    <li> - <a href="#cotonic.spawn_named">spawn_named</a>
+                    <li> - <a href="#cotonic.send">send</a>
+                    <li> - <a href="#cotonic.receive">receive</a>
+                </ul>
+
+                <!-- Broker -->
+                <a href="#cotonic.broker" class="toc_title">
+                    broker
+                </a>
+
+                <ul class="toc_section">
+                     <li> - <a href="#cotonic.broker.find_subscriptions_below">find_subscriptions_below</a>
+                     <li> - <a href="#cotonic.broker.match">match</a>
+                     <li> - <a href="#cotonic.broker.publish">publish</a>
+                     <li> - <a href="#cotonic.broker.subscribe">subscribe</a>
+                     <li> - <a href="#cotonic.broker.unsubscribe">unsubscribe</a>
+                     <li> - <a href="#cotonic.broker.call">call</a>
+                </ul>
+
+                <!-- MQTT -->
+                <a href="#cotonic.mqtt" class="toc_title">
+                    mqtt
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.mqtt.matches">matches</a>
+                    <li> - <a href="#cotonic.mqtt.extract">extract</a>
+                    <li> - <a href="#cotonic.mqtt.exec">exec</a>
+                    <li> - <a href="#cotonic.mqtt.fill">fill</a>
+                    <li> - <a href="#cotonic.mqtt.remove_named_wildcards">remove_named_wildcards</a>
+                </ul>
+
+                <!-- UI -->
+                <a href="cotonic.ui" class="toc_title">
+                    ui
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.ui.insert">insert</a>
+                    <li> - <a href="#cotonic.ui.get">get</a>
+                    <li> - <a href="#cotonic.ui.update">update</a>
+                    <li> - <a href="#cotonic.ui.remove">remove</a>
+                    <li> - <a href="#cotonic.ui.render">render</a>
+                    <li> - <a href="#cotonic.ui.renderId">renderId</a>
+                    <li> - <a href="#cotonic.ui.updateStateData">updateStateData</a>
+                    <li> - <a href="#cotonic.ui.updateStateClass">updateStateClass</a>
+                    <li> - <a href="#cotonic.ui.on">on</a>
+                </ul>
+
+                <a class="toc_title" href="#models">
+                    Models
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="model.document">document</a>
+                    <li> - <a href="model.location">location</a>
+                    <li> - <a href="model.ui">ui</a>
+                    <li> - <a href="model.serviceWorker">serviceWorker</a>
+                    <li> - <a href="model.sessionStorage">sessionStorage</a>
+                    <li> - <a href="model.localStorage">localStorage</a>
+                </ul>
+            </div>
+
+            <div>
+                <a class="toc_title" href="#topics">
+                    Topics
+                </a>
+                <ul class="toc_section">
+                    <li><strong>Document</strong>
+                    <li> - <a href="topic.document.get.all">model/document/get/all</a>
+                    <li> - <a href="topic.document.get.intl">model/document/get/intl</a>
+                    <li><strong>Location</strong>
+                    <li> - <a href="topic.location.get.protocol">model/location/get/protocol</a>
+                    <li> - <a href="topic.location.get.hash">model/location/get/hash</a>
+                </ul>
+            </div>
+        </section>
+
+        <section id="documentation">
+
+            <p id="introduction">
+               <h1 class="logo">COTONIC</h1>
+            </p>
+
+            <p>
+            <a href="https://github.com/cotonic/cotonic">Cotonic</a> is a Javascript
+            library which makes it possible to split the javascript code of your
+            page into truly isolated components. By doing this a crash in one component
+            can never affect another component.
+            </p>
+
+            <p>
+            Cotonic provides tools to make it possible for these components to cooperate
+            by providing an MQTT publish/subscribe bus. This makes it possible for
+            components to communicate via topics.
+            </p>
+
+            <h2 id="workers">Workers</h2>
+
+            <p>
+            Cotonic uses Web Workers which all run in separate calling context. This
+            means that they will not block the main user interface thread. They are
+            also truly isolated from each other. This means that a crash or another
+            kind of problem in worker A can crash worker B. 
+            </p>
+
+            <p>
+            You can run whatever code you like in workers, with some exceptions. You
+            can't access the DOM, and a lot of things from the window object. This also
+            makes them more secure because you don't have to worry that worker code
+            from an external resource can steal the a credit-card number entered 
+            somewhere in the DOM tree.
+            </p>
+
+            <p>
+            Cotonic adds a MQTT like publish subscribe mechanism to the standard javascript
+            web worker api. This makes it easy for web workers to communicate with each other.
+            </p>
+
+<pre>
+// worker-a
+"use strict";
+
+self.subscribe("some/topic", function(message) {
+    self.publish("model/ui/update", "&lt;p&gt;Worker A got message&lt;/p&gt;")
+});
+
+self.publish("model/ui/insert", "&lt;p&gt;Worker A started&lt;/p&gt;");</pre>
+
+<pre>
+// worker-b
+"use strict";
+
+self.subscribe("some/topic", function(message) {
+    self.publish("model/ui/update", "&lt;p&gt;Worker B got message&lt;/p&gt;")
+});
+
+self.publish("model/ui/insert", "&lt;p&gt;Worker B started&lt;/p&gt;");</pre>
+
+
+<pre>
+let worker_a = cotonic.spawn("worker-a.js");
+let worker_a = cotonic.spawn("worker-b.js");
+
+cotonic.broker.publish("some/topic", "hello workers!");
+</pre>
+
+            <h2 id="functions">Functions</h2>
+
+            <p>
+            Cotonics main functions are available in the <tt>cotonic</tt> namespace. The functions
+            are mostly used to control and allow messaging between workers.
+            </p>
+
+            <!-- spawn -->
+            <p id="cotonic.spawn">
+            <strong class="header">spawn</strong> <code>cotonic.spawn(worker_src_url, [args])</code>
+            </br>
+            Spawn a new worker. Returns the worker-id of the process.
+            </p>
+            <pre>
+let worker_id1 = cotonic.spawn("/js/example-worker.js");
+let worker_id2 = cotonic.spawn("/js/another-worker.js", ["Arg1", 1]);</pre>
+
+            <!-- spawn_named -->
+            <p id="cotonic.spawn_named">
+            <strong class="header">spawn_named</strong> <code>cotonic.spawn_named(name, worker_src_url, [base], [args])</code>
+            </br>
+            Spawn a new named worker. Named workers are unique. Use <code>""</code> or
+            <code>undefined</code> for a nameless worker. Return the worker_id of the newly spawned
+            worker. If the worker was already running, the existing worker_id is returned.
+            </p>
+
+            <pre>
+cotonic.spawn_named("example", "example-worker.js");</pre>
+
+            <!-- send -->
+            <p id="cotonic.send">
+            <strong class="header">send</strong> <code>cotonic.send(worker_id, message)</code>
+            </br>
+            Send a message to a worker.
+            </p>
+            <pre>
+cotonic.send(worker_id1, "hello");</pre>
+
+            <!-- receive -->
+            <p id="cotonic.receive">
+            <strong class="header">receive</strong> <code>cotonic.receive(handler)</code>
+            </br>
+            Receive messages from workers. The handler should be a function which takes 
+            two parameters, the message, and the worker_id.
+            </p>
+            <pre>
+cotonic.receive(function(message, worker_id) {
+    console.log("Received", message, "from worker", worker_id);
+});</pre>
+
+            <h3 id="cotonic.broker">Broker</h3>
+
+            <p>
+            The broker module handles all local publish subscribe connections. The subscriptions
+            are stored in a trie datastructure allowing quick action. They are available in the
+            <tt>cotonic.broker</tt> namespace.
+            </p>
+
+            <!-- find_subscriptions_below -->
+            <p id="cotonic.broker.find_subscriptions_below">
+            <strong class="header">find_subscriptions_below</strong> <code>cotonic.broker.find_subscriptions_below(topic)</code>
+            </br>
+            Find all subscribers below a certain topic. Used by the bridge to collect all subscriptions
+            after a session restart.
+            </p>
+            <pre>
+cotonic.broker.find_subscriptions_below("/my/topic/#");</pre>
+
+            <!-- match -->
+            <p id="cotonic.broker.match">
+            <strong class="header">match</strong> <code>cotonic.broker.match(topic)</code>
+            </br>
+            Collect all subscribers which match the topic.
+            </p>
+            <pre>
+cotonic.broker.subscribe("/a/test"
+    function(msg) {
+        console.log("test topic a");
+    })
+cotonic.broker.subscribe("/b/test"
+    function(msg) {
+        console.log("test topic b");
+    })
+cotonic.broker.match("+/test");</pre>
+
+            <!-- publish -->
+            <p id="cotonic.broker.publish">
+            <strong class="header">publish</strong> <code>cotonic.broker.publish(topic, payload, [options])</code>
+            </br>
+            Publish the message <<tt>payload</tt> on a topic. The possible <tt>options</tt> are:
+            <dl>
+                <dt><code>qos</code></dt>
+                <dd>Quality of service. Can be 0, 1, or 2. 0 means at most once, 1 at least once, and 2 exactly once.</dd>
+                <dt><code>retain</code></dt>
+                <dd>When retain is true, the last message sent will be stored, and delivered immediately when
+                a new client subscribes to the topic.</dd>
+                <dt><code>properties</code></dt>
+                <dd>Extra properties which can be attached to the message</dd>
+            </dl>
+            </p>
+            <pre>
+cotonic.broker.publish("truck/001/temperature", 88);
+=> All subscribers receive the message 88 on the topic.
+cotonic.broker.publish("truck/001/speed", 74, {retain: true});
+=> All subscribers receive the message 74. New subscribers will immediately receive 74.
+            </pre>
+
+            <!-- subscribe -->
+            <p id="cotonic.broker.subscribe">
+            <strong class="header">subscribe</strong> <code>cotonic.broker.subscribe(topics, callback, [options])</code>
+            </br>
+            Subscribe to the topics. The callback will be called when a message which matches one of the topics
+            is published.
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.subscribe();</pre>
+
+            <!-- unsubscribe -->
+            <p id="cotonic.broker.unsubscribe">
+            <strong class="header">unsubscribe</strong> <code>cotonic.broker.unsubscribe(topics, [options])</code>
+            </br>
+            Unsubscribe from the topics.
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.unsubscribe();</pre>
+
+            <!-- call -->
+            <p id="cotonic.broker.call">
+            <strong class="header">call</strong> <code>cotonic.broker.call(topic, payload, [options])</code>
+            </br>
+            Call a topic, returns a promise for the response.
+            </p>
+            <pre>
+// [TODO]
+cotonic.broker.call();</pre>
+
+
+            <h3 id="cotonic.mqtt">MQTT</h3>
+
+            <!-- matches -->
+            <p id="cotonic.mqtt.matches">
+            <strong class="header">matches</strong> <code>cotonic.mqtt.matches(pattern, topic)</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.matches();</pre>
+
+            <!-- extract -->
+            <p id="cotonic.mqtt.extract">
+            <strong class="header">extract</strong> <code>cotonic.mqtt.extract(pattern, topic)</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.extract();</pre>
+
+            <!-- exec -->
+            <p id="cotonic.mqtt.exec">
+            <strong class="header">exec</strong> <code>cotonic.mqtt.exec(pattern, topic)</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.exec();</pre>
+
+            <!-- fill -->
+            <p id="cotonic.mqtt.fill">
+            <strong class="header">fill</strong> <code>cotonic.mqtt.fill(pattern, params)</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.fill();</pre>
+
+            <!-- remove_named_wildcards -->
+            <p id="cotonic.mqtt.remove_named_wildcards">
+            <strong class="header">fill</strong> <code>cotonic.mqtt.remove_named_wildcards(pattern)</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.mqtt.remove_named_wildcards();</pre>
+
+
+            <h3 id="cotonic.ui">ui</h3>
+
+            <!-- insert -->
+            <p id="cotonic.ui.insert">
+            <strong class="header">insert</strong> <code>cotonic.ui.insert(targetId, isInner, initialHTML, [priority])</code>
+            </br>
+            Insert a new html snippet into the user interface composer. The snippet will be stored under the given
+            targetId. The element will not be placed in the dom-tree immediately. This will happen when one of the 
+            render functions is called. The isInner boolean flag indicates if only innerHTML of the target element must
+            be updated, or the outerHTML. The optional priority parameter indicates the render order of the elements.
+            Elements with a high priority are rendedered before lower priorities. This makes it possible to nest
+            elements.
+            </p>
+            <pre>
+cotonic.ui.insert("root", false, "&lt;p&gt;Hello World!&lt;/p&gt;");
+cotonic.ui.render();</pre>
+
+            <!-- get -->
+            <p id="cotonic.ui.get">
+            <strong class="header">get</strong> <code>cotonic.ui.get(id)</code>
+            </br>
+            Retrieve the current html snippet registered at id.
+            </p>
+            <pre>
+let currentHTML = cotonic.ui.get("root");</pre>
+
+            <!-- remove -->
+            <p id="cotonic.ui.remove">
+            <strong class="header">remove</strong> <code>cotonic.ui.remove(id)</code>
+            </br>
+            Remove the html snippet registered at id. Note that this will not remove the element from the dom-tree,
+            it will only remove it from the user interface composer. When the element must be removed it should first
+            be updated and set to a blank string and a render operation should be done.
+            </p>
+            <pre>
+cotonic.ui.remove("root");</pre>
+
+
+            <!-- update -->
+            <p id="cotonic.ui.update">
+            <strong class="header">update</strong> <code>cotonic.ui.update(id, htmlOrTokens)</code>
+            </br>
+            Update the registered snippet for the registered element with the given id. The new snippet will be visible
+            after a render operation.
+            </p>
+            <pre>
+cotonic.ui.update("root", "&lt;p&gt;Hello Everybody!&lt;/p&gt;");</pre>
+
+            <!-- render -->
+            <p id="cotonic.ui.render">
+            <strong class="header">render</strong> <code>cotonic.ui.render()</code>
+            </br>
+            Render all registered elements.
+            </p>
+            <pre>
+cotonic.ui.render();</pre>
+
+            <!-- renderId -->
+            <p id="cotonic.ui.renderId">
+            <strong class="header">renderId</strong> <code>cotonic.ui.renderId(id)</code>
+            </br>
+            Just render the element with the given id.
+            </p>
+            <pre>
+cotonic.ui.renderId("root");</pre>
+
+            <!-- updateStateData -->
+            <p id="cotonic.ui.updateStateData">
+            <strong class="header">updateStateData</strong> <code>cotonic.ui.updateStateData(model, states)</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.updateStateData();</pre>
+
+            <!-- updateStateClass -->
+            <p id="cotonic.ui.updateStateClass">
+            <strong class="header">updateStateClass</strong> <code>cotonic.ui.updateStateClass(model, classes)</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.updateStateClass();</pre>
+
+            <!-- on -->
+            <p id="cotonic.ui.on">
+            <strong class="header">on</strong> <code>cotonic.ui.on(topic, msg, event, [options])</code>
+            </br>
+            </p>
+            <pre>
+// [TODO]
+cotonic.ui.on();</pre>
+
+            <h2 id="models">Models</h2>
+
+            <h3 id="model.document">Document</h3>
+
+            <p>
+            "model/document/get/+key" 
+            </p>
+            
+            <h4 id="model.document.all">key = "all"</h4>
+
+<pre>            
+            screen_width
+            screen_height
+            inner_width
+            inner_height
+            is_touch
+            timezone
+            language
+</pre>
+
+            <h4 id="model.document.intl">key = "intl"</h4>
+
+<pre>
+            timezone
+            language
+</pre>
+
+            <h3 id="model.location">Location</h3>
+
+            <p>
+            "model/location/get/+what"
+            </p>
+
+            <p>
+            "model/location/event"
+
+            ping, search (q), pathname, hash
+            </p>
+
+            <h3 id="model.ui">User Interface Composer</h3>
+
+            <h3 id="model.serviceWorker">Service Worker</h3>
+            <h3 id="model.localStorage">Local Storage</h3>
+            <h3 id="model.sessionStorage">Session Storage</h3>
+
+
+        </section>
+
+
+    </body>
+</html>
