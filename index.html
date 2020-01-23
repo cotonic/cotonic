@@ -359,13 +359,25 @@ cotonic.broker.match("+/test");</pre>
 
             <!-- publish -->
             <p id="cotonic.broker.publish">
-            <strong class="header">publish</strong> <code>cotonic.broker.publish(topic, payload, options)</code>
+            <strong class="header">publish</strong> <code>cotonic.broker.publish(topic, payload, [options])</code>
             </br>
-            Publish a message on a topic.
+            Publish the message <<tt>payload</tt> on a topic. The possible <tt>options</tt> are:
+            <dl>
+                <dt><code>qos</code></dt>
+                <dd>Quality of service. Can be 0, 1, or 2. 0 means at most once, 1 at least once, and 2 exactly once.</dd>
+                <dt><code>retain</code></dt>
+                <dd>When retain is true, the last message sent will be stored, and delivered immediately when
+                a new client subscribes to the topic.</dd>
+                <dt><code>properties</code></dt>
+                <dd>Extra properties which can be attached to the message</dd>
+            </dl>
             </p>
             <pre>
-// [TODO]
-cotonic.broker.publish();</pre>
+cotonic.broker.publish("truck/001/temperature", 88);
+=> All subscribers receive the message 88 on the topic.
+cotonic.broker.publish("truck/001/speed", 74, {retain: true});
+=> All subscribers receive the message 74. New subscribers will immediately receive 74.
+            </pre>
 
             <!-- subscribe -->
             <p id="cotonic.broker.subscribe">
