@@ -207,7 +207,7 @@ QUnit.test("publish", function(assert) {
                 qos: 0,
                 dup: false,
                 retain: false,
-                packet_id: undefined,
+                packet_id: null,
                 payload: new Uint8Array(0),
                 properties: {}
             },
@@ -264,7 +264,7 @@ QUnit.test("publish", function(assert) {
                 qos: 0,
                 dup: false,
                 retain: false,
-                packet_id: undefined,
+                packet_id: null,
                 payload: string2bin("aloha"),
                 properties: {}
             },
@@ -289,7 +289,7 @@ QUnit.test("publish", function(assert) {
                 qos: 0,
                 dup: false,
                 retain: false,
-                packet_id: undefined,
+                packet_id: null,
                 payload: new Uint8Array(0),
                 properties: {
                     subscription_identifier: [ 1, 2, 3 ]
