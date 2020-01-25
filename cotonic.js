@@ -996,13 +996,29 @@ cotonic.VERSION = "1.0.0";
         }
     }
 
+    /**
+     * Terminate a web-worker
+     */
+    function exit(wid) {
+        if(wid === 0) return;
+
+        const worker = workers[wid];
+        if(!worker) return;
+
+        worker.terminate();
+        delete workers[wid];
+    }
+
     function receive(handler) {
         receive_handler = handler;
     }
 
     cotonic.set_worker_base_src = set_worker_base_src;
+
     cotonic.spawn = spawn;
     cotonic.spawn_named = spawn_named;
+    cotonic.exit = exit;
+
     cotonic.send = send;
     cotonic.receive = receive;
 }(cotonic));
@@ -6537,7 +6553,14 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 
     if (navigator.serviceWorker) {
-        navigator.serviceWorker.register('/service-worker.js');
+        navigator.serviceWorker.register('/service-worker.js').then(
+            function(registration) {
+                console.log("registration", registration);
+            }, 
+            function(error) {
+                console.log("registration failed", error);
+            }
+        )
 
         navigator.serviceWorker.addEventListener('message', function(event) {
             switch (event.data.type) {
