@@ -12,8 +12,15 @@
         </style>
     </head>
     <body>
-
         <div id="root">
+            <h1>Clock Worker Example</h1>
+            <p>
+            In this example the hands of the clock are managed by a single web-worker.
+            </p>
+
+            <button onclick="cotonic.broker.publish('spawn');">Spawn Worker</button>
+            <button onclick="cotonic.broker.publish('stop');">Stop Worker</button>
+
           <!-- The svg can be placed as is.  -->
           <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <g transform="translate(150,150)">
@@ -35,7 +42,21 @@
                 data-base-worker-src="/cotonic-worker.js"></script>
 
         <script>
-          cotonic.spawn("/examples/clock_worker.js");
+            let hands_worker = null;
+
+            cotonic.broker.subscribe("spawn", function() {
+                if(!hands_worker) {
+                    hands_worker = cotonic.spawn("/examples/clock_worker.js");
+                }
+            })
+
+            cotonic.broker.subscribe("stop", function() {
+                if(hands_worker) {
+                    cotonic.exit(hands_worker);
+                    hands_worker = null;
+                }
+            })
+
         </script>
     </body>
 </html>

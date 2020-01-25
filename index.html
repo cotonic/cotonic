@@ -129,6 +129,7 @@ pre {
                 <ul class="toc_section">
                     <li> - <a href="#cotonic.spawn">spawn</a>
                     <li> - <a href="#cotonic.spawn_named">spawn_named</a>
+                    <li> - <a href="#cotonic.exit">exit</a>
                     <li> - <a href="#cotonic.send">send</a>
                     <li> - <a href="#cotonic.receive">receive</a>
                     <li> - <a href="#cotonic.set_worker_base_src">set_worker_base_src</a>
@@ -301,6 +302,18 @@ let worker_id2 = cotonic.spawn("/js/another-worker.js", ["Arg1", 1]);</pre>
 
             <pre>
 cotonic.spawn_named("example", "example-worker.js");</pre>
+
+            <!-- exit -->
+            <p id="cotonic.exit">
+            <strong class="header">exit</strong> <code>cotonic.exit(nameOrwid)</code>
+            </br>
+            Exit stops a worker which was previously spawned.
+            </p>
+
+            <pre>
+const wid = cotonic.spawn("example.worker.js");
+cotonic.exit(wid);
+=> Worker <tt>wid</tt> is no longer running.</pre>
 
             <!-- send -->
             <p id="cotonic.send">
