@@ -256,12 +256,12 @@ var cotonic = cotonic || {};
         options = options || {};
         let subtopics = [];
 
-        if (typeof topics == "string") {
+        if (typeof topics === "string") {
             topics = [ topics ];
         }
 
         for (let k = 0; k < topics.length; k++) {
-            if (typeof topics[k] == "string") {
+            if (typeof topics[k] === "string") {
                 subtopics.push({
                     topic: topics[k],
                     qos: options.qos || 0,
@@ -352,7 +352,8 @@ var cotonic = cotonic || {};
       * Unsubscribe
       */
     function unsubscribe( topics, options ) {
-        if (typeof topics == "string") {
+        options = options | {wid: 0};
+        if (typeof topics === "string") {
             topics = [ topics ];
         }
         unsubscribe_subscriber({type: "page", wid: options.wid}, { topics: topics });

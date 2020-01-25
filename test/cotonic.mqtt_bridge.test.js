@@ -33,32 +33,35 @@ QUnit.test("Connect with mock mqtt_bridge", function(assert) {
     let mockSession;
 
     {
-        let theBridge;
+        let bridgeTopics;
 
         mockSession = {
-
-            newSession: function(remote, obj) {
-                theBridge = obj;
+            newSession: function(remote, topics) {
+                bridgeTopics = topics;
                 return;
             },
 
             connack: function() {
-                theBridge.sessionConnack("mock-client-id", {});
+                cotonic.broker.publish(bridgeTopics.session_in, {
+                    type: "connack",
+                    session_id: "mock-client-id",
+                    is_connected: true,
+                    connack: {
+                        session_present: true
+                    }
+                });
             }
-            
         };
     }
 
-
     let bridge = mqtt_bridge.newBridge("mock", mockSession);
-
     assert.equal(!!bridge, true, "Check if bridge is created");
 
-    let s = cotonic.broker.subscribe("$bridge/mock/status", function(m) {
+    cotonic.broker.subscribe("$bridge/mock/status", function(m) {
         // After the connack below, the test is done.
-        if(m && m.session_present) {
+        if(m.payload && m.payload.session_present) {
             done();
-            cotonic.broker.unsubscribe(s);
+            cotonic.broker.unsubscribe("$bridge/mock/status");
         }
     })
 

@@ -317,6 +317,7 @@ var cotonic = cotonic || {};
 
     }
 
+
     // Publish the MQTT bridge functions.
     cotonic.mqtt_bridge = cotonic.mqtt_bridge || {};
     cotonic.mqtt_bridge.newBridge = newBridge;
