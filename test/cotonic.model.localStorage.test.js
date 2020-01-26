@@ -55,10 +55,13 @@ QUnit.test("test.model.localStorage - delete", function(assert) {
 QUnit.test("test.model.localStorage - events", function(assert, bindings) {
     let events = [];
 
+    cotonic.broker._delete_all_retained();
+
     broker.subscribe("model/localStorage/event/+key",
         function(msg, bindings) {
             events.push({msg:msg, key: bindings.key});
-        }
+        },
+        {}
     );
 
     try {
