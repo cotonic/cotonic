@@ -146,10 +146,10 @@ var cotonic = cotonic || {};
 
     function indexOfSubscription( v, thing ) {
         let index = v.indexOf(thing);
-        if (index == -1) {
+        if (index === -1) {
             for(index = v.length-1; index >= 0; index--) {
-                let sub = v[index];
-                if (thing.type == sub.type && sub.wid && sub.wid === thing.wid) {
+                const sub = v[index];
+                if (thing.type === sub.type && sub.wid === thing.wid) {
                     return index;
                 }
             }
@@ -257,6 +257,8 @@ var cotonic = cotonic || {};
      */
     function subscribe(topics, callback, options) {
         options = options || {};
+        if(options.wid === undefined) options.wid = 0;
+
         let subtopics = [];
 
         if (typeof topics === "string") {
@@ -358,10 +360,13 @@ var cotonic = cotonic || {};
       * Unsubscribe
       */
     function unsubscribe( topics, options ) {
-        options = options | {wid: 0};
+        options = options || {};
+        if(options.wid === undefined) options.wid = 0;
+
         if (typeof topics === "string") {
             topics = [ topics ];
         }
+
         unsubscribe_subscriber({type: "page", wid: options.wid}, { topics: topics });
     }
 

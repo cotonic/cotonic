@@ -106,10 +106,10 @@ QUnit.test("Subscribe, publish, unsubscribe, publish", function(assert) {
 
     cotonic.broker.subscribe("plop", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
-    }, { wid: "x" });
+    }, {wid: "x"});
 
     cotonic.broker.publish("plop", "First");
-    cotonic.broker.unsubscribe("plop", { wid: "x" });
+    cotonic.broker.unsubscribe("plop", {wid: "x"});
     cotonic.broker.publish("plop", "Second");
 
     assert.equal(publishes.length, 1, "There is one message");
