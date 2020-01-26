@@ -73,7 +73,10 @@ QUnit.test("Subscribe and publish, retained messages", function(assert) {
 
     cotonic.broker._delete_all_retained();
 
-    cotonic.broker.publish("retained/bar", "Hello I'm retained!", {retain: true});
+    cotonic.broker.publish("retained/bar",
+        "Hello I'm retained!",
+        {retain: true}
+    );
 
     cotonic.broker.subscribe("retained/#a", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
