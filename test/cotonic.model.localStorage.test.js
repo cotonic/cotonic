@@ -8,9 +8,12 @@ const broker = cotonic.broker;
 
 QUnit.test("test.model.localStorage - post, and post remove", function(assert) {
     broker.publish("model/localStorage/post/foo", "bar");
-    assert.equal(window.localStorage.getItem("foo"), "bar");
+    assert.equal(window.localStorage.getItem("foo"), JSON.stringify("bar"));
 
-    broker.publish("model/localStorage/post/foo", undefined);
+    broker.publish("model/localStorage/post/foo", null);
+    assert.equal(window.localStorage.getItem("foo"), JSON.stringify(null));
+
+    broker.publish("model/localStorage/delete/foo", {});
     assert.equal(window.localStorage.getItem("foo"), null);
 });
 
@@ -42,10 +45,10 @@ QUnit.test("test.model.localStorage - get", function(assert) {
 QUnit.test("test.model.localStorage - delete", function(assert) {
     window.localStorage.setItem("foo", "get - test");
 
-    broker.publish("model/localStorage/post/foo", undefined);
+    broker.publish("model/localStorage/delete/foo", undefined);
     assert.equal(window.localStorage.getItem("foo"), null);
 
-    broker.publish("model/localStorage/post/never-existed", undefined);
+    broker.publish("model/localStorage/delete/never-existed", undefined);
     assert.equal(window.localStorage.getItem("never-existed"), null);
 });
 
