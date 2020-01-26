@@ -48,7 +48,7 @@ and the client can communicate via topics.
 
 ## Supported Browsers
 
-Cotonic depends on the Web Worker, so it is supported on IE10 and up.
+Cotonic depends on the Web Worker, so it is supported on IE11 and up.
 
 ## Dependencies:
 
