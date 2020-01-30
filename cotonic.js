@@ -866,7 +866,7 @@ if (!('Promise' in globalNS)) {
 var cotonic = cotonic || {};
 
 /* Current cotonic version */
-cotonic.VERSION = "1.0.0";
+cotonic.VERSION = "1.0.1";
 
 (function(cotonic) {
 
@@ -2778,6 +2778,9 @@ var cotonic = cotonic || {};
     const CHILDREN = 0;
     const VALUE = 1;
 
+    /* The key prefix used to store retained messages in sessionStorage */
+    const RETAINED_PREFIX = "c_retained$";
+
     function new_node(value) { return [null, value]; }
 
     function flush() {
@@ -2894,10 +2897,10 @@ var cotonic = cotonic || {};
 
     function indexOfSubscription( v, thing ) {
         let index = v.indexOf(thing);
-        if (index == -1) {
+        if (index === -1) {
             for(index = v.length-1; index >= 0; index--) {
-                let sub = v[index];
-                if (thing.type == sub.type && sub.wid && sub.wid === thing.wid) {
+                const sub = v[index];
+                if (thing.type === sub.type && sub.wid === thing.wid) {
                     return index;
                 }
             }
@@ -3005,14 +3008,16 @@ var cotonic = cotonic || {};
      */
     function subscribe(topics, callback, options) {
         options = options || {};
+        if(options.wid === undefined) options.wid = 0;
+
         let subtopics = [];
 
-        if (typeof topics == "string") {
+        if (typeof topics === "string") {
             topics = [ topics ];
         }
 
         for (let k = 0; k < topics.length; k++) {
-            if (typeof topics[k] == "string") {
+            if (typeof topics[k] === "string") {
                 subtopics.push({
                     topic: topics[k],
                     qos: options.qos || 0,
@@ -3029,7 +3034,10 @@ var cotonic = cotonic || {};
             topics: subtopics,
             properties: options.properties || {}
         };
-        return subscribe_subscriber({type: "page", wid: options.wid, callback: callback}, msg);
+
+        const result = subscribe_subscriber({type: "page", wid: options.wid, callback: callback}, msg);
+        send_retained(result.retained);
+        return result.acks;
     }
 
 
@@ -3103,9 +3111,13 @@ var cotonic = cotonic || {};
       * Unsubscribe
       */
     function unsubscribe( topics, options ) {
-        if (typeof topics == "string") {
+        options = options || {};
+        if(options.wid === undefined) options.wid = 0;
+
+        if (typeof topics === "string") {
             topics = [ topics ];
         }
+
         unsubscribe_subscriber({type: "page", wid: options.wid}, { topics: topics });
     }
 
@@ -3183,7 +3195,7 @@ var cotonic = cotonic || {};
     }
 
     function retain_key(topic) {
-        return "c_retained$" + topic;
+        return RETAINED_PREFIX + topic;
     }
 
     function retain(message) {
@@ -3199,17 +3211,16 @@ var cotonic = cotonic || {};
     }
 
     function get_matching_retained(topic) {
-        const prefix = "c_retained$";
         let matching = [];
 
         for(let i = 0; i < sessionStorage.length; i++) {
             let key = sessionStorage.key(i);
 
-            if(key.substring(0, prefix.length) !== prefix) {
+            if(key.substring(0, RETAINED_PREFIX.length) !== RETAINED_PREFIX) {
                 continue;
             }
 
-            const retained_topic = key.substring(prefix.length);
+            const retained_topic = key.substring(RETAINED_PREFIX.length);
             if(!cotonic.mqtt.matches(topic, retained_topic)) {
                 continue;
             }
@@ -3239,11 +3250,9 @@ var cotonic = cotonic || {};
     }
 
     function delete_all_retained() {
-        const prefix = "c_retained$";
-
         for(let i = 0; i < sessionStorage.length; i++) {
             const key = sessionStorage.key(i);
-            if(key.substring(0, prefix.length) !== prefix) {
+            if(key.substring(0, RETAINED_PREFIX.length) !== RETAINED_PREFIX) {
                 continue;
             }
             sessionStorage.removeItem(key);
@@ -6145,6 +6154,7 @@ var cotonic = cotonic || {};
 
     }
 
+
     // Publish the MQTT bridge functions.
     cotonic.mqtt_bridge = cotonic.mqtt_bridge || {};
     cotonic.mqtt_bridge.newBridge = newBridge;
@@ -6553,14 +6563,7 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 
     if (navigator.serviceWorker) {
-        navigator.serviceWorker.register('/service-worker.js').then(
-            function(registration) {
-                console.log("registration", registration);
-            }, 
-            function(error) {
-                console.log("registration failed", error);
-            }
-        )
+        navigator.serviceWorker.register('/service-worker.js');
 
         navigator.serviceWorker.addEventListener('message', function(event) {
             switch (event.data.type) {
