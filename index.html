@@ -15,8 +15,6 @@
 
         <style>
 body {
-    font-size: 14px;
-    line-height: 22px;
     background: #f4f4f4;
     color: #000;
     font-family: sans-serif;
@@ -55,8 +53,8 @@ a.toc_title, a.toc_title:visited {
 }
 
 ul.toc_section {
-    font-size: 11px;
-    line-height: 14px;
+    font-size: small;
+    line-height: 100%;
     margin: 5px 0 0 0;
     padding-left: 0px;
     list-style-type: none;
@@ -86,15 +84,8 @@ h1, h2, h3, h4, h5, h6 {
 
 strong.header {
     color: #0778B0;
-    font-size: 16px;
-    line-height: 30px;
-}
-
-code, pre, tt {
-    font-family: monospace;
-    font-size: 12px;
-    line-height: 18px;
-    font-style: normal;
+    font-weight: bolder;
+    line-height: 200%;
 }
 
 code {
@@ -102,11 +93,36 @@ code {
 }
 
 pre {
-    font-size: 12px;
     padding: 2px 0 2px 15px;
     border-left: 5px solid #bbb;
     margin: 0px 0 30px;
 }
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1.5) and (max-width: 640px),
+       only screen and (-o-min-device-pixel-ratio: 3/2) and (max-width: 640px),
+       only screen and (min-device-pixel-ratio: 1.5) and (max-width: 640px) {
+
+    section#sidebar {
+        -webkit-overflow-scrolling: initial;
+        position: relative;
+        width: 90%;
+        height: 120px;
+        left: 0;
+        top: -7px;
+        padding: 10px 0 10px 30px;
+        border: 0;
+    }
+
+    section#documentation {
+        margin: 0;
+        width: 100%;
+    }
+
+    pre {
+        overflow: auto;
+    }
+}
+
         </style>
     </head>
     <body>
@@ -162,7 +178,7 @@ pre {
                 </ul>
 
                 <!-- UI -->
-                <a href="cotonic.ui" class="toc_title">
+                <a href="#cotonic.ui" class="toc_title">
                     ui
                 </a>
                 <ul class="toc_section">
