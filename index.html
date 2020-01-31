@@ -402,15 +402,13 @@ cotonic.broker.find_subscriptions_below("/my/topic/#");</pre>
             Collect all subscribers which match the topic.
             </p>
             <pre>
-cotonic.broker.subscribe("/a/test"
-    function(msg) {
-        console.log("test topic a");
-    })
-cotonic.broker.subscribe("/b/test"
-    function(msg) {
-        console.log("test topic b");
-    })
-cotonic.broker.match("+/test");</pre>
+cotonic.broker.subscribe("truck/01/speed" function(msg) { console.log("speed truck 1", msg); })
+cotonic.broker.subscribe("truck/02/speed" function(msg) { console.log("speed truck 2", msg); })
+cotonic.broker.subscribe("truck/02/heading" function(msg) { console.log("heading truck 2", msg); })
+cotonic.broker.match("truck/+/speed");
+=> [Object, Object] 
+cotonic.broker.match("truck/+/heading");
+=> [Object]</pre>
 
             <!-- publish -->
             <p id="cotonic.broker.publish">
