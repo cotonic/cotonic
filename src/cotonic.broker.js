@@ -71,7 +71,7 @@ var cotonic = cotonic || {};
 
     function match(topic) {
         const path = topic.split("/");
-        let matches = [];
+        const matches = [];
 
         collect_matches(path, root, matches);
 
@@ -88,14 +88,21 @@ var cotonic = cotonic || {};
             }
         }
 
-        let children = trie[CHILDREN];
+        const children = trie[CHILDREN];
         if(children === null) return;
 
-        let sub_path = path.slice(1);
+        const sub_path = path.slice(1);
 
-        collect_matches(sub_path, children[path[0]], matches);
-        collect_matches(sub_path, children["+"], matches);
-        collect_matches([], children["#"], matches);
+        switch(path[0]) {
+            case "+":
+                throw Error("match on single level wildcard not possible");
+            case "#":
+                throw Error("match on wildcard not possible");
+            default:
+                collect_matches(sub_path, children[path[0]], matches);
+                collect_matches(sub_path, children["+"], matches);
+                collect_matches([], children["#"], matches);
+        }
     }
 
     function remove(topic, thing) {

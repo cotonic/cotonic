@@ -135,5 +135,30 @@ QUnit.test("Delete retained messages", function(assert) {
 
     assert.equal(0, publishes.length, "There are no messages");
 
-})
+});
 
+
+QUnit.test("Look for subscribers with match", function(assert) {
+    const test_topics = ["a/a", "a/+", "a/#", "b/b"];
+    cotonic.broker.subscribe(test_topics, function() { } );
+    try {
+        let a_a_match = cotonic.broker.match("a/a");
+        let c_c_match = cotonic.broker.match("c/c");
+        let a_a_a_match = cotonic.broker.match("a/a/a");
+
+        assert.equal(a_a_match.length, 3, "a/a match");
+        assert.equal(c_c_match.length, 0, "c/c match");
+        assert.equal(a_a_a_match.length, 1, "a/a/a match");
+
+        assert.throws(function() {
+            cotonic.broker.match("a/+")
+        }, Error, "It should not be possible to match on single level wildcards");
+
+        assert.throws(function() {
+            cotonic.broker.match("#")
+        }, Error, "It should not be possible to match on wildcards");
+    } finally {
+        cotonic.broker.unsubscribe(test_topics); 
+    }
+
+});

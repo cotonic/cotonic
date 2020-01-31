@@ -390,31 +390,38 @@ cotonic.set_worker_base_src("/lib/js/cotonic-worker.js");
             <strong class="header">find_subscriptions_below</strong> <code>cotonic.broker.find_subscriptions_below(topic)</code>
             </br>
             Find all subscribers below a certain topic. Used by the bridge to collect all subscriptions
-            after a session restart.
+            after a session restart. Returns a list with subscriptions.
             </p>
             <pre>
-cotonic.broker.find_subscriptions_below("/my/topic/#");</pre>
+cotonic.broker.find_subscriptions_below("truck");
+=> [
+  {type: "page", wid: 0, callback: function, sub: Object, topic: "truck/+/speed"}
+  {type: "page", wid: 0, callback: function, sub: Object, topic: "#"}]</pre>
 
             <!-- match -->
             <p id="cotonic.broker.match">
             <strong class="header">match</strong> <code>cotonic.broker.match(topic)</code>
             </br>
-            Collect all subscribers which match the topic.
+            Collect all subscribers which match the topic. Returns a list with subscriptions.
             </p>
             <pre>
-cotonic.broker.subscribe("truck/01/speed" function(msg) { console.log("speed truck 1", msg); })
-cotonic.broker.subscribe("truck/02/speed" function(msg) { console.log("speed truck 2", msg); })
-cotonic.broker.subscribe("truck/02/heading" function(msg) { console.log("heading truck 2", msg); })
-cotonic.broker.match("truck/+/speed");
-=> [Object, Object] 
-cotonic.broker.match("truck/+/heading");
-=> [Object]</pre>
+cotonic.broker.subscribe("truck/+/speed" function(msg) { console.log("Some trucks speed", msg); })
+cotonic.broker.subscribe("truck/#" function(msg) { console.log("Some info of a truck", msg); })
+cotonic.broker.subscribe("truck/02/speed" function(msg) { console.log("Speed of truck 2", msg); })
+cotonic.broker.match("truck/01/speed");
+=> [Object, Object] // Returns two subscriptions, truck/+/speed, and truck/#
+cotonic.broker.match("truck/01/speed")[0]
+=> {type: "page", wid: 0, callback: function, sub: Object, topic: "truck/+/speed"}  
+cotonic.broker.match("truck/02/speed");
+=> [Object, Object, Object] // Returns all subscriptions
+cotonic.broker.match("boat/02/speed");
+=> [] // Has no subscribers</pre>
 
             <!-- publish -->
             <p id="cotonic.broker.publish">
             <strong class="header">publish</strong> <code>cotonic.broker.publish(topic, payload, [options])</code>
             </br>
-            Publish the message <<tt>payload</tt> on a topic. The possible <tt>options</tt> are:
+            Publish the message <tt>payload</tt> on a topic. The possible <tt>options</tt> are:
             <dl>
                 <dt><code>qos</code></dt>
                 <dd>Quality of service. Can be 0, 1, or 2. 0 means at most once, 1 at least once, and 2 exactly once.</dd>
