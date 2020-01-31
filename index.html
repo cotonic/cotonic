@@ -171,9 +171,9 @@ pre {
                 </a>
                 <ul class="toc_section">
                     <li> - <a href="#cotonic.mqtt.matches">matches</a>
+                    <li> - <a href="#cotonic.mqtt.fill">fill</a>
                     <li> - <a href="#cotonic.mqtt.extract">extract</a>
                     <li> - <a href="#cotonic.mqtt.exec">exec</a>
-                    <li> - <a href="#cotonic.mqtt.fill">fill</a>
                     <li> - <a href="#cotonic.mqtt.remove_named_wildcards">remove_named_wildcards</a>
                 </ul>
 
@@ -297,37 +297,45 @@ cotonic.broker.publish("some/topic", "hello workers!");
             <h2 id="functions">Functions</h2>
 
             <p>
-            Cotonics main functions are available in the <tt>cotonic</tt> namespace. The functions
-            are mostly used to control and allow messaging between workers.
+            Cotonics main functions are available in the <tt>cotonic</tt> namespace on the main page.
+            The functions are mostly used to control and allow messaging between workers.
             </p>
 
             <!-- spawn -->
             <p id="cotonic.spawn">
-            <strong class="header">spawn</strong> <code>cotonic.spawn(worker_src_url, [args])</code>
+            <strong class="header">spawn</strong> <code>cotonic.spawn(url, [args])</code>
             </br>
-            Spawn a new worker. Returns the worker-id of the process.
+            Spawn a new worker. The code of the worker should be available at <tt>url</tt>. The optional
+            <tt>args</tt> parameter will be passed to the worker and can be used to pass information from
+            the page to the worker. The structured clone algorithm will be used to send the <tt>args</tt> to
+            the worker.
+            Returns the worker-id of the newly created worker process.
             </p>
             <pre>
-let worker_id1 = cotonic.spawn("/js/example-worker.js");
-let worker_id2 = cotonic.spawn("/js/another-worker.js", ["Arg1", 1]);</pre>
+cotonic.spawn("/js/example-worker.js");
+=> 1
+cotonic.spawn("/js/another-worker.js", ["Arg1", 1]);
+=> 2</pre>
 
             <!-- spawn_named -->
             <p id="cotonic.spawn_named">
-            <strong class="header">spawn_named</strong> <code>cotonic.spawn_named(name, worker_src_url, [base], [args])</code>
+            <strong class="header">spawn_named</strong> <code>cotonic.spawn_named(name, src_url, [base], [args])</code>
             </br>
-            Spawn a new named worker. Named workers are unique. Use <code>""</code> or
-            <code>undefined</code> for a nameless worker. Return the worker_id of the newly spawned
+            Spawn a new named worker. Named workers are unique. Use <tt>""</tt> or <tt>undefined</tt> to create a
+            nameless worker. Return the worker_id of the newly spawned
             worker. If the worker was already running, the existing worker_id is returned.
             </p>
 
             <pre>
-cotonic.spawn_named("example", "example-worker.js");</pre>
+cotonic.spawn_named("example", "example-worker.js");
+=> "worker"</pre>
 
             <!-- exit -->
             <p id="cotonic.exit">
             <strong class="header">exit</strong> <code>cotonic.exit(nameOrwid)</code>
             </br>
-            Exit stops a worker which was previously spawned.
+            Exit terminates a worker which was previously spawned and has <tt>nameOrWid</tt> as 
+            worker-id.
             </p>
 
             <pre>
@@ -337,9 +345,11 @@ cotonic.exit(wid);
 
             <!-- send -->
             <p id="cotonic.send">
-            <strong class="header">send</strong> <code>cotonic.send(worker_id, message)</code>
+            <strong class="header">send</strong> <code>cotonic.send(nameOrWid, message)</code>
             </br>
-            Send a message to a worker.
+            Send message <tt>message</tt> to worker <tt>nameOrWid</tt>. The parameter <tt>nameOrWid</tt>
+            can either be the name of worker, or a worker id. The structured clone algorithm will
+            be used to copy the <tt>message</tt> before sending it to the worker.
             </p>
             <pre>
 cotonic.send(worker_id1, "hello");</pre>
@@ -361,11 +371,12 @@ cotonic.receive(function(message, worker_id) {
             <strong class="header">set_worker_base_src</strong> <code>cotonic.set_worker_base_src(baseUrl)</code>
             </br>
             Set the base url to load additional importable cotonic modules from. This is used to locate the base
-            worker script which is needed to communicate with the other workers.
+            worker script which is needed to communicate with the other workers. It is usually located in the
+            same location as the main cotonic script.
             </br>
-            By default the location is <tt>/lib/cotonic/cotonic-worker-bundle.js </tt>. It is also possible to 
+            By default the location is <tt>/lib/cotonic/cotonic-worker.js</tt>. It is also possible to 
             configure this via the script via which cotonic itself is loaded on the page.
-            Note: When this is not setup correctly, it will not be possible to spawn workers.
+            <em>Note: When this is not setup correctly, it will not be possible to spawn workers.</em>
             </p>
 
             <pre>
@@ -375,7 +386,6 @@ cotonic.set_worker_base_src("/lib/js/cotonic-worker.js");
             <pre>
 &ltscript data-worker-base-src="/lib/cotonic-worker.js" src="/lib/cotonic.js"&gt;&lt;/script&gt;
 => Cotonic will use '/lib/cotonic-worker.js' when new workers are spawned.</pre>
-
 
             <h3 id="cotonic.broker">Broker</h3>
 
@@ -472,54 +482,92 @@ cotonic.broker.call();</pre>
 
 
             <h3 id="cotonic.mqtt">MQTT</h3>
+            <p>
+            The mqtt module provides functions to work with mqtt topics. The <a href="#cotonic.broker">broker</a>
+            uses this module as the basis to provide its functionality. This module also has some utility functions
+            to easily extract information from topics.
+            </p>
+
+            <!-- More info needed, references to MQTT maybe? -->
 
             <!-- matches -->
             <p id="cotonic.mqtt.matches">
             <strong class="header">matches</strong> <code>cotonic.mqtt.matches(pattern, topic)</code>
             </br>
+            Returns <tt>true</tt> when the pattern matches the topic, <tt>false</tt> otherwise.
             </p>
             <pre>
-// [TODO]
-cotonic.mqtt.matches();</pre>
-
-            <!-- extract -->
-            <p id="cotonic.mqtt.extract">
-            <strong class="header">extract</strong> <code>cotonic.mqtt.extract(pattern, topic)</code>
-            </br>
-            </p>
-            <pre>
-// [TODO]
-cotonic.mqtt.extract();</pre>
-
-            <!-- exec -->
-            <p id="cotonic.mqtt.exec">
-            <strong class="header">exec</strong> <code>cotonic.mqtt.exec(pattern, topic)</code>
-            </br>
-            </p>
-            <pre>
-// [TODO]
-cotonic.mqtt.exec();</pre>
+cotonic.mqtt.matches("truck/+/speed", "truck/01/speed");
+=> true
+cotonic.mqtt.matches("boat/+/speed", "truck/01/speed");
+=> false 
+cotonic.mqtt.matches("+/+/speed", "plane/01/speed");
+=> true 
+cotonic.mqtt.matches("+/+/speed", "plane/01/height");
+=> false</pre>
 
             <!-- fill -->
             <p id="cotonic.mqtt.fill">
             <strong class="header">fill</strong> <code>cotonic.mqtt.fill(pattern, params)</code>
             </br>
+            Fill can use a <tt>pattern</tt> topic, and use the <tt>param</tt> object to create
+            an mqtt topic. Returns a string with the created topic.
             </p>
             <pre>
-// [TODO]
-cotonic.mqtt.fill();</pre>
+cotonic.mqtt.fill("truck/+truck_id/speed", {truck_id: 100});
+=> "truck/100/speed"</pre>
+
+            <!-- extract -->
+            <p id="cotonic.mqtt.extract">
+            <strong class="header">extract</strong> <code>cotonic.mqtt.extract(pattern, topic)</code>
+            </br>
+            Extract values from <tt>topic</tt> into an object. The pattern <tt>+&lt;key&gt;</tt> matches
+            a single level of the topic path. It places an attribute <tt>key</tt> with as value the
+            found element in the path in the returned object. The pattern <tt>#&ltkey&gt;</tt>
+            matches a multi level path. When it is matched it places that part of the path into a list.
+            Returns an object with the found elements. 
+            </p>
+            <pre>
+cotonic.mqtt.extract("truck/+truck_id/speed", "truck/01/speed");
+=> {truck_id: "01"}
+cotonic.mqtt.extract("truck/+truck_id/#params", "truck/01/speed");
+=> {truck_id: "01", params: ["speed"]}</pre>
+
+            <!-- exec -->
+            <p id="cotonic.mqtt.exec">
+            <strong class="header">exec</strong> <code>cotonic.mqtt.exec(pattern, topic)</code>
+            </br>
+            When the <tt>pattern</tt> <a href="#cotonic.mqtt.matches">matches</a> the <tt>topic</tt>,
+            <a href="#cotonic.mqtt.extract">extract</a> the values from the topic. Returns the
+            extracted values when the pattern matches, <tt>null</tt> otherwise.</p>
+            <pre>
+cotonic.mqtt.exec("truck/+truck_id/speed", "truck/01/speed");
+=> {truck_id: "01"}
+cotonic.mqtt.exec("boat/+truck_id/speed", "truck/01/speed");
+=> null</pre>
 
             <!-- remove_named_wildcards -->
             <p id="cotonic.mqtt.remove_named_wildcards">
-            <strong class="header">fill</strong> <code>cotonic.mqtt.remove_named_wildcards(pattern)</code>
+            <strong class="header">remove_named_wildcards</strong> <code>cotonic.mqtt.remove_named_wildcards(pattern)</code>
             </br>
+            Remove the special, and non mqtt compliant, wildcards from the pattern and return a compliant
+            topic.
             </p>
             <pre>
-// [TODO]
-cotonic.mqtt.remove_named_wildcards();</pre>
+cotonic.mqtt.remove_named_wildcards("truck/+truck_id/speed");
+=> "truck/+/speed"
+cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
+=> "truck/#"</pre>
 
 
             <h3 id="cotonic.ui">ui</h3>
+
+            <p>
+            The user interface composer manages html snippets which can be placed in the DOM tree. When an 
+            updated html snippet is delivered to the composer it will render it by using Google's incremental-dom library.
+            The updates will be applied <em>incrementally</em> directly to the DOM tree. The updates can be
+            delivered as html text snippets to the interface composer.
+            </p>
 
             <!-- insert -->
             <p id="cotonic.ui.insert">
@@ -533,17 +581,17 @@ cotonic.mqtt.remove_named_wildcards();</pre>
             elements.
             </p>
             <pre>
-cotonic.ui.insert("root", false, "&lt;p&gt;Hello World!&lt;/p&gt;");
-cotonic.ui.render();</pre>
+cotonic.ui.insert("root", false, "&lt;p&gt;Hello World!&lt;/p&gt;");</pre>
 
             <!-- get -->
             <p id="cotonic.ui.get">
             <strong class="header">get</strong> <code>cotonic.ui.get(id)</code>
             </br>
-            Retrieve the current html snippet registered at id.
+            Returns the current html snippet registered at <tt>id</tt>.
             </p>
             <pre>
-let currentHTML = cotonic.ui.get("root");</pre>
+let currentHTML = cotonic.ui.get("root");
+=> "<a href='example.com'>Hello World!</a>"</pre>
 
             <!-- remove -->
             <p id="cotonic.ui.remove">
@@ -565,16 +613,18 @@ cotonic.ui.remove("root");</pre>
             after a render operation.
             </p>
             <pre>
-cotonic.ui.update("root", "&lt;p&gt;Hello Everybody!&lt;/p&gt;");</pre>
+cotonic.ui.update("root", "&lt;p&gt;Hello Everybody!&lt;/p&gt;");
+=> The root element on the page will be updated.</pre>
 
             <!-- render -->
             <p id="cotonic.ui.render">
             <strong class="header">render</strong> <code>cotonic.ui.render()</code>
             </br>
-            Render all registered elements.
+            Trigger a render of all registered elements.
             </p>
             <pre>
-cotonic.ui.render();</pre>
+cotonic.ui.render();
+=> All elements will be (re)rendered.</pre>
 
             <!-- renderId -->
             <p id="cotonic.ui.renderId">
