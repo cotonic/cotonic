@@ -140,7 +140,7 @@ pre {
                 </ul>
 
                 <a class="toc_title" href="#functions">
-                    Functions
+                    Page Functions
                 </a>
                 <ul class="toc_section">
                     <li> - <a href="#cotonic.spawn">spawn</a>
@@ -193,16 +193,34 @@ pre {
                     <li> - <a href="#cotonic.ui.on">on</a>
                 </ul>
 
+                <a class="toc_title" href="#worker.functions">
+                    Worker Functions
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#worker.connect">connect</a>
+                    <li> - <a href="#worker.disconnect">disconnect</a>
+                    <li> - <a href="#worker.is_connected">is_connected</a>
+
+                    <li> - <a href="#worker.subscribe">subscribe</a>
+                    <li> - <a href="#worker.unsubscribe">subscribe</a>
+                    <li> - <a href="#worker.publish">publish</a>
+                    <li> - <a href="#worker.call">call</a>
+
+                    <li> - <a href="#worker.worker_init">worker_init</a>
+                    <li> - <a href="#worker.on_connect">on_connect</a>
+                    <li> - <a href="#worker.on_error">on_error</a>
+                </ul>
+
                 <a class="toc_title" href="#models">
                     Models
                 </a>
                 <ul class="toc_section">
-                    <li> - <a href="model.document">document</a>
-                    <li> - <a href="model.location">location</a>
-                    <li> - <a href="model.ui">ui</a>
-                    <li> - <a href="model.serviceWorker">serviceWorker</a>
-                    <li> - <a href="model.sessionStorage">sessionStorage</a>
-                    <li> - <a href="model.localStorage">localStorage</a>
+                    <li> - <a href="#model.document">document</a>
+                    <li> - <a href="#model.location">location</a>
+                    <li> - <a href="#model.ui">ui</a>
+                    <li> - <a href="#model.serviceWorker">serviceWorker</a>
+                    <li> - <a href="#model.sessionStorage">sessionStorage</a>
+                    <li> - <a href="#model.localStorage">localStorage</a>
                 </ul>
             </div>
 
@@ -212,11 +230,11 @@ pre {
                 </a>
                 <ul class="toc_section">
                     <li><strong>Document</strong>
-                    <li> - <a href="topic.document.get.all">model/document/get/all</a>
-                    <li> - <a href="topic.document.get.intl">model/document/get/intl</a>
+                    <li> - <a href="#topic.document.get.all">model/document/get/all</a>
+                    <li> - <a href="#topic.document.get.intl">model/document/get/intl</a>
                     <li><strong>Location</strong>
-                    <li> - <a href="topic.location.get.protocol">model/location/get/protocol</a>
-                    <li> - <a href="topic.location.get.hash">model/location/get/hash</a>
+                    <li> - <a href="#topic.location.get.protocol">model/location/get/protocol</a>
+                    <li> - <a href="#topic.location.get.hash">model/location/get/hash</a>
                 </ul>
             </div>
 
@@ -288,7 +306,7 @@ self.publish("model/ui/insert", "&lt;p&gt;Worker B started&lt;/p&gt;");</pre>
 
 
 <pre>
-let worker_a = cotonic.spawn("worker-a.js");
+let worker_a = cotonic.spawn("worker-a.js", [1, 2]);
 let worker_a = cotonic.spawn("worker-b.js");
 
 cotonic.broker.publish("some/topic", "hello workers!");
@@ -306,9 +324,10 @@ cotonic.broker.publish("some/topic", "hello workers!");
             <strong class="header">spawn</strong> <code>cotonic.spawn(url, [args])</code>
             </br>
             Spawn a new worker. The code of the worker should be available at <tt>url</tt>. The optional
-            <tt>args</tt> parameter will be passed to the worker and can be used to pass information from
-            the page to the worker. The structured clone algorithm will be used to send the <tt>args</tt> to
-            the worker.
+            <tt>args</tt> parameter list will be passed to the worker and can be used to pass information from
+            the page to the worker. It can be picked up with the <a href="#worker.worker_init"><tt>worker_init</tt></a>
+            callback. The structured clone algorithm will be used to send the <tt>args</tt> to the worker. See 
+            <a href="#worker.functions">worker functions</a> for more information on implementing a worker.
             Returns the worker-id of the newly created worker process.
             </p>
             <pre>
@@ -335,7 +354,7 @@ cotonic.spawn_named("example", "example-worker.js");
             <strong class="header">exit</strong> <code>cotonic.exit(nameOrwid)</code>
             </br>
             Exit terminates a worker which was previously spawned and has <tt>nameOrWid</tt> as 
-            worker-id.
+        worker-id.
             </p>
 
             <pre>
@@ -662,6 +681,150 @@ cotonic.ui.updateStateClass();</pre>
 // [TODO]
 cotonic.ui.on();</pre>
 
+
+            <h2 id="worker.functions">Worker Functions</h2>
+            <p>
+            Workers are stand alone processes. They have no shared data with the page, nor
+            with other workers. Their memory and calling context is isolated. They can easily communicate
+            with other workers, the page, and servers by publising messages on topics, and subscribing
+            to them. Cotonic provides <a href="#models">models</a>, modules which are loaded and
+            ready for requests.
+            </p>
+
+            <!-- worker connect -->
+            <p id="worker.connect">
+            <strong class="header">connect</strong> <code>self.connect()</code>
+            </br>
+            Connect the worker to the page. When this step succeeds the
+            <a href="#worker.on_connect"><tt>on_connect</tt></a> is called.
+            <a href="#worker.on_error"><tt>on_error</tt></a> when it fails.
+            </p>
+            <pre>
+self.connect();
+=> The worker is being connected to the page.</pre>
+
+            <!-- worker disconnect -->
+            <p id="worker.disconnect">
+            <strong class="header">disconnect</strong> <code>self.disconnect()</code>
+            </br>
+            Disconnects the worker from the page. After this step it is no
+            longer possible to send and receive messages from the page.
+            </p>
+            <pre>
+self.disconnect();
+=> The worker is disconnected from the page.</pre>
+
+            <!-- worker is_connected -->
+            <p id="worker.is_connected">
+            <strong class="header">is_connected</strong> <code>self.is_connected()</code>
+            </br>
+            Returns <tt>true</tt> iff the worker is connected to the page,
+            <tt>false</tt> otherwise.
+            </p>
+            <pre>
+self.is_connected();
+=> true</pre>
+
+            <!-- worker subscribe -->
+            <p id="worker.subscribe">
+            <strong class="header">subscribe</strong> <code>self.subscribe(topics, callback, ack_callback)</code>
+            </br>
+            Subscribe the worker to the <tt>topics</tt>. When a message is received, the <tt>callback</tt> is called.
+            Callback is a function which receives two parameters. The first parameter is the <tt>message</tt>, the second
+            parameter an <tt>object</tt> returned by <a href="#cotonic.mqtt.extract">extract</a>. This can be used to
+            easily extract elements from topic paths in an object. The parameter <tt>topics</tt> can be a string, or
+            a list of strings. The callback <tt>ack_callback</tt> is used when the page is subscribed, or when
+            there is a problem. Returns nothing.
+            </p>
+            <pre>
+function logSpeed(msg, args) {
+    if(args.boat_id) {
+        console.log("boat", args.boat_id, "is now moving at", msg.payload);
+    }
+    if(args.truck_id) {
+        console.log("truck", args.truck_id, "is now moving at", msg.payload);
+    }
+}
+self.subscribe(["truck/+boat_id/speed", "boat/+boat_id/speed", logSpeed);
+=> The function logSpeed will be called when somebody sends a message which
+   matches the topics.</pre>
+
+            <!-- worker unsubscribe -->
+            <p id="worker.unsubscribe">
+            <strong class="header">unsubscribe</strong> <code>self.unsubscribe(topics, callback, ack_callback)</code>
+            </br>
+            Unsubscribe the worker from page. The worker will no longer receive messages from the specified topics. 
+            </p>
+            <pre>
+self.unsubscribe();</pre>
+
+            <!-- worker publish -->
+            <p id="worker.publish">
+            <strong class="header">publish</strong> <code>self.publish(topic, message, options)</code>
+            </br>
+            Publish <tt>message</tt> on <tt>topic</tt>. The <tt>options</tt> can be used to indicate
+            the quality of service, or if the message should be retained by the broker.
+            </p>
+            <pre>
+self.publish("world", "hello", {retain: true});</pre>
+
+            <!-- worker call -->
+            <p id="worker.call">
+            <strong class="header">call</strong> <code>self.call(topic, message, options)</code>
+            </br>
+            Publishes <tt>message</tt> on <tt>topic</tt> and subscribes itself to a reply topic.
+            Returns a promise which is fulfilled when a message is received on the reply topic. When
+            no message arrives, the promise is rejected. Returns a promise.
+            </p>
+            <pre>
+self.call("model/document/get/all")
+.then(value)
+.reject(value);</pre>
+
+            <!-- worker worker_init-->
+            <p id="worker.worker_init">
+            <strong class="header">worker_init</strong> <code>self.worker_init</code>
+            </br>
+            The callback <tt>worker_init</tt> is called when the worker receives the initialization
+            message by the page. It can take multiple arguments. The arguments are passed in via
+            the <a href="#cotonic.spawn"><tt>spawn</tt></a> <tt>args</tt> argument list. 
+            This function can be used to initialize the worker, but it is optional.
+            </p>
+            <pre>
+// Worker code
+
+let amount = null;
+let targetId = null;
+
+self.worker_init = function(n, id) {
+    amount = n; 
+    targetId = id;
+}</pre>
+
+            <!-- worker on_connect -->
+            <p id="worker.on_connect">
+            <strong class="header">on_connect</strong> <code>self.on_connect</code>
+            </br>
+            The <tt>on_connect</tt> callback will be called after a successfull
+            <a href="#worker.connect"><tt>connect</tt></a> call.
+            </p>
+            <pre>
+self.on_connect = function() {
+    // things to do after a connect
+}</pre>
+
+            <!-- worker on_error -->
+            <p id="worker.on_error">
+            <strong class="header">on_error</strong> <code>self.on_error</code>
+            </br>
+            The <tt>on_error</tt> callback will be called after an unsuccessfull
+            <a href="#worker.connect"><tt>connect</tt></a> call.
+            </p>
+            <pre>
+self.on_error = function() {
+    // things to do after an error
+}</pre>
+
             <h2 id="models">Models</h2>
 
             <h3 id="model.document">Document</h3>
@@ -737,6 +900,12 @@ cotonic.ui.on();</pre>
         <!-- Load cotonic to be able to play with it in the console -->
         <script type="text/javascript" src="/cotonic.js"
                 data-base-worker-src="/cotonic-worker.js"></script>
+        <script>
+            console.log("Hello, welcome to COTONIC. You can try the api in the console");
+            console.log("You can start an example worker by calling 'cotonic.spawn(\"/examples/empty-worker.js\")'");
+            console.log("With the console you can select the calling context of the worker and run commands");
+        </script>
+
 
     </body>
 </html>

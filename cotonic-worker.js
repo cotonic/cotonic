@@ -992,7 +992,7 @@ var cotonic = cotonic || {};
 
 (function(self) {
 
-    let model = {
+    const model = {
         client_id: undefined,   // Set to the wid
         name: undefined,        // Name if named spawn
 
@@ -1315,7 +1315,7 @@ var cotonic = cotonic || {};
 
     /** External api */
     self.is_connected = function() {
-        return state.connected();
+        return state.connected(model);
     }
 
     self.close = function() {
@@ -1430,6 +1430,7 @@ var cotonic = cotonic || {};
         if(url) {
             importScripts(url);
         }
+
         if(self.worker_init) {
             worker_init.apply(null, args);
         }
