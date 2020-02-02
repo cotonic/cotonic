@@ -128,7 +128,6 @@ pre {
     <body>
         <section id="sidebar">
             <div>
-
                 <a class="toc_title" href="#">
                     Cotonic <span class="version">(1.0.1)</span>
                 </a>
@@ -214,29 +213,57 @@ pre {
                 <a class="toc_title" href="#models">
                     Models
                 </a>
+
+                <a class="toc_title" href="#model.document">
+                    model/document
+                </a>
                 <ul class="toc_section">
-                    <li> - <a href="#model.document">document</a>
-                    <li> - <a href="#model.location">location</a>
-                    <li> - <a href="#model.ui">ui</a>
-                    <li> - <a href="#model.serviceWorker">serviceWorker</a>
-                    <li> - <a href="#model.sessionStorage">sessionStorage</a>
-                    <li> - <a href="#model.localStorage">localStorage</a>
+                    <li> - <a href="#model.document.get.all">get/all</a>
+                    <li> - <a href="#model.document.get.intl">get/intl</a>
+                </ul>
+
+                <a class="toc_title" href="#model.location">
+                    model/location
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.location.get.href">get/href</a>
+                    <li> - <a href="#model.location.get.protocol">get/protocol</a>
+                    <li> - <a href="#model.location.get.host">get/host</a>
+                    <li> - <a href="#model.location.get.hostname">get/hostname</a>
+                    <li> - <a href="#model.location.get.hostname">get/origin</a>
+                    <li> - <a href="#model.location.get.port">get/port</a>
+                    <li> - <a href="#model.location.event.ping">event/ping</a>
+                    <li> - <a href="#model.location.event.search">event/search</a>
+                    <li> - <a href="#model.location.event.pathname">event/pathname</a>
+                </ul>
+
+                <a class="toc_title" href="#model.ui">
+                    model/ui 
+                </a>
+                <ul class="toc_section">
+                </ul>
+
+                <a class="toc_title" href="#model.serviceWorker">
+                    model/serviceWorker
+                </a>
+                <ul class="toc_section">
+                </ul>
+
+                <a class="toc_title" href="#model.sessionStorage">
+                    model/sessionStorage
+                </a>
+                <ul class="toc_section">
+                </ul>
+
+                <a class="toc_title" href="#model.localStorage">
+                    model/localStorage
+                </a>
+                <ul class="toc_section">
                 </ul>
             </div>
 
-            <div>
-                <a class="toc_title" href="#topics">
-                    Topics
-                </a>
-                <ul class="toc_section">
-                    <li><strong>Document</strong>
-                    <li> - <a href="#topic.document.get.all">model/document/get/all</a>
-                    <li> - <a href="#topic.document.get.intl">model/document/get/intl</a>
-                    <li><strong>Location</strong>
-                    <li> - <a href="#topic.location.get.protocol">model/location/get/protocol</a>
-                    <li> - <a href="#topic.location.get.hash">model/location/get/hash</a>
-                </ul>
-            </div>
+            <!-- [TODO] add references to mqtt v5 documentation and other things -->
+
 
             <div>
                 <a class="toc_title" href="#changelog">Change Log</a>
@@ -312,7 +339,7 @@ let worker_a = cotonic.spawn("worker-b.js");
 cotonic.broker.publish("some/topic", "hello workers!");
 </pre>
 
-            <h2 id="functions">Functions</h2>
+            <h2 id="functions">Page Functions</h2>
 
             <p>
             Cotonics main functions are available in the <tt>cotonic</tt> namespace on the main page.
@@ -827,48 +854,253 @@ self.on_error = function() {
 
             <h2 id="models">Models</h2>
 
-            <h3 id="model.document">Document</h3>
-
             <p>
-            "model/document/get/+key" 
+            [TODO] description
             </p>
-            
-            <h4 id="model.document.all">key = "all"</h4>
 
-<pre>            
-            screen_width
-            screen_height
-            inner_width
-            inner_height
-            is_touch
-            timezone
-            language
-</pre>
+            <!-- model document -->
+            <h3 id="model.document">model/document</h3>
+            <p>
+            </p>
 
-            <h4 id="model.document.intl">key = "intl"</h4>
+            <!-- get/all -->
+            <p id="model.document.get.all">
+            <strong class="header">get/all</strong> <code>model/document/get/all</code>
+            </br>
+            </p>
+            <pre>
+call("model/document/get/all")</pre>
 
-<pre>
-            timezone
-            language
-</pre>
+            <!-- get/intl -->
+            <p id="model.document.get.intl">
+            <strong class="header">get/intl</strong> <code>model/document/get/intl</code>
+            </br>
+            Returns <tt>timezone</tt> and <tt>language</tt>
+            </p>
+            <pre>
+call("model/document/get/intl")</pre>
 
+
+            <!-- model location -->
             <h3 id="model.location">Location</h3>
-
             <p>
-            "model/location/get/+what"
             </p>
 
-            <p>
-            "model/location/event"
-
-            ping, search (q), pathname, hash
+            <!-- get/href -->
+            <p id="model.location.get.href">
+            <strong class="header">get/href</strong> <code>model/location/get/href</code>
+            </br>
             </p>
+            <pre></pre>
 
-            <h3 id="model.ui">User Interface Composer</h3>
+            <!-- get/protocol -->
+            <p id="model.location.get.protocol">
+            <strong class="header">get/protocol</strong> <code>model/location/get/protocol</code>
+            </br>
+            </p>
+            <pre></pre>
 
-            <h3 id="model.serviceWorker">Service Worker</h3>
-            <h3 id="model.localStorage">Local Storage</h3>
-            <h3 id="model.sessionStorage">Session Storage</h3>
+            <!-- get/host -->
+            <p id="model.location.get.host">
+            <strong class="header">get/host</strong> <code>model/location/get/host</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- get/hostname -->
+            <p id="model.location.get.hostname">
+            <strong class="header">get/hostname</strong> <code>model/location/get/hostname</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- get/origin -->
+            <p id="model.location.get.origin">
+            <strong class="header">get/origin</strong> <code>model/location/get/origin</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- get/pathname -->
+            <p id="model.location.get.pathname">
+            <strong class="header">get/pathname</strong> <code>model/location/get/pathname</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- get/pathname -->
+            <p id="model.location.get.port">
+            <strong class="header">get/port</strong> <code>model/location/get/port</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- event/ping -->
+            <p id="model.location.event.ping">
+            <strong class="header">event/ping</strong> <code>model/location/event/ping</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- event/ping -->
+            <p id="model.location.event.search">
+            <strong class="header">event/search</strong> <code>model/location/event/search</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- event/pathname -->
+            <p id="model.location.event.pathname">
+            <strong class="header">event/pathname</strong> <code>model/location/event/pathname</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <!-- event/hash -->
+            <p id="model.location.event.hash">
+            <strong class="header">event/hash</strong> <code>model/location/event/hash</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <h3 id="model.ui">model/ui</h3>
+
+            <p id="model.ui.insert.key">
+            <strong class="header">insert/+key</strong> <code>model/ui/insert/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.ui.update.key">
+            <strong class="header">update/+key</strong> <code>model/ui/update/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.ui.delete.key">
+            <strong class="header">delete/+key</strong> <code>model/ui/delete/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.ui.event.recent-activity">
+            <strong class="header">event/recent-activity</strong> <code>model/ui/event/recent-activity</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.ui.event.ui-status">
+            <strong class="header">event/ui-status</strong> <code>model/ui/event/ui-status</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <h3 id="model.serviceWorker">model/serviceWorker</h3>
+
+            <p id="model.serviceWorker.post.broadcast.channel">
+            <strong class="header">post/broadcast/+channel</strong> <code>model/serviceWorker/post/broadcast/+channel</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.serviceWorker.event.broadcast.channel">
+            <strong class="header">event/broadcast/+channel</strong> <code>model/serviceWorker/event/broadcast/+channel</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.serviceWorker.event.ping">
+            <strong class="header">event/ping</strong> <code>model/serviceWorker/event/ping</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <h3 id="model.localStorage">model/localStorage</h3>
+
+            <p id="model.localStorage.get.key">
+            <strong class="header">get/+key</strong> <code>model/localStorage/get/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.localStorage.post.key">
+            <strong class="header">post/+key</strong> <code>model/localStorage/post/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.localStorage.delete.key">
+            <strong class="header">delete/+key</strong> <code>model/localStorage/delete/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.localStorage.event.key">
+            <strong class="header">event/+key</strong> <code>model/localStorage/event/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.localStorage.ping">
+            <strong class="header">event/ping</strong> <code>model/localStorage/ping</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <h3 id="model.sessionStorage">model.sessionStorage</h3>
+
+            <p id="model.sessionStorage.get.key">
+            <strong class="header">get/+key</strong> <code>model/sessionStorage/get/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.sessionStorage.get.key.subkey">
+            <strong class="header">get/+key/+subkey</strong> <code>model/sessionStorage/get/+key/+subkey</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.sessionStorage.post.key">
+            <strong class="header">post/+key</strong> <code>model/sessionStorage/post/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.sessionStorage.post.key.subkey">
+            <strong class="header">post/+key/+subkey</strong> <code>model/sessionStorage/post/+key/+subkey</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.sessionStorage.delete.key">
+            <strong class="header">delete/+key</strong> <code>model/sessionStorage/delete/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.sessionStorage.delete.key.subkey">
+            <strong class="header">delete/+key/+subkey</strong> <code>model/sessionStorage/delete/+key/+subkey</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.sessionStorage.event.key">
+            <strong class="header">event/+key</strong> <code>model/sessionStorage/event/+key</code>
+            </br>
+            </p>
+            <pre></pre>
+
+            <p id="model.sessionStorage.ping">
+            <strong class="header">event/ping</strong> <code>model/sessionStorage/ping</code>
+            </br>
+            </p>
+            <pre></pre>
+
+
+            <!-- [TODO] add references section
+            <h3 id="links">Links</h3>
+            -->
 
 
             <h3 id="changelog">Change Log</h3>
