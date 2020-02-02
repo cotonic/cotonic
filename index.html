@@ -887,85 +887,145 @@ self.on_error = function() {
             <!-- model document -->
             <h3 id="model.document">model/document</h3>
             <p>
+            The document model can be used to retrieve details about the current document.
             </p>
 
             <!-- get/all -->
             <p id="model.document.get.all">
             <strong class="header">get/all</strong>
             </br>
+            Get all information on the current document. Includes screen size, cookies, user agent details.
             </p>
             <pre>
-call("model/document/get/all")</pre>
+call("model/document/get/all")
+.then(function(m) {
+    console.log(m.payload)
+});
+=> {screen_width: 1280, screen_height: 800,
+    inner_width: 1047, inner_height: 292,
+    is_touch: false, …}</pre>
 
             <!-- get/intl -->
             <p id="model.document.get.intl">
             <strong class="header">get/intl</strong>
             </br>
-            Returns <tt>timezone</tt> and <tt>language</tt>
+            Returns the internationalization details of the current page.
             </p>
             <pre>
-call("model/document/get/intl")</pre>
+call("model/document/get/intl")
+.then(function(m) {
+    console.log(m.payload)
+});
+=>  {timezone: {cookie: "", user_agent: "Europe/Amsterdam"},
+     language: {cookie: "", user_agent: "en-US", document: null}}</pre>
 
             <!-- model location -->
             <h3 id="model.location">Location</h3>
             <p>
+            The location model can be used to retrieve information on the current location
+            of the page. It also allows subscription to location changes.
             </p>
 
             <!-- get/href -->
             <p id="model.location.get.href">
             <strong class="header">get/href</strong>
             </br>
+            Get the current href.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/location/get/href")
+.then(function(m) {
+    console.log(m.payload)
+});
+=> "https://cotonic.org/#model.location"</pre>
 
             <!-- get/protocol -->
             <p id="model.location.get.protocol">
             <strong class="header">get/protocol</strong>
             </br>
+            Get the current protocol
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/location/get/protocol")
+.then(function(m) {
+    console.log(m.payload)
+});
+=> "https"</pre>
 
             <!-- get/host -->
             <p id="model.location.get.host">
             <strong class="header">get/host</strong>
             </br>
+            Get the current host (with port).
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/location/get/host")
+.then(function(m) {
+    console.log(m.payload)
+});
+=> "cotonic.org"</pre>
 
             <!-- get/hostname -->
             <p id="model.location.get.hostname">
             <strong class="header">get/hostname</strong>
             </br>
             </p>
-            <pre></pre>
+            Get the current hostname (without port).
+            <pre>
+cotonic.broker.call("model/location/get/hostname")
+.then(function(m) {
+    console.log(m.payload)
+});
+=> "cotonic.org"</pre>
 
             <!-- get/origin -->
             <p id="model.location.get.origin">
             <strong class="header">get/origin</strong>
             </br>
+            Get the current origin.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/location/get/origin")
+.then(function(m) {
+    console.log(m.payload)
+});
+=> "https://cotonic.org"</pre>
 
             <!-- get/pathname -->
             <p id="model.location.get.pathname">
             <strong class="header">get/pathname</strong>
             </br>
+            Get the current pathname.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/location/get/pathname")
+.then(function(m) {
+    console.log(m.payload)
+});
+=> "/"</pre>
 
-            <!-- get/pathname -->
+            <!-- get/port -->
             <p id="model.location.get.port">
             <strong class="header">get/port</strong>
             </br>
+            Get the current port.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.payload) })
+=> "" // The default port.</pre>
 
             <!-- event/ping -->
             <p id="model.location.event.ping">
             <strong class="header">event/ping</strong>
             </br>
+            Returns <tt>pong</tt> when the module is enabled. Can be used to check if the
+            model is available.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.payload) })
+=> "" // The default port.</pre>
+            </pre>
+
 
             <!-- event/ping -->
             <p id="model.location.event.search">
