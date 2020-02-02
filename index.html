@@ -241,25 +241,51 @@ pre {
                     model/ui 
                 </a>
                 <ul class="toc_section">
+                    <li> - <a href="#model.ui.insert.key">insert/+key</a>
+                    <li> - <a href="#model.ui.update.key">update/+key</a>
+                    <li> - <a href="#model.ui.delete.key">delete/+key</a>
+                    <li> - <a href="#model.ui.event.recent-activity">event/recent-activity</a>
+                    <li> - <a href="#model.ui.event.ui-status">event/ui-status</a>
                 </ul>
 
                 <a class="toc_title" href="#model.serviceWorker">
                     model/serviceWorker
                 </a>
                 <ul class="toc_section">
-                </ul>
-
-                <a class="toc_title" href="#model.sessionStorage">
-                    model/sessionStorage
-                </a>
-                <ul class="toc_section">
+                    <li> - <a href="#model.serviceWorker.post.broadcast.channel">post/broadcast/+channel</a>
+                    <li> - <a href="#model.serviceWorker.event.broadcast.channel">event/broadcast/+channel</a>
+                    <li> - <a href="#model.serviceWorker.ping">ping</a>
                 </ul>
 
                 <a class="toc_title" href="#model.localStorage">
                     model/localStorage
                 </a>
                 <ul class="toc_section">
+                    <li> - <a href="#model.localStorage.get.key">get/+key</a>
+                    <li> - <a href="#model.localStorage.post.key">post/+key</a>
+                    <li> - <a href="#model.localStorage.delete.key">delete/+key</a>
+                    <li> - <a href="#model.localStorage.event.key">event/+key</a>
+                    <li> - <a href="#model.localStorage.ping">ping</a>
                 </ul>
+
+                <a class="toc_title" href="#model.sessionStorage">
+                    model/sessionStorage
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.sessionStorage.get.key">get/+key</a>
+                    <li> - <a href="#model.sessionStorage.get.key.subkey">get/+key/+subkey</a>
+                    <li> - <a href="#model.sessionStorage.post.key">post/+key</a>
+                    <li> - <a href="#model.sessionStorage.post.key.subkey">post/+key/+subkey</a>
+                    <li> - <a href="#model.sessionStorage.delete.key">delete/+key</a>
+                    <li> - <a href="#model.sessionStorage.delete.key">delete/+key/+subkey</a>
+                    <li> - <a href="#model.sessionStorage.event.key">event/+key</a>
+                    <li> - <a href="#model.sessionStorage.event.key.subkey">event/+key/+subkey</a>
+                    <li> - <a href="#model.sessionStorage.ping">ping</a>
+
+                    <li> - <a href="#model.sessionStorage.ping">ping</a>
+                </ul>
+
+
             </div>
 
             <!-- [TODO] add references to mqtt v5 documentation and other things -->
@@ -865,7 +891,7 @@ self.on_error = function() {
 
             <!-- get/all -->
             <p id="model.document.get.all">
-            <strong class="header">get/all</strong> <code>model/document/get/all</code>
+            <strong class="header">get/all</strong>
             </br>
             </p>
             <pre>
@@ -873,13 +899,12 @@ call("model/document/get/all")</pre>
 
             <!-- get/intl -->
             <p id="model.document.get.intl">
-            <strong class="header">get/intl</strong> <code>model/document/get/intl</code>
+            <strong class="header">get/intl</strong>
             </br>
             Returns <tt>timezone</tt> and <tt>language</tt>
             </p>
             <pre>
 call("model/document/get/intl")</pre>
-
 
             <!-- model location -->
             <h3 id="model.location">Location</h3>
@@ -888,77 +913,77 @@ call("model/document/get/intl")</pre>
 
             <!-- get/href -->
             <p id="model.location.get.href">
-            <strong class="header">get/href</strong> <code>model/location/get/href</code>
+            <strong class="header">get/href</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- get/protocol -->
             <p id="model.location.get.protocol">
-            <strong class="header">get/protocol</strong> <code>model/location/get/protocol</code>
+            <strong class="header">get/protocol</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- get/host -->
             <p id="model.location.get.host">
-            <strong class="header">get/host</strong> <code>model/location/get/host</code>
+            <strong class="header">get/host</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- get/hostname -->
             <p id="model.location.get.hostname">
-            <strong class="header">get/hostname</strong> <code>model/location/get/hostname</code>
+            <strong class="header">get/hostname</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- get/origin -->
             <p id="model.location.get.origin">
-            <strong class="header">get/origin</strong> <code>model/location/get/origin</code>
+            <strong class="header">get/origin</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- get/pathname -->
             <p id="model.location.get.pathname">
-            <strong class="header">get/pathname</strong> <code>model/location/get/pathname</code>
+            <strong class="header">get/pathname</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- get/pathname -->
             <p id="model.location.get.port">
-            <strong class="header">get/port</strong> <code>model/location/get/port</code>
+            <strong class="header">get/port</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- event/ping -->
             <p id="model.location.event.ping">
-            <strong class="header">event/ping</strong> <code>model/location/event/ping</code>
+            <strong class="header">event/ping</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- event/ping -->
             <p id="model.location.event.search">
-            <strong class="header">event/search</strong> <code>model/location/event/search</code>
+            <strong class="header">event/search</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- event/pathname -->
             <p id="model.location.event.pathname">
-            <strong class="header">event/pathname</strong> <code>model/location/event/pathname</code>
+            <strong class="header">event/pathname</strong>
             </br>
             </p>
             <pre></pre>
 
             <!-- event/hash -->
             <p id="model.location.event.hash">
-            <strong class="header">event/hash</strong> <code>model/location/event/hash</code>
+            <strong class="header">event/hash</strong>
             </br>
             </p>
             <pre></pre>
@@ -966,31 +991,31 @@ call("model/document/get/intl")</pre>
             <h3 id="model.ui">model/ui</h3>
 
             <p id="model.ui.insert.key">
-            <strong class="header">insert/+key</strong> <code>model/ui/insert/+key</code>
+            <strong class="header">insert/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.ui.update.key">
-            <strong class="header">update/+key</strong> <code>model/ui/update/+key</code>
+            <strong class="header">update/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.ui.delete.key">
-            <strong class="header">delete/+key</strong> <code>model/ui/delete/+key</code>
+            <strong class="header">delete/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.ui.event.recent-activity">
-            <strong class="header">event/recent-activity</strong> <code>model/ui/event/recent-activity</code>
+            <strong class="header">event/recent-activity</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.ui.event.ui-status">
-            <strong class="header">event/ui-status</strong> <code>model/ui/event/ui-status</code>
+            <strong class="header">event/ui-status</strong>
             </br>
             </p>
             <pre></pre>
@@ -998,19 +1023,19 @@ call("model/document/get/intl")</pre>
             <h3 id="model.serviceWorker">model/serviceWorker</h3>
 
             <p id="model.serviceWorker.post.broadcast.channel">
-            <strong class="header">post/broadcast/+channel</strong> <code>model/serviceWorker/post/broadcast/+channel</code>
+            <strong class="header">post/broadcast/+channel</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.serviceWorker.event.broadcast.channel">
-            <strong class="header">event/broadcast/+channel</strong> <code>model/serviceWorker/event/broadcast/+channel</code>
+            <strong class="header">event/broadcast/+channel</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.serviceWorker.event.ping">
-            <strong class="header">event/ping</strong> <code>model/serviceWorker/event/ping</code>
+            <strong class="header">event/ping</strong>
             </br>
             </p>
             <pre></pre>
@@ -1018,31 +1043,31 @@ call("model/document/get/intl")</pre>
             <h3 id="model.localStorage">model/localStorage</h3>
 
             <p id="model.localStorage.get.key">
-            <strong class="header">get/+key</strong> <code>model/localStorage/get/+key</code>
+            <strong class="header">get/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.localStorage.post.key">
-            <strong class="header">post/+key</strong> <code>model/localStorage/post/+key</code>
+            <strong class="header">post/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.localStorage.delete.key">
-            <strong class="header">delete/+key</strong> <code>model/localStorage/delete/+key</code>
+            <strong class="header">delete/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.localStorage.event.key">
-            <strong class="header">event/+key</strong> <code>model/localStorage/event/+key</code>
+            <strong class="header">event/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.localStorage.ping">
-            <strong class="header">event/ping</strong> <code>model/localStorage/ping</code>
+            <strong class="header">event/ping</strong>
             </br>
             </p>
             <pre></pre>
@@ -1050,49 +1075,49 @@ call("model/document/get/intl")</pre>
             <h3 id="model.sessionStorage">model.sessionStorage</h3>
 
             <p id="model.sessionStorage.get.key">
-            <strong class="header">get/+key</strong> <code>model/sessionStorage/get/+key</code>
+            <strong class="header">get/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.sessionStorage.get.key.subkey">
-            <strong class="header">get/+key/+subkey</strong> <code>model/sessionStorage/get/+key/+subkey</code>
+            <strong class="header">get/+key/+subkey</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.sessionStorage.post.key">
-            <strong class="header">post/+key</strong> <code>model/sessionStorage/post/+key</code>
+            <strong class="header">post/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.sessionStorage.post.key.subkey">
-            <strong class="header">post/+key/+subkey</strong> <code>model/sessionStorage/post/+key/+subkey</code>
+            <strong class="header">post/+key/+subkey</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.sessionStorage.delete.key">
-            <strong class="header">delete/+key</strong> <code>model/sessionStorage/delete/+key</code>
+            <strong class="header">delete/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.sessionStorage.delete.key.subkey">
-            <strong class="header">delete/+key/+subkey</strong> <code>model/sessionStorage/delete/+key/+subkey</code>
+            <strong class="header">delete/+key/+subkey</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.sessionStorage.event.key">
-            <strong class="header">event/+key</strong> <code>model/sessionStorage/event/+key</code>
+            <strong class="header">event/+key</strong>
             </br>
             </p>
             <pre></pre>
 
             <p id="model.sessionStorage.ping">
-            <strong class="header">event/ping</strong> <code>model/sessionStorage/ping</code>
+            <strong class="header">event/ping</strong>
             </br>
             </p>
             <pre></pre>
