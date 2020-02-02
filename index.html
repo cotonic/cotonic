@@ -232,9 +232,9 @@ pre {
                     <li> - <a href="#model.location.get.hostname">get/hostname</a>
                     <li> - <a href="#model.location.get.hostname">get/origin</a>
                     <li> - <a href="#model.location.get.port">get/port</a>
-                    <li> - <a href="#model.location.event.ping">event/ping</a>
                     <li> - <a href="#model.location.event.search">event/search</a>
                     <li> - <a href="#model.location.event.pathname">event/pathname</a>
+                    <li> - <a href="#model.location.event.ping">event/ping</a>
                 </ul>
 
                 <a class="toc_title" href="#model.ui">
@@ -254,7 +254,7 @@ pre {
                 <ul class="toc_section">
                     <li> - <a href="#model.serviceWorker.post.broadcast.channel">post/broadcast/+channel</a>
                     <li> - <a href="#model.serviceWorker.event.broadcast.channel">event/broadcast/+channel</a>
-                    <li> - <a href="#model.serviceWorker.ping">ping</a>
+                    <li> - <a href="#model.serviceWorker.event.ping">event/ping</a>
                 </ul>
 
                 <a class="toc_title" href="#model.localStorage">
@@ -265,7 +265,7 @@ pre {
                     <li> - <a href="#model.localStorage.post.key">post/+key</a>
                     <li> - <a href="#model.localStorage.delete.key">delete/+key</a>
                     <li> - <a href="#model.localStorage.event.key">event/+key</a>
-                    <li> - <a href="#model.localStorage.ping">ping</a>
+                    <li> - <a href="#model.localStorage.event.ping">event/ping</a>
                 </ul>
 
                 <a class="toc_title" href="#model.sessionStorage">
@@ -280,16 +280,15 @@ pre {
                     <li> - <a href="#model.sessionStorage.delete.key">delete/+key/+subkey</a>
                     <li> - <a href="#model.sessionStorage.event.key">event/+key</a>
                     <li> - <a href="#model.sessionStorage.event.key.subkey">event/+key/+subkey</a>
-                    <li> - <a href="#model.sessionStorage.ping">ping</a>
-
-                    <li> - <a href="#model.sessionStorage.ping">ping</a>
+                    <li> - <a href="#model.sessionStorage.event.ping">event/ping</a>
                 </ul>
 
 
             </div>
 
-            <!-- [TODO] add references to mqtt v5 documentation and other things -->
-
+            <div>
+                <a class="toc_title" href="#links">Links</a>
+            </div>
 
             <div>
                 <a class="toc_title" href="#changelog">Change Log</a>
@@ -831,8 +830,8 @@ self.publish("world", "hello", {retain: true});</pre>
             </p>
             <pre>
 self.call("model/document/get/all")
-.then(value)
-.reject(value);</pre>
+.then(...)
+.reject(...);</pre>
 
             <!-- worker worker_init-->
             <p id="worker.worker_init">
@@ -897,7 +896,7 @@ self.on_error = function() {
             Get all information on the current document. Includes screen size, cookies, user agent details.
             </p>
             <pre>
-call("model/document/get/all")
+self.call("model/document/get/all")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -912,7 +911,7 @@ call("model/document/get/all")
             Returns the internationalization details of the current page.
             </p>
             <pre>
-call("model/document/get/intl")
+self.call("model/document/get/intl")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -933,7 +932,7 @@ call("model/document/get/intl")
             Get the current href.
             </p>
             <pre>
-cotonic.broker.call("model/location/get/href")
+self.call("model/location/get/href")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -946,7 +945,7 @@ cotonic.broker.call("model/location/get/href")
             Get the current protocol
             </p>
             <pre>
-cotonic.broker.call("model/location/get/protocol")
+self.call("model/location/get/protocol")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -959,7 +958,7 @@ cotonic.broker.call("model/location/get/protocol")
             Get the current host (with port).
             </p>
             <pre>
-cotonic.broker.call("model/location/get/host")
+self.call("model/location/get/host")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -972,7 +971,7 @@ cotonic.broker.call("model/location/get/host")
             </p>
             Get the current hostname (without port).
             <pre>
-cotonic.broker.call("model/location/get/hostname")
+self.call("model/location/get/hostname")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -985,7 +984,7 @@ cotonic.broker.call("model/location/get/hostname")
             Get the current origin.
             </p>
             <pre>
-cotonic.broker.call("model/location/get/origin")
+self.call("model/location/get/origin")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -998,7 +997,7 @@ cotonic.broker.call("model/location/get/origin")
             Get the current pathname.
             </p>
             <pre>
-cotonic.broker.call("model/location/get/pathname")
+self.call("model/location/get/pathname")
 .then(function(m) {
     console.log(m.payload)
 });
@@ -1014,20 +1013,7 @@ cotonic.broker.call("model/location/get/pathname")
 cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.payload) })
 => "" // The default port.</pre>
 
-            <!-- event/ping -->
-            <p id="model.location.event.ping">
-            <strong class="header">event/ping</strong>
-            </br>
-            Returns <tt>pong</tt> when the module is enabled. Can be used to check if the
-            model is available.
-            </p>
-            <pre>
-cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.payload) })
-=> "" // The default port.</pre>
-            </pre>
-
-
-            <!-- event/ping -->
+            <!-- event/search -->
             <p id="model.location.event.search">
             <strong class="header">event/search</strong>
             </br>
@@ -1047,6 +1033,22 @@ cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.
             </br>
             </p>
             <pre></pre>
+
+            <!-- event/ping -->
+            <p id="model.location.event.ping">
+            <strong class="header">event/ping</strong>
+            </br>
+            When the location model is enabled, a retained message is published on this
+            topic. By subscribing to this topic it is possible to see when the model is
+            enabled. The payload of the message <tt>pong</tt>.
+            </p>
+            <pre>
+cotonic.broker.subscribe("model/location/event/ping",
+    function(m) { 
+        console.log("The location model is enabled", m.payload)
+    })
+=> Logs a message on the console when the location model is enabled.</pre>
+
 
             <h3 id="model.ui">model/ui</h3>
 
@@ -1126,13 +1128,18 @@ cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.
             </p>
             <pre></pre>
 
-            <p id="model.localStorage.ping">
+            <p id="model.localStorage.event.ping">
             <strong class="header">event/ping</strong>
             </br>
             </p>
             <pre></pre>
 
             <h3 id="model.sessionStorage">model.sessionStorage</h3>
+            <p>
+            The sessionStorage model provids access to the <tt>sessionStorage</tt> of
+            the browser. It makes it possible to set and retrieve values via 
+            mqtt topics. For more information about the session storage see: 
+            </p>
 
             <p id="model.sessionStorage.get.key">
             <strong class="header">get/+key</strong>
@@ -1176,17 +1183,37 @@ cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.
             </p>
             <pre></pre>
 
-            <p id="model.sessionStorage.ping">
+            <p id="model.sessionStorage.event.ping">
             <strong class="header">event/ping</strong>
             </br>
+            When the sessionStorage model is enabled a retained message is published
+            on the <tt>model/sessionStorage/event/ping</tt> topic.
             </p>
-            <pre></pre>
+            <pre>
+let storageReady = false;
+cotonic.broker.subscribe("model/sessionStorage/event/+key",
+    function(msg, args) {
+        switch(args.key) 
+        case "pong": 
+            storageReady = true;
+            break;
+        ...
+    });
+=> When the storage is ready a pong message will be available</pre>
 
-
-            <!-- [TODO] add references section
             <h3 id="links">Links</h3>
-            -->
 
+            <p>
+               <a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT Version 5.0 - OASIS</a>
+            </p>
+
+            <p>
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">Web Workers API</a>
+            </p>
+
+            <p>
+               <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage">sessionStorage API</a>
+            </p>
 
             <h3 id="changelog">Change Log</h3>
 
@@ -1218,11 +1245,13 @@ cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.
         <script type="text/javascript" src="/cotonic.js"
                 data-base-worker-src="/cotonic-worker.js"></script>
         <script>
-            console.log("Hello, welcome to COTONIC. You can try the api in the console");
-            console.log("You can start an example worker by calling 'cotonic.spawn(\"/examples/empty-worker.js\")'");
-            console.log("With the console you can select the calling context of the worker and run commands");
+            console.log("Welcome to COTONIC. You can try the api in the console");
+            console.log("------------------------------------------------------");
+            console.log("You can start an example worker by calling");
+            console.log('cotonic.spawn(\"/examples/empty-worker.js\")'");
+            console.log("With the console you can select the calling");
+            console.log("context of the worker and run the examples found here.");
         </script>
-
 
     </body>
 </html>
