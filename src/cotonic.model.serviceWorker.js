@@ -23,7 +23,7 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 
     if (navigator.serviceWorker) {
-        navigator.serviceWorker.register('/service-worker.js');
+        navigator.serviceWorker.register('/cotonic-service-worker.js');
 
         navigator.serviceWorker.addEventListener('message', function(event) {
             switch (event.data.type) {
