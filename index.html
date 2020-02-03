@@ -1107,32 +1107,59 @@ cotonic.broker.subscribe("model/location/event/ping",
             <p id="model.localStorage.get.key">
             <strong class="header">get/+key</strong>
             </br>
+            Gets item <tt>key</tt> from localStorage. Returns the content as payload.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.call("model/localStorage/get/a")
+.then(function(m) { console.log(m.payload) }); 
+            </pre>
 
             <p id="model.localStorage.post.key">
             <strong class="header">post/+key</strong>
             </br>
+            Update, or insert message under <tt>key</tt> in localStorage.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.publish("model/localStorage/post/a", "Hello world!");</pre>
 
             <p id="model.localStorage.delete.key">
             <strong class="header">delete/+key</strong>
             </br>
+            Delete item stored under <tt>key</tt> from localStorage.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.publish("model/localStorage/delete/a");</pre>
 
             <p id="model.localStorage.event.key">
             <strong class="header">event/+key</strong>
             </br>
+            Subscribe to changes or deletions from localStorage. When the message payload
+            is <tt>null</tt> the item is delete. Otherwise the payload is set to the 
+            newly updated value.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.subscribe("model/localStorage/event/+key",
+    function(m, a) {
+        if(m.payload === null) {
+            console.log("localStorage item:", a.key, "deleted");
+        else {
+            console.log("localStorage item:", a.key, "changed", m.payload);
+        }
+    });
+=> Logs update to localStorage elements.</pre>
 
             <p id="model.localStorage.event.ping">
             <strong class="header">event/ping</strong>
             </br>
+            When the localStorage model is enabled it publishes a retained message
+            under the topic <tt>model/localStorage/event/ping</tt>. It makes it 
+            possible to detect the localStorage model is enabled.
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.subscribe("model/localStorage/event/ping",
+    function() {
+        console.log("localStorage is enabled");
+    });</pre>
 
             <h3 id="model.sessionStorage">model.sessionStorage</h3>
             <p>
@@ -1144,44 +1171,78 @@ cotonic.broker.subscribe("model/location/event/ping",
             <p id="model.sessionStorage.get.key">
             <strong class="header">get/+key</strong>
             </br>
+            Get the element stored as <tt>key</tt> from the sessionStorage. Returns the
+            contents as payload, or <tt>null</tt> if it is not found.
             </p>
-            <pre></pre>
+            <pre>
+self.call("model/get/sessionStorage/item-1")
+.then(function(m) {
+    console.log("item-1", m.payload);
+});
+=> Logs the item-1 on the console, or null otherwise.
+           </pre>
 
             <p id="model.sessionStorage.get.key.subkey">
             <strong class="header">get/+key/+subkey</strong>
             </br>
+            Get a sub element stored as <tt>key.subkey</tt> from the sessionStorage.
             </p>
-            <pre></pre>
+            <pre>
+self.call("model/get/sessionStorage/item-2/a")
+.then(function(m) {
+    console.log("item-2", m.payload);
+});
+=> Logs the item-2 on the console, or null otherwise.</pre>
 
             <p id="model.sessionStorage.post.key">
             <strong class="header">post/+key</strong>
-            </br>
+            Store a message under <tt>key</tt> in the sessionStorage.
             </p>
-            <pre></pre>
+            <pre>
+self.publish("model/sessionStorage/post/item-1", "Cucumbers are sometimes green");            
+=> New value stored.</pre>
 
             <p id="model.sessionStorage.post.key.subkey">
             <strong class="header">post/+key/+subkey</strong>
             </br>
+            Store a message under <tt>key.subkey</tt> in the sessionStorage. When no
+            item is stored under <tt>key</tt> a new object is created, and <tt>subkey</tt>
+            is added as sub-element. When <tt>key</tt> exists it must be an object, then
+            <tt>subkey</tt> is added or overwritten.
             </p>
-            <pre></pre>
+            <pre>
+self.publish("model/sessionStorage/post/item-2/a", "hello");</pre>
 
             <p id="model.sessionStorage.delete.key">
             <strong class="header">delete/+key</strong>
             </br>
+            Delete an element stored under <tt>key</tt> from the sessionStorage.
             </p>
-            <pre></pre>
+            <pre>
+self.publish("model/sessionStorage/delete/item-2");</pre>
 
             <p id="model.sessionStorage.delete.key.subkey">
             <strong class="header">delete/+key/+subkey</strong>
             </br>
+            Delete an element stored under <tt>key.subkey</tt> from the sessionStorage.
             </p>
-            <pre></pre>
+            <pre>
+self.publish("model/sessionStorage/delete/item-2");</pre>
 
             <p id="model.sessionStorage.event.key">
             <strong class="header">event/+key</strong>
             </br>
+            Subscribe to sessionStorage updates and deletes. When entry is updated
+            you will get a notification.
             </p>
-            <pre></pre>
+            <pre>
+self.subscribe("model/sessionStorage/subscribe/+key",
+    function(m, a) {
+        console.log(m, a);
+    });
+self.publish("model/sessionStorage/post/a", "hello");            
+self.publish("model/sessionStorage/post/b", "world");            
+=> Logs the update in the console</pre>
 
             <p id="model.sessionStorage.event.ping">
             <strong class="header">event/ping</strong>
