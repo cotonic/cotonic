@@ -283,7 +283,6 @@ pre {
                     <li> - <a href="#model.sessionStorage.event.ping">event/ping</a>
                 </ul>
 
-
             </div>
 
             <div>
@@ -551,7 +550,6 @@ cotonic.broker.unsubscribe();</pre>
 // [TODO]
 cotonic.broker.call();</pre>
 
-
             <h3 id="cotonic.mqtt">MQTT</h3>
             <p>
             The mqtt module provides functions to work with mqtt topics. The <a href="#cotonic.broker">broker</a>
@@ -630,7 +628,6 @@ cotonic.mqtt.remove_named_wildcards("truck/+truck_id/speed");
 cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
 => "truck/#"</pre>
 
-
             <h3 id="cotonic.ui">ui</h3>
 
             <p>
@@ -674,7 +671,6 @@ let currentHTML = cotonic.ui.get("root");
             </p>
             <pre>
 cotonic.ui.remove("root");</pre>
-
 
             <!-- update -->
             <p id="cotonic.ui.update">
@@ -732,7 +728,6 @@ cotonic.ui.updateStateClass();</pre>
             <pre>
 // [TODO]
 cotonic.ui.on();</pre>
-
 
             <h2 id="worker.functions">Worker Functions</h2>
             <p>
@@ -1082,25 +1077,55 @@ cotonic.broker.subscribe("model/location/event/ping",
             </p>
             <pre></pre>
 
+            <!-- serviceWorker model -->
             <h3 id="model.serviceWorker">model/serviceWorker</h3>
+
+            <p>
+            The serviceWorker model makes it possible to communicate with other tabs
+            from the same site. This makes it possible to communicate important state
+            to all tabs.
+            </p>
 
             <p id="model.serviceWorker.post.broadcast.channel">
             <strong class="header">post/broadcast/+channel</strong>
             </br>
+            Broadcast the message on <tt>channel</tt>. The message can be received 
+            via the <tt>"model/serviceWorker/event/+channel</tt> topic. This works
+            across all open tabs. 
             </p>
-            <pre></pre>
+            <pre>
+// Publish from a worker
+self.publish("model/serviceWorker/post/broadcast/background",
+             {hue: "blue", brightness: 45});
+            </pre>
 
             <p id="model.serviceWorker.event.broadcast.channel">
             <strong class="header">event/broadcast/+channel</strong>
             </br>
+            Subscribe to the broadcast <tt>channel</tt> of the serviceWorker. Messages
+            posted from other tabs or workers, including messages sent by the publisher
+            will be received.
             </p>
-            <pre></pre>
+            <pre>
+// Subscribe on a page
+cotonic.broker.subscribe("model/serviceWorker/event/broadcast/background,
+    function(m) {
+        console.log("Setting background to", m.payload");
+        setBackground(m.payload);
+    })</pre>
 
             <p id="model.serviceWorker.event.ping">
             <strong class="header">event/ping</strong>
             </br>
+            When the serviceWorker model is enabled it publishes a retained <tt>pong</tt>
+            message on this topic. This makes it possible to check if the model is enabled.
             </p>
-            <pre></pre>
+            <pre>
+// Subscribe on a page            
+cotonic.broker.subscribe("model/serviceWorker/event/ping,
+    function() {
+        console.log("the serviceWorker model is enabled")
+   });</pre>
 
             <h3 id="model.localStorage">model/localStorage</h3>
 
