@@ -234,6 +234,7 @@ pre {
                     <li> - <a href="#model.location.get.port">get/port</a>
                     <li> - <a href="#model.location.event.search">event/search</a>
                     <li> - <a href="#model.location.event.pathname">event/pathname</a>
+                    <li> - <a href="#model.location.event.hash">event/hash</a>
                     <li> - <a href="#model.location.event.ping">event/ping</a>
                 </ul>
 
@@ -1012,22 +1013,40 @@ cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.
             <p id="model.location.event.search">
             <strong class="header">event/search</strong>
             </br>
+            A message containing the query string part of the url will be published when it changes.
+            <em>Note: the message is retained</em>
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.subscribe("model/location/event/search",
+    function(m, a) {
+        console.log("query string changed", m.payload);
+});</pre>
 
             <!-- event/pathname -->
             <p id="model.location.event.pathname">
             <strong class="header">event/pathname</strong>
             </br>
+            A message containing the pathname part of the url will be published when it changes.
+            <em>Note: the message is retained</em>
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.subscribe("model/location/event/pathname",
+    function(m, a) {
+        console.log("pathname changed", m.payload);
+    });</pre>
 
             <!-- event/hash -->
             <p id="model.location.event.hash">
             <strong class="header">event/hash</strong>
             </br>
+            A message containing the hash part of the url will be published when it changes.
+            <em>Note: the message is retained</em>
             </p>
-            <pre></pre>
+            <pre>
+cotonic.broker.subscribe("model/location/event/hash",
+    function(m, a) {
+        console.log("hash changed", m.payload);
+    });</pre>
 
             <!-- event/ping -->
             <p id="model.location.event.ping">
