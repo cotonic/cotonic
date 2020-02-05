@@ -314,6 +314,31 @@ pre {
             components to communicate via topics.
             </p>
 
+            <p>
+            The project is hosted on <a href="https://github.com/cotonic/cotonic">Github</a>.
+            You can report bugs and discuss features on the
+            <a href="https://github.com/cotonic/cotonic/issues">issues page</a>.
+            <p>
+
+            <p>
+            Cotonic is an open-source component of <a href="http://zotonic.org">Zotonic</a>.
+            </p>
+
+            <h3>Installation</h3>
+
+            Place the <a href="https://cotonic.org/cotonic.js"><tt>cotonic.js</tt></a>,
+            <a href="https://cotonic.org/cotonic-worker.js"><tt>cotonic-worker.js</tt></a> and
+            <a href="https://cotonic.org/cotonic-service-worker.js"><tt>cotonic-service-worker.js</tt></a> scripts on a web-server.
+            (<em>Right-click and use "Safe as"), or use one of the <a href="#changelog">download links</a></em>.
+
+            </br> </br>
+            Add the following tag to the page:
+            </br> </br>
+
+            <pre>
+&lt;script src="//path/to/cotonic.js"
+        data-base-worker-src="//path/to/cotonic-worker.js"&gt;&lt;/script&gt;</pre>
+
             <h2 id="workers">Workers</h2>
 
             <p>
@@ -876,7 +901,31 @@ self.on_error = function() {
             <h2 id="models">Models</h2>
 
             <p>
-            [TODO] description
+            Because workers run as independent components it is not possible to directly
+            call api's. Some api's are also not available to web workers. Models are 
+            special modules, or workers, which publish their data, or are ready to 
+            receive calls via mqtt topics.
+            </p>
+
+            <p>
+            The convention is that models provide their services via the following topic
+            tree.
+
+            <dl>
+                <dt><tt>model/+modelName/get/+</tt></dt>
+                <dd>Call topics. When the model receives a publish, it returns the answer
+                to the reply topic.</dd>
+
+                <dt><tt>model/+modelName/post/+</tt></dt>
+                <dd>Topics used to post updates to the model.</dd>
+
+                <dt><tt>model/+modelName/delete/+</tt></dt>
+                <dd>Topics used to delete items managed by the model.</dd>
+
+                <dt><tt>model/+modelName/event/+</tt></dt>
+                <dd>Topics which the model publishes events on.</dd>
+            </dl>
+
             </p>
 
             <!-- model document -->
@@ -1006,7 +1055,10 @@ self.call("model/location/get/pathname")
             Get the current port.
             </p>
             <pre>
-cotonic.broker.call("model/location/get/port").then(function(m) { console.log(m.payload) })
+cotonic.broker.call("model/location/get/port")
+.then(function(m) {
+    console.log(m.payload)
+})
 => "" // The default port.</pre>
 
             <!-- event/search -->
@@ -1127,7 +1179,7 @@ self.publish("model/serviceWorker/post/broadcast/background",
             </p>
             <pre>
 // Subscribe on a page
-cotonic.broker.subscribe("model/serviceWorker/event/broadcast/background,
+cotonic.broker.subscribe("model/serviceWorker/event/broadcast/background",
     function(m) {
         console.log("Setting background to", m.payload");
         setBackground(m.payload);
@@ -1141,7 +1193,7 @@ cotonic.broker.subscribe("model/serviceWorker/event/broadcast/background,
             </p>
             <pre>
 // Subscribe on a page            
-cotonic.broker.subscribe("model/serviceWorker/event/ping,
+cotonic.broker.subscribe("model/serviceWorker/event/ping",
     function() {
         console.log("the serviceWorker model is enabled")
    });</pre>
@@ -1323,7 +1375,11 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             <h3 id="changelog">Change Log</h3>
 
             <p id="1.0.1">
-            <strong class="header">1.0.1</strong> &mdash; <small><i>Jan 30, 2020</i></small> &mdash; <a href="https://github.com/cotonic/cotonic/compare/1.0.0...1.0.1">Diff</a> &mdash; <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.1/index.html"l>Docs</a><br />
+            <strong class="header">1.0.1</strong> &mdash; <small><i>Jan 30, 2020</i></small> &mdash;
+            <a href="https://github.com/cotonic/cotonic/compare/1.0.0...1.0.1">Diff</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.1/index.html"l>Docs</a> &mdash;
+            <a href="https://github.com/cotonic/cotonic/archive/1.0.1.tar.gz" download>Download</a>
+            <br />
             <ul>
                 <li>
                     Fixed all the tests, and
@@ -1335,7 +1391,9 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             </p>
 
             <p id="1.0.0">
-            <strong class="header">1.0.0</strong> &mdash; <small><i>Jan 23, 2020</i></small> &mdash; <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.0/index.html"l>Docs</a>
+            <strong class="header">1.0.0</strong> &mdash; <small><i>Jan 23, 2020</i></small> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.0/index.html">Docs</a> &mdash;
+            <a href="https://github.com/cotonic/cotonic/archive/1.0.0.tar.gz" download>Download</a>
             <br />
             <ul>
                 <li>
