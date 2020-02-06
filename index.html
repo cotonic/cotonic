@@ -331,9 +331,9 @@ pre {
             <a href="https://cotonic.org/cotonic-service-worker.js"><tt>cotonic-service-worker.js</tt></a> scripts on a web-server.
             (<em>Right-click and use "Safe as"), or use one of the <a href="#changelog">download links</a></em>.
 
-            </br> </br>
+            <br> <br>
             Add the following tag to the page:
-            </br> </br>
+            <br> <br>
 
             <pre>
 &lt;script src="//path/to/cotonic.js"
@@ -399,7 +399,7 @@ cotonic.broker.publish("some/topic", "hello workers!");
             <!-- spawn -->
             <p id="cotonic.spawn">
             <strong class="header">spawn</strong> <code>cotonic.spawn(url, [args])</code>
-            </br>
+            <br>
             Spawn a new worker. The code of the worker should be available at <tt>url</tt>. The optional
             <tt>args</tt> parameter list will be passed to the worker and can be used to pass information from
             the page to the worker. It can be picked up with the <a href="#worker.worker_init"><tt>worker_init</tt></a>
@@ -416,7 +416,7 @@ cotonic.spawn("/js/another-worker.js", ["Arg1", 1]);
             <!-- spawn_named -->
             <p id="cotonic.spawn_named">
             <strong class="header">spawn_named</strong> <code>cotonic.spawn_named(name, src_url, [base], [args])</code>
-            </br>
+            <br>
             Spawn a new named worker. Named workers are unique. Use <tt>""</tt> or <tt>undefined</tt> to create a
             nameless worker. Return the worker_id of the newly spawned
             worker. If the worker was already running, the existing worker_id is returned.
@@ -429,7 +429,7 @@ cotonic.spawn_named("example", "example-worker.js");
             <!-- exit -->
             <p id="cotonic.exit">
             <strong class="header">exit</strong> <code>cotonic.exit(nameOrwid)</code>
-            </br>
+            <br>
             Exit terminates a worker which was previously spawned and has <tt>nameOrWid</tt> as 
         worker-id.
             </p>
@@ -442,7 +442,7 @@ cotonic.exit(wid);
             <!-- send -->
             <p id="cotonic.send">
             <strong class="header">send</strong> <code>cotonic.send(nameOrWid, message)</code>
-            </br>
+            <br>
             Send message <tt>message</tt> to worker <tt>nameOrWid</tt>. The parameter <tt>nameOrWid</tt>
             can either be the name of worker, or a worker id. The structured clone algorithm will
             be used to copy the <tt>message</tt> before sending it to the worker.
@@ -453,7 +453,7 @@ cotonic.send(worker_id1, "hello");</pre>
             <!-- receive -->
             <p id="cotonic.receive">
             <strong class="header">receive</strong> <code>cotonic.receive(handler)</code>
-            </br>
+            <br>
             Receive messages from workers. The handler should be a function which takes 
             two parameters, the message, and the worker_id.
             </p>
@@ -465,11 +465,11 @@ cotonic.receive(function(message, worker_id) {
             <!-- set_worker_base_src -->
             <p id="cotonic.set_worker_base_src">
             <strong class="header">set_worker_base_src</strong> <code>cotonic.set_worker_base_src(baseUrl)</code>
-            </br>
+            <br>
             Set the base url to load additional importable cotonic modules from. This is used to locate the base
             worker script which is needed to communicate with the other workers. It is usually located in the
             same location as the main cotonic script.
-            </br>
+            <br>
             By default the location is <tt>/lib/cotonic/cotonic-worker.js</tt>. It is also possible to 
             configure this via the script via which cotonic itself is loaded on the page.
             <em>Note: When this is not setup correctly, it will not be possible to spawn workers.</em>
@@ -494,7 +494,7 @@ cotonic.set_worker_base_src("/lib/js/cotonic-worker.js");
             <!-- find_subscriptions_below -->
             <p id="cotonic.broker.find_subscriptions_below">
             <strong class="header">find_subscriptions_below</strong> <code>cotonic.broker.find_subscriptions_below(topic)</code>
-            </br>
+            <br>
             Find all subscribers below a certain topic. Used by the bridge to collect all subscriptions
             after a session restart. Returns a list with subscriptions.
             </p>
@@ -507,7 +507,7 @@ cotonic.broker.find_subscriptions_below("truck");
             <!-- match -->
             <p id="cotonic.broker.match">
             <strong class="header">match</strong> <code>cotonic.broker.match(topic)</code>
-            </br>
+            <br>
             Collect all subscribers which match the topic. Returns a list with subscriptions.
             </p>
             <pre>
@@ -526,7 +526,7 @@ cotonic.broker.match("boat/02/speed");
             <!-- publish -->
             <p id="cotonic.broker.publish">
             <strong class="header">publish</strong> <code>cotonic.broker.publish(topic, payload, [options])</code>
-            </br>
+            <br>
             Publish the message <tt>payload</tt> on a topic. The possible <tt>options</tt> are:
             <dl>
                 <dt><code>qos</code></dt>
@@ -548,7 +548,7 @@ cotonic.broker.publish("truck/001/speed", 74, {retain: true});
             <!-- subscribe -->
             <p id="cotonic.broker.subscribe">
             <strong class="header">subscribe</strong> <code>cotonic.broker.subscribe(topics, callback, [options])</code>
-            </br>
+            <br>
             Subscribe to the topics. The callback will be called when a message which matches one of the topics
             is published.
             </p>
@@ -559,7 +559,7 @@ cotonic.broker.subscribe();</pre>
             <!-- unsubscribe -->
             <p id="cotonic.broker.unsubscribe">
             <strong class="header">unsubscribe</strong> <code>cotonic.broker.unsubscribe(topics, [options])</code>
-            </br>
+            <br>
             Unsubscribe from the topics.
             </p>
             <pre>
@@ -569,7 +569,7 @@ cotonic.broker.unsubscribe();</pre>
             <!-- call -->
             <p id="cotonic.broker.call">
             <strong class="header">call</strong> <code>cotonic.broker.call(topic, payload, [options])</code>
-            </br>
+            <br>
             Call a topic, returns a promise for the response.
             </p>
             <pre>
@@ -588,7 +588,7 @@ cotonic.broker.call();</pre>
             <!-- matches -->
             <p id="cotonic.mqtt.matches">
             <strong class="header">matches</strong> <code>cotonic.mqtt.matches(pattern, topic)</code>
-            </br>
+            <br>
             Returns <tt>true</tt> when the pattern matches the topic, <tt>false</tt> otherwise.
             </p>
             <pre>
@@ -604,7 +604,7 @@ cotonic.mqtt.matches("+/+/speed", "plane/01/height");
             <!-- fill -->
             <p id="cotonic.mqtt.fill">
             <strong class="header">fill</strong> <code>cotonic.mqtt.fill(pattern, params)</code>
-            </br>
+            <br>
             Fill can use a <tt>pattern</tt> topic, and use the <tt>param</tt> object to create
             an mqtt topic. Returns a string with the created topic.
             </p>
@@ -615,7 +615,7 @@ cotonic.mqtt.fill("truck/+truck_id/speed", {truck_id: 100});
             <!-- extract -->
             <p id="cotonic.mqtt.extract">
             <strong class="header">extract</strong> <code>cotonic.mqtt.extract(pattern, topic)</code>
-            </br>
+            <br>
             Extract values from <tt>topic</tt> into an object. The pattern <tt>+&lt;key&gt;</tt> matches
             a single level of the topic path. It places an attribute <tt>key</tt> with as value the
             found element in the path in the returned object. The pattern <tt>#&ltkey&gt;</tt>
@@ -631,7 +631,7 @@ cotonic.mqtt.extract("truck/+truck_id/#params", "truck/01/speed");
             <!-- exec -->
             <p id="cotonic.mqtt.exec">
             <strong class="header">exec</strong> <code>cotonic.mqtt.exec(pattern, topic)</code>
-            </br>
+            <br>
             When the <tt>pattern</tt> <a href="#cotonic.mqtt.matches">matches</a> the <tt>topic</tt>,
             <a href="#cotonic.mqtt.extract">extract</a> the values from the topic. Returns the
             extracted values when the pattern matches, <tt>null</tt> otherwise.</p>
@@ -644,7 +644,7 @@ cotonic.mqtt.exec("boat/+truck_id/speed", "truck/01/speed");
             <!-- remove_named_wildcards -->
             <p id="cotonic.mqtt.remove_named_wildcards">
             <strong class="header">remove_named_wildcards</strong> <code>cotonic.mqtt.remove_named_wildcards(pattern)</code>
-            </br>
+            <br>
             Remove the special, and non mqtt compliant, wildcards from the pattern and return a compliant
             topic.
             </p>
@@ -666,7 +666,7 @@ cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
             <!-- insert -->
             <p id="cotonic.ui.insert">
             <strong class="header">insert</strong> <code>cotonic.ui.insert(targetId, isInner, initialHTML, [priority])</code>
-            </br>
+            <br>
             Insert a new html snippet into the user interface composer. The snippet will be stored under the given
             targetId. The element will not be placed in the dom-tree immediately. This will happen when one of the 
             render functions is called. The isInner boolean flag indicates if only innerHTML of the target element must
@@ -680,7 +680,7 @@ cotonic.ui.insert("root", false, "&lt;p&gt;Hello World!&lt;/p&gt;");</pre>
             <!-- get -->
             <p id="cotonic.ui.get">
             <strong class="header">get</strong> <code>cotonic.ui.get(id)</code>
-            </br>
+            <br>
             Returns the current html snippet registered at <tt>id</tt>.
             </p>
             <pre>
@@ -690,7 +690,7 @@ let currentHTML = cotonic.ui.get("root");
             <!-- remove -->
             <p id="cotonic.ui.remove">
             <strong class="header">remove</strong> <code>cotonic.ui.remove(id)</code>
-            </br>
+            <br>
             Remove the html snippet registered at id. Note that this will not remove the element from the dom-tree,
             it will only remove it from the user interface composer. When the element must be removed it should first
             be updated and set to a blank string and a render operation should be done.
@@ -701,7 +701,7 @@ cotonic.ui.remove("root");</pre>
             <!-- update -->
             <p id="cotonic.ui.update">
             <strong class="header">update</strong> <code>cotonic.ui.update(id, htmlOrTokens)</code>
-            </br>
+            <br>
             Update the registered snippet for the registered element with the given id. The new snippet will be visible
             after a render operation.
             </p>
@@ -712,7 +712,7 @@ cotonic.ui.update("root", "&lt;p&gt;Hello Everybody!&lt;/p&gt;");
             <!-- render -->
             <p id="cotonic.ui.render">
             <strong class="header">render</strong> <code>cotonic.ui.render()</code>
-            </br>
+            <br>
             Trigger a render of all registered elements.
             </p>
             <pre>
@@ -722,7 +722,7 @@ cotonic.ui.render();
             <!-- renderId -->
             <p id="cotonic.ui.renderId">
             <strong class="header">renderId</strong> <code>cotonic.ui.renderId(id)</code>
-            </br>
+            <br>
             Just render the element with the given id.
             </p>
             <pre>
@@ -731,25 +731,45 @@ cotonic.ui.renderId("root");</pre>
             <!-- updateStateData -->
             <p id="cotonic.ui.updateStateData">
             <strong class="header">updateStateData</strong> <code>cotonic.ui.updateStateData(model, states)</code>
-            </br>
+            <br>
+            Communicate the state of the model to other non-cotonic components on the page. It can
+            be used to pass model state to SPA's or other modules. It sets a data attribute on the
+            html tag of the page.
+            The parameter <tt>model</tt> should be a string, <tt>states</tt> is an object
+            with values. The values of the states object are set as data attributes
+            on the html tag like this:
+            <tt>data-ui-&lt;model&gt;-&lt;key&gt;="&lt;value&gt;"</tt>. When an empty object is
+            passed all data attributes of the model is cleared.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.updateStateData();</pre>
+cotonic.ui.updateStateData("auth", {authorized: true});
+=> &lt;html data-ui-state-auth-authorized="true"&gt;
+...
+cotonic.ui.updateStateData("auth", {});
+=> &lt;html"&gt;
+...</pre>
 
             <!-- updateStateClass -->
             <p id="cotonic.ui.updateStateClass">
             <strong class="header">updateStateClass</strong> <code>cotonic.ui.updateStateClass(model, classes)</code>
-            </br>
+            <br>
+            Update the class of the html tag. This makes it possible to communicate important
+            state changes to external components like SPA's. The parameter <tt>model</tt> should be
+            a string. Parameter <tt>classes</tt> a list of classes which must be set.
+            The following elements will be added to the class attribute
+            <tt>ui-state-&lt;model&gt;-&lt;class&gt;</tt>. Passing <tt>[]</tt> will clear all the class
+            attributes of the model.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.updateStateClass();</pre>
+cotonic.ui.updateStateClass("auth", ["unauthorized", "pending"]);
+=> &lt;html class="ui-state-auth-pending ui-state-auth-unauthorized"&gt; 
+cotonic.ui.updateStateClass("auth", ["authorized"]);
+=> &lt;html class="ui-state-auth-authorized"&gt;</pre>
 
             <!-- on -->
             <p id="cotonic.ui.on">
             <strong class="header">on</strong> <code>cotonic.ui.on(topic, msg, event, [options])</code>
-            </br>
+            <br>
             </p>
             <pre>
 // [TODO]
@@ -767,7 +787,7 @@ cotonic.ui.on();</pre>
             <!-- worker connect -->
             <p id="worker.connect">
             <strong class="header">connect</strong> <code>self.connect()</code>
-            </br>
+            <br>
             Connect the worker to the page. When this step succeeds the
             <a href="#worker.on_connect"><tt>on_connect</tt></a> is called.
             <a href="#worker.on_error"><tt>on_error</tt></a> when it fails.
@@ -779,7 +799,7 @@ self.connect();
             <!-- worker disconnect -->
             <p id="worker.disconnect">
             <strong class="header">disconnect</strong> <code>self.disconnect()</code>
-            </br>
+            <br>
             Disconnects the worker from the page. After this step it is no
             longer possible to send and receive messages from the page.
             </p>
@@ -790,7 +810,7 @@ self.disconnect();
             <!-- worker is_connected -->
             <p id="worker.is_connected">
             <strong class="header">is_connected</strong> <code>self.is_connected()</code>
-            </br>
+            <br>
             Returns <tt>true</tt> iff the worker is connected to the page,
             <tt>false</tt> otherwise.
             </p>
@@ -801,7 +821,7 @@ self.is_connected();
             <!-- worker subscribe -->
             <p id="worker.subscribe">
             <strong class="header">subscribe</strong> <code>self.subscribe(topics, callback, ack_callback)</code>
-            </br>
+            <br>
             Subscribe the worker to the <tt>topics</tt>. When a message is received, the <tt>callback</tt> is called.
             Callback is a function which receives two parameters. The first parameter is the <tt>message</tt>, the second
             parameter an <tt>object</tt> returned by <a href="#cotonic.mqtt.extract">extract</a>. This can be used to
@@ -825,7 +845,7 @@ self.subscribe(["truck/+boat_id/speed", "boat/+boat_id/speed", logSpeed);
             <!-- worker unsubscribe -->
             <p id="worker.unsubscribe">
             <strong class="header">unsubscribe</strong> <code>self.unsubscribe(topics, callback, ack_callback)</code>
-            </br>
+            <br>
             Unsubscribe the worker from page. The worker will no longer receive messages from the specified topics. 
             </p>
             <pre>
@@ -834,7 +854,7 @@ self.unsubscribe();</pre>
             <!-- worker publish -->
             <p id="worker.publish">
             <strong class="header">publish</strong> <code>self.publish(topic, message, options)</code>
-            </br>
+            <br>
             Publish <tt>message</tt> on <tt>topic</tt>. The <tt>options</tt> can be used to indicate
             the quality of service, or if the message should be retained by the broker.
             </p>
@@ -844,7 +864,7 @@ self.publish("world", "hello", {retain: true});</pre>
             <!-- worker call -->
             <p id="worker.call">
             <strong class="header">call</strong> <code>self.call(topic, message, options)</code>
-            </br>
+            <br>
             Publishes <tt>message</tt> on <tt>topic</tt> and subscribes itself to a reply topic.
             Returns a promise which is fulfilled when a message is received on the reply topic. When
             no message arrives, the promise is rejected. Returns a promise.
@@ -857,7 +877,7 @@ self.call("model/document/get/all")
             <!-- worker worker_init-->
             <p id="worker.worker_init">
             <strong class="header">worker_init</strong> <code>self.worker_init</code>
-            </br>
+            <br>
             The callback <tt>worker_init</tt> is called when the worker receives the initialization
             message by the page. It can take multiple arguments. The arguments are passed in via
             the <a href="#cotonic.spawn"><tt>spawn</tt></a> <tt>args</tt> argument list. 
@@ -877,7 +897,7 @@ self.worker_init = function(n, id) {
             <!-- worker on_connect -->
             <p id="worker.on_connect">
             <strong class="header">on_connect</strong> <code>self.on_connect</code>
-            </br>
+            <br>
             The <tt>on_connect</tt> callback will be called after a successfull
             <a href="#worker.connect"><tt>connect</tt></a> call.
             </p>
@@ -889,7 +909,7 @@ self.on_connect = function() {
             <!-- worker on_error -->
             <p id="worker.on_error">
             <strong class="header">on_error</strong> <code>self.on_error</code>
-            </br>
+            <br>
             The <tt>on_error</tt> callback will be called after an unsuccessfull
             <a href="#worker.connect"><tt>connect</tt></a> call.
             </p>
@@ -937,7 +957,7 @@ self.on_error = function() {
             <!-- get/all -->
             <p id="model.document.get.all">
             <strong class="header">get/all</strong>
-            </br>
+            <br>
             Get all information on the current document. Includes screen size, cookies, user agent details.
             </p>
             <pre>
@@ -952,7 +972,7 @@ self.call("model/document/get/all")
             <!-- get/intl -->
             <p id="model.document.get.intl">
             <strong class="header">get/intl</strong>
-            </br>
+            <br>
             Returns the internationalization details of the current page.
             </p>
             <pre>
@@ -973,7 +993,7 @@ self.call("model/document/get/intl")
             <!-- get/href -->
             <p id="model.location.get.href">
             <strong class="header">get/href</strong>
-            </br>
+            <br>
             Get the current href.
             </p>
             <pre>
@@ -986,7 +1006,7 @@ self.call("model/location/get/href")
             <!-- get/protocol -->
             <p id="model.location.get.protocol">
             <strong class="header">get/protocol</strong>
-            </br>
+            <br>
             Get the current protocol
             </p>
             <pre>
@@ -999,7 +1019,7 @@ self.call("model/location/get/protocol")
             <!-- get/host -->
             <p id="model.location.get.host">
             <strong class="header">get/host</strong>
-            </br>
+            <br>
             Get the current host (with port).
             </p>
             <pre>
@@ -1012,7 +1032,7 @@ self.call("model/location/get/host")
             <!-- get/hostname -->
             <p id="model.location.get.hostname">
             <strong class="header">get/hostname</strong>
-            </br>
+            <br>
             </p>
             Get the current hostname (without port).
             <pre>
@@ -1025,7 +1045,7 @@ self.call("model/location/get/hostname")
             <!-- get/origin -->
             <p id="model.location.get.origin">
             <strong class="header">get/origin</strong>
-            </br>
+            <br>
             Get the current origin.
             </p>
             <pre>
@@ -1038,7 +1058,7 @@ self.call("model/location/get/origin")
             <!-- get/pathname -->
             <p id="model.location.get.pathname">
             <strong class="header">get/pathname</strong>
-            </br>
+            <br>
             Get the current pathname.
             </p>
             <pre>
@@ -1051,7 +1071,7 @@ self.call("model/location/get/pathname")
             <!-- get/port -->
             <p id="model.location.get.port">
             <strong class="header">get/port</strong>
-            </br>
+            <br>
             Get the current port.
             </p>
             <pre>
@@ -1064,7 +1084,7 @@ cotonic.broker.call("model/location/get/port")
             <!-- event/search -->
             <p id="model.location.event.search">
             <strong class="header">event/search</strong>
-            </br>
+            <br>
             A message containing the query string part of the url will be published when it changes.
             <em>Note: the message is retained</em>
             </p>
@@ -1077,7 +1097,7 @@ cotonic.broker.subscribe("model/location/event/search",
             <!-- event/pathname -->
             <p id="model.location.event.pathname">
             <strong class="header">event/pathname</strong>
-            </br>
+            <br>
             A message containing the pathname part of the url will be published when it changes.
             <em>Note: the message is retained</em>
             </p>
@@ -1090,7 +1110,7 @@ cotonic.broker.subscribe("model/location/event/pathname",
             <!-- event/hash -->
             <p id="model.location.event.hash">
             <strong class="header">event/hash</strong>
-            </br>
+            <br>
             A message containing the hash part of the url will be published when it changes.
             <em>Note: the message is retained</em>
             </p>
@@ -1103,7 +1123,7 @@ cotonic.broker.subscribe("model/location/event/hash",
             <!-- event/ping -->
             <p id="model.location.event.ping">
             <strong class="header">event/ping</strong>
-            </br>
+            <br>
             When the location model is enabled, a retained message is published on this
             topic. By subscribing to this topic it is possible to see when the model is
             enabled. The payload of the message <tt>pong</tt>.
@@ -1120,31 +1140,31 @@ cotonic.broker.subscribe("model/location/event/ping",
 
             <p id="model.ui.insert.key">
             <strong class="header">insert/+key</strong>
-            </br>
+            <br>
             </p>
             <pre></pre>
 
             <p id="model.ui.update.key">
             <strong class="header">update/+key</strong>
-            </br>
+            <br>
             </p>
             <pre></pre>
 
             <p id="model.ui.delete.key">
             <strong class="header">delete/+key</strong>
-            </br>
+            <br>
             </p>
             <pre></pre>
 
             <p id="model.ui.event.recent-activity">
             <strong class="header">event/recent-activity</strong>
-            </br>
+            <br>
             </p>
             <pre></pre>
 
             <p id="model.ui.event.ui-status">
             <strong class="header">event/ui-status</strong>
-            </br>
+            <br>
             </p>
             <pre></pre>
 
@@ -1159,7 +1179,7 @@ cotonic.broker.subscribe("model/location/event/ping",
 
             <p id="model.serviceWorker.post.broadcast.channel">
             <strong class="header">post/broadcast/+channel</strong>
-            </br>
+            <br>
             Broadcast the message on <tt>channel</tt>. The message can be received 
             via the <tt>"model/serviceWorker/event/+channel</tt> topic. This works
             across all open tabs. 
@@ -1172,7 +1192,7 @@ self.publish("model/serviceWorker/post/broadcast/background",
 
             <p id="model.serviceWorker.event.broadcast.channel">
             <strong class="header">event/broadcast/+channel</strong>
-            </br>
+            <br>
             Subscribe to the broadcast <tt>channel</tt> of the serviceWorker. Messages
             posted from other tabs or workers, including messages sent by the publisher
             will be received.
@@ -1187,7 +1207,7 @@ cotonic.broker.subscribe("model/serviceWorker/event/broadcast/background",
 
             <p id="model.serviceWorker.event.ping">
             <strong class="header">event/ping</strong>
-            </br>
+            <br>
             When the serviceWorker model is enabled it publishes a retained <tt>pong</tt>
             message on this topic. This makes it possible to check if the model is enabled.
             </p>
@@ -1202,7 +1222,7 @@ cotonic.broker.subscribe("model/serviceWorker/event/ping",
 
             <p id="model.localStorage.get.key">
             <strong class="header">get/+key</strong>
-            </br>
+            <br>
             Gets item <tt>key</tt> from localStorage. Returns the content as payload.
             </p>
             <pre>
@@ -1212,7 +1232,7 @@ cotonic.broker.call("model/localStorage/get/a")
 
             <p id="model.localStorage.post.key">
             <strong class="header">post/+key</strong>
-            </br>
+            <br>
             Update, or insert message under <tt>key</tt> in localStorage.
             </p>
             <pre>
@@ -1220,7 +1240,7 @@ cotonic.broker.publish("model/localStorage/post/a", "Hello world!");</pre>
 
             <p id="model.localStorage.delete.key">
             <strong class="header">delete/+key</strong>
-            </br>
+            <br>
             Delete item stored under <tt>key</tt> from localStorage.
             </p>
             <pre>
@@ -1228,7 +1248,7 @@ cotonic.broker.publish("model/localStorage/delete/a");</pre>
 
             <p id="model.localStorage.event.key">
             <strong class="header">event/+key</strong>
-            </br>
+            <br>
             Subscribe to changes or deletions from localStorage. When the message payload
             is <tt>null</tt> the item is delete. Otherwise the payload is set to the 
             newly updated value.
@@ -1246,7 +1266,7 @@ cotonic.broker.subscribe("model/localStorage/event/+key",
 
             <p id="model.localStorage.event.ping">
             <strong class="header">event/ping</strong>
-            </br>
+            <br>
             When the localStorage model is enabled it publishes a retained message
             under the topic <tt>model/localStorage/event/ping</tt>. It makes it 
             possible to detect the localStorage model is enabled.
@@ -1266,7 +1286,7 @@ cotonic.broker.subscribe("model/localStorage/event/ping",
 
             <p id="model.sessionStorage.get.key">
             <strong class="header">get/+key</strong>
-            </br>
+            <br>
             Get the element stored as <tt>key</tt> from the sessionStorage. Returns the
             contents as payload, or <tt>null</tt> if it is not found.
             </p>
@@ -1280,7 +1300,7 @@ self.call("model/get/sessionStorage/item-1")
 
             <p id="model.sessionStorage.get.key.subkey">
             <strong class="header">get/+key/+subkey</strong>
-            </br>
+            <br>
             Get a sub element stored as <tt>key.subkey</tt> from the sessionStorage.
             </p>
             <pre>
@@ -1300,7 +1320,7 @@ self.publish("model/sessionStorage/post/item-1", "Cucumbers are sometimes green"
 
             <p id="model.sessionStorage.post.key.subkey">
             <strong class="header">post/+key/+subkey</strong>
-            </br>
+            <br>
             Store a message under <tt>key.subkey</tt> in the sessionStorage. When no
             item is stored under <tt>key</tt> a new object is created, and <tt>subkey</tt>
             is added as sub-element. When <tt>key</tt> exists it must be an object, then
@@ -1311,7 +1331,7 @@ self.publish("model/sessionStorage/post/item-2/a", "hello");</pre>
 
             <p id="model.sessionStorage.delete.key">
             <strong class="header">delete/+key</strong>
-            </br>
+            <br>
             Delete an element stored under <tt>key</tt> from the sessionStorage.
             </p>
             <pre>
@@ -1319,7 +1339,7 @@ self.publish("model/sessionStorage/delete/item-2");</pre>
 
             <p id="model.sessionStorage.delete.key.subkey">
             <strong class="header">delete/+key/+subkey</strong>
-            </br>
+            <br>
             Delete an element stored under <tt>key.subkey</tt> from the sessionStorage.
             </p>
             <pre>
@@ -1327,7 +1347,7 @@ self.publish("model/sessionStorage/delete/item-2");</pre>
 
             <p id="model.sessionStorage.event.key">
             <strong class="header">event/+key</strong>
-            </br>
+            <br>
             Subscribe to sessionStorage updates and deletes. When entry is updated
             you will get a notification.
             </p>
@@ -1342,7 +1362,7 @@ self.publish("model/sessionStorage/post/b", "world");
 
             <p id="model.sessionStorage.event.ping">
             <strong class="header">event/ping</strong>
-            </br>
+            <br>
             When the sessionStorage model is enabled a retained message is published
             on the <tt>model/sessionStorage/event/ping</tt> topic.
             </p>
