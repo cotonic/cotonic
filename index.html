@@ -770,10 +770,24 @@ cotonic.ui.updateStateClass("auth", ["authorized"]);
             <p id="cotonic.ui.on">
             <strong class="header">on</strong> <code>cotonic.ui.on(topic, msg, event, [options])</code>
             <br>
+            Publish a DOM event on the local broker. This allows subscribers to react to user interface
+            events. Parameter <tt>topic</tt> is the topic on which the event will be published. The parameters
+            <tt>msg</tt> and <tt>event</tt> are included in the message which is published. The event parameter
+            is expected to be a DOM event. The <tt>options</tt> parameter is optional, it
+            can contain a <tt>cancel</tt> property which can be set to <tt>true</tt>, <tt>false</tt> or
+            <tt>"preventDefault"</tt> to indicate if the event should be cancelled or prevented.
+            The other options can be the normal options found in
+            <a href="#cotonic.broker.publish"><tt>publish</tt></a>.
             </p>
             <pre>
-// [TODO]
-cotonic.ui.on();</pre>
+document.addEvenListener("click", function(e) {
+    const topic = event.target.getAttribute("data-topic");
+    if(!topic) return;
+    
+    cotonic.ui.on(topic, {foo: "bar"}, e);
+}, {passive: true})
+=> When somebody clicks on an element with has a data-topic="a/topic"
+   attribute, the event will be published on that topic.</pre>
 
             <h2 id="worker.functions">Worker Functions</h2>
             <p>
