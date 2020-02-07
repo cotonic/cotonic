@@ -511,9 +511,16 @@ cotonic.broker.find_subscriptions_below("truck");
             Collect all subscribers which match the topic. Returns a list with subscriptions.
             </p>
             <pre>
-cotonic.broker.subscribe("truck/+/speed" function(msg) { console.log("Some trucks speed", msg); })
-cotonic.broker.subscribe("truck/#" function(msg) { console.log("Some info of a truck", msg); })
-cotonic.broker.subscribe("truck/02/speed" function(msg) { console.log("Speed of truck 2", msg); })
+cotonic.broker.subscribe("truck/+/speed", function(msg) {
+    console.log("Some trucks speed", msg);
+});
+cotonic.broker.subscribe("truck/#", function(msg) {
+    console.log("Some info of a truck", msg);
+});
+cotonic.broker.subscribe("truck/02/speed", function(msg) {
+    console.log("Speed of truck 2", msg);
+})
+
 cotonic.broker.match("truck/01/speed");
 => [Object, Object] // Returns two subscriptions, truck/+/speed, and truck/#
 cotonic.broker.match("truck/01/speed")[0]
@@ -852,7 +859,7 @@ function logSpeed(msg, args) {
         console.log("truck", args.truck_id, "is now moving at", msg.payload);
     }
 }
-self.subscribe(["truck/+boat_id/speed", "boat/+boat_id/speed", logSpeed);
+self.subscribe(["truck/+boat_id/speed", "boat/+boat_id/speed"], logSpeed);
 => The function logSpeed will be called when somebody sends a message which
    matches the topics.</pre>
 
