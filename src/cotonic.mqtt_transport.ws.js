@@ -50,7 +50,7 @@ var cotonic = cotonic || {};
         const controller_path = options.controller_path || WS_CONTROLLER_PATH;
         const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
         const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
-        const protocol = options.protocol || (document.location.protocol==='http:')?"ws":"wss";
+        const protocol = options.protocol || ((document.location.protocol==='http:')?"ws":"wss");
 
         var self = this;
 
@@ -298,9 +298,7 @@ var cotonic = cotonic || {};
                 self.remoteHost = remote;
             }
 
-            self.remoteUrl = protocol + self.remoteHost + controller_path;
-
-            console.log(self.remoteUrl);
+            self.remoteUrl = protocol + "://" + self.remoteHost + controller_path;
 
             setTimeout(connect, connect_delay);
             setInterval(periodic, periodic_delay);
