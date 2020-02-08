@@ -176,6 +176,16 @@ pre {
                     <li> - <a href="#cotonic.mqtt.remove_named_wildcards">remove_named_wildcards</a>
                 </ul>
 
+                <!-- MQTT Bridge -->
+                <a href="#cotonic.mqtt_bridge" class="toc_title">
+                    mqtt_bridge
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.mqtt_bridge.newBridge">newBridge</a>
+                    <li> - <a href="#cotonic.mqtt_bridge.newBridge">findBridge</a>
+                    <li> - <a href="#cotonic.mqtt_bridge.deleteBridge">deleteBridge</a>
+                </ul>
+
                 <!-- UI -->
                 <a href="#cotonic.ui" class="toc_title">
                     ui
@@ -660,6 +670,80 @@ cotonic.mqtt.remove_named_wildcards("truck/+truck_id/speed");
 => "truck/+/speed"
 cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
 => "truck/#"</pre>
+
+            <!-- MQTT Bridge -->
+            <h3 id="cotonic.mqtt_bridge">mqtt_bridge</h3>
+            
+            <p>
+            This module makes it possible to bridge the broker on the local page to
+            an external MQTT broker.
+            </p>
+
+            <p id="cotonic.mqtt_bridge.newBridge">
+            <strong class="header">newBridge</strong> <code>cotonic.mqtt_bridge.newBridge([remote], [options])</code>
+            <br>
+            Create a new bridge. This is the hostname of the mqtt broker to connect to. When set to
+            <tt>"origin"</tt> the bridge uses the hostname of the document.
+            When the bridge is connected messages published on the topic matching <tt>bridge/+remote/#</tt> will
+            be re-published on the remote broker. Subscriptions on the topic <tt>bridge/+remote/#</tt>
+            will be published locally. This makes it possible to connect and communicate with
+            all clients connected to remote mqtt brokers.
+            <em>Note: It is possible to connect to multiple brokers.</em>
+            <dl>
+                <dt><tt>protocol</tt></dt>
+                <dd>The protocol to use to connect to the mqtt broker. Defaults to "ws" when the page is 
+                loaded via "http", "wss" otherwise.
+                </dd>
+
+                <dt><tt>controller_path</tt></dt>
+                <dd>The pathname to use when connecting the web socket to the broker. Default: "mqtt-transport"</dd>
+
+                <dt><tt>connect_delay</tt></dt>
+                <dd>Default: 20</dd>
+
+                <dt><tt>periodic_delay</tt></dt>
+                <dd>Default: 1000</dd>
+
+                <dt><tt>mqtt_session</tt></dt>
+                <dd>The mqtt_session module which should be used. Default: cotonic.mqtt_session.</dd>
+            </dl>
+            </p>
+            <pre>
+cotonic.mqtt_bridge.newBridge("test.mosquitto.org:8081",
+                              {protocol: "wss"});
+=> Connect the local broker to test.mosquitto.org via a websocket.
+
+const decoder = new TextDecoder("utf-8");
+cotonic.broker.subscribe("bridge/test.mosquitto.org:8081/bbc/subtitles/bbc_news24/raw",
+    function(m, t) {
+        console.log(decoder.decode(m.payload));
+    });
+=> Subscribe to a local topic, it will be bridged from the server
+   to the page. This gets the raw subtitles of bbc news24.</pre>
+
+            <p id="cotonic.mqtt_bridge.findBridge">
+            <strong class="header">findBridge</strong> <code>cotonic.mqtt_bridge.findBridge([remote])</code>
+            <br>
+            Find bridge <tt>remote</tt>, when remote is not specified, <tt>"origin"</tt> is used.
+            Returns the bridge, or <tt>undefined</tt> when the bridge is not found.
+            </p>
+            <pre>
+const b = cotonic.mqtt_bridge.findBridge("test.mosquitto.org:8081");
+=> returns the bridge, or undefined
+            </pre>
+
+            <p id="cotonic.mqtt_bridge.deleteBridge">
+            <strong class="header">deleteBridge</strong> <code>cotonic.mqtt_bridge.deleteBridge([remote])</code>
+            <br>
+            Delete bridge <tt>remote</tt>, when remote is not specified, <tt>"origin"</tt> is used.
+            </p>
+            <pre>
+cotonic.mqtt_bridge.deleteBridge("test.mosquitto.org:8081");</pre>
+
+            <!-- [TODO] document bridge api -->
+
+
+            <!-- User interface composer -->
 
             <h3 id="cotonic.ui">ui</h3>
 
