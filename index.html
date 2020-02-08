@@ -536,12 +536,12 @@ cotonic.broker.match("boat/02/speed");
             <br>
             Publish the message <tt>payload</tt> on a topic. The possible <tt>options</tt> are:
             <dl>
-                <dt><code>qos</code></dt>
+                <dt><tt>qos</tt></dt>
                 <dd>Quality of service. Can be 0, 1, or 2. 0 means at most once, 1 at least once, and 2 exactly once.</dd>
-                <dt><code>retain</code></dt>
+                <dt><tt>retain</tt></dt>
                 <dd>When retain is true, the last message sent will be stored, and delivered immediately when
                 a new client subscribes to the topic.</dd>
-                <dt><code>properties</code></dt>
+                <dt><dt>properties</dt></dt>
                 <dd>Extra properties which can be attached to the message</dd>
             </dl>
             </p>
@@ -1162,26 +1162,75 @@ cotonic.broker.subscribe("model/location/event/ping",
             <p id="model.ui.insert.key">
             <strong class="header">insert/+key</strong>
             <br>
+            Insert a new ui snippet named <tt>key</tt> into the user interface composer.
+            Expects a message with the following properties.
+
+            <dl>
+                <dt><tt>initialData</tt></dt>
+                <dd>The initial data to place in the dom tree.</dd>
+
+                <dt><tt>inner</tt></dt>
+                <dd>If set to <tt>true</tt>, the ui composer will update the inner html, when set
+                to <tt>false</tt>, the outer html</dd>
+
+                <dt><tt>priority</tt></dt>
+                <dd>An element with a high priority will be rendered before elements with a low
+                priority.
+                <!-- needs example -->
+                </dd>
+            </dl>
+
             </p>
-            <pre></pre>
+            <pre>
+self.publish("model/ui/insert/root", {
+    initialData: "&lt;div class='loading'&gt;Loading&lt;/div&gt;",
+    inner: true
+    priority: 100
+}, {retain: true});
+=> When the ui composer receives this message it will add the
+   loading
+            </pre>
 
             <p id="model.ui.update.key">
             <strong class="header">update/+key</strong>
             <br>
+            Update the contents of ui snippet named <tt>key</tt> previously registered
+            by an <tt>insert</tt>. Expects a message with the html snippet as message.
             </p>
-            <pre></pre>
+            <pre>
+self.publish("model/ui/update/root", 
+    "<div class="main-app>" +
+        "..." +
+    "</div>");
+=> The root element is updated.</pre>
 
             <p id="model.ui.delete.key">
             <strong class="header">delete/+key</strong>
             <br>
+            Delete ui snippet named <tt>key</tt> from the user interface composer.
             </p>
-            <pre></pre>
+            <pre>
+self.publish("model/ui/delete/root");
+=> The root element is removed from the composer, but
+   stays in the DOM tree.</pre>
 
             <p id="model.ui.event.recent-activity">
             <strong class="header">event/recent-activity</strong>
             <br>
+            A message containing the user's activity status is published regularly
+            on this topic. The message is an object which contains a
+            <tt>is_active</tt> boolean property which indicates if the has been
+            active over the last period between publishes.
             </p>
-            <pre></pre>
+            <pre>
+// worker example
+self.subscribe("model/ui/event/user-activity",
+    function(m) {
+        const a = m.payload.is_active:"active":"not active";
+        console.log("The user is: ", a);
+    }
+) 
+=> Displays the user's activity status.</pre>
 
             <p id="model.ui.event.ui-status">
             <strong class="header">event/ui-status</strong>
