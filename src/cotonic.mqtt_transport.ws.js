@@ -23,18 +23,18 @@ var cotonic = cotonic || {};
     /********************************** Connections using Websocket **********************************/
     /*************************************************************************************************/
 
-    var WS_CONTROLLER_PATH = '/mqtt-transport'; // Default controller for websocket connections etc.
-    var WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
-    var WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
+    const WS_CONTROLLER_PATH = '/mqtt-transport'; // Default controller for websocket connections etc.
+    const WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
+    const WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
 
-    function newTransport( remote, mqttSession ) {
-        return new ws(remote, mqttSession);
+    function newTransport( remote, mqttSession, options ) {
+        return new ws(remote, mqttSession, options);
     }
 
     /**
      * Websocket connection.
      */
-    function ws ( remote, mqttSession ) {
+    function ws ( remote, mqttSession, options ) {
         this.remoteUrl;
         this.remoteHost;
         this.session = mqttSession;
@@ -46,6 +46,12 @@ var cotonic = cotonic || {};
         this.isConnected = false;
         this.isForceClosed = false;
         this.data;
+
+        const controller_path = options.controller_path || WS_CONTROLLER_PATH;
+        const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
+        const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
+        const protocol = options.protocol || ((document.location.protocol==='http:')?"ws":"wss");
+
         var self = this;
 
         /**
@@ -291,13 +297,11 @@ var cotonic = cotonic || {};
             } else {
                 self.remoteHost = remote;
             }
-            if (document.location.protocol == 'http:') {
-                self.remoteUrl = 'ws:' + self.remoteHost + WS_CONTROLLER_PATH;
-            } else {
-                self.remoteUrl = 'wss:' + self.remoteHost + WS_CONTROLLER_PATH;
-            }
-            setTimeout(connect, WS_CONNECT_DELAY);
-            setInterval(periodic, WS_PERIODIC_DELAY);
+
+            self.remoteUrl = protocol + "://" + self.remoteHost + controller_path;
+
+            setTimeout(connect, connect_delay);
+            setInterval(periodic, periodic_delay);
         }
 
         init();

@@ -4703,18 +4703,18 @@ var cotonic = cotonic || {};
     /********************************** Connections using Websocket **********************************/
     /*************************************************************************************************/
 
-    var WS_CONTROLLER_PATH = '/mqtt-transport'; // Default controller for websocket connections etc.
-    var WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
-    var WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
+    const WS_CONTROLLER_PATH = '/mqtt-transport'; // Default controller for websocket connections etc.
+    const WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
+    const WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
 
-    function newTransport( remote, mqttSession ) {
-        return new ws(remote, mqttSession);
+    function newTransport( remote, mqttSession, options ) {
+        return new ws(remote, mqttSession, options);
     }
 
     /**
      * Websocket connection.
      */
-    function ws ( remote, mqttSession ) {
+    function ws ( remote, mqttSession, options ) {
         this.remoteUrl;
         this.remoteHost;
         this.session = mqttSession;
@@ -4726,6 +4726,12 @@ var cotonic = cotonic || {};
         this.isConnected = false;
         this.isForceClosed = false;
         this.data;
+
+        const controller_path = options.controller_path || WS_CONTROLLER_PATH;
+        const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
+        const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
+        const protocol = options.protocol || ((document.location.protocol==='http:')?"ws":"wss");
+
         var self = this;
 
         /**
@@ -4971,13 +4977,11 @@ var cotonic = cotonic || {};
             } else {
                 self.remoteHost = remote;
             }
-            if (document.location.protocol == 'http:') {
-                self.remoteUrl = 'ws:' + self.remoteHost + WS_CONTROLLER_PATH;
-            } else {
-                self.remoteUrl = 'wss:' + self.remoteHost + WS_CONTROLLER_PATH;
-            }
-            setTimeout(connect, WS_CONNECT_DELAY);
-            setInterval(periodic, WS_PERIODIC_DELAY);
+
+            self.remoteUrl = protocol + "://" + self.remoteHost + controller_path;
+
+            setTimeout(connect, connect_delay);
+            setInterval(periodic, periodic_delay);
         }
 
         init();
@@ -5042,14 +5046,15 @@ var cotonic = cotonic || {};
     const MQTT_RC_PACKET_ID_IN_USE         = 145;
     const MQTT_RC_PACKET_ID_NOT_FOUND      = 146;
 
-    var newSession = function( remote, bridgeTopics ) {
+    var newSession = function( remote, bridgeTopics, options ) {
         remote = remote || 'origin';
         if (sessions[remote]) {
             return sessions[remote];
         } else {
+            console.log("new-session");
             var ch = new mqttSession(bridgeTopics);
             sessions[remote] = ch;
-            ch.connect(remote);
+            ch.connect(remote, options);
             return ch;
         }
     };
@@ -5118,7 +5123,7 @@ var cotonic = cotonic || {};
         this.messageNr = 0;
         this.awaitingAck = {};
         this.awaitingRel = {};
-        this.authUserPassword = { username: '', password: '' };
+        this.authUserPassword = { username: undefined, password: undefined };
         this.disconnectReason = '';
 
         var self = this;
@@ -5165,13 +5170,8 @@ var cotonic = cotonic || {};
          * Start a transport to the remote
          * Called by the bridge or other components that manage a MQTT connection
          */
-        this.connect = function( remote ) {
-            if (remote == 'origin') {
-                self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self );
-                // TODO: also start SSE+postback transport for fallback if ws not working
-            } else {
-                // TODO: start webRTC dataChannel for p2p
-            }
+        this.connect = function( remote, options ) {
+            self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self, options );
         };
 
         this.disconnect = function () {
@@ -5213,6 +5213,7 @@ var cotonic = cotonic || {};
                             session_expiry_interval: MQTT_SESSION_EXPIRY
                         }
                     };
+                    console.log(connectMessage);
                     self.isSentConnect = self.sendMessage(connectMessage, true);
                     if (self.isSentConnect) {
                         self.isWaitConnack = true;
@@ -5590,8 +5591,8 @@ var cotonic = cotonic || {};
                             break;
                         case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
                             // Bad credentials, retry anonymous
-                            self.authUserPassword.username = '';
-                            self.authUserPassword.password = '';
+                            self.authUserPassword.username = undefined;
+                            self.authUserPassword.password = undefined;
                         case MQTT_RC_CLIENT_ID_INVALID:
                             // On next retry let the server pick a client id.
                             self.clientId = '';
@@ -5875,16 +5876,21 @@ var cotonic = cotonic || {};
     // Bridges to remote servers and clients
     var bridges = {};
 
-    var newBridge = function( remote, mqtt_session ) {
+    var newBridge = function( remote, options ) {
         remote = remote || 'origin';
-        mqtt_session = mqtt_session || cotonic.mqtt_session;
+        options = options || {};
+        if(!options.mqtt_session) {
+            options.mqtt_session = cotonic.mqtt_session;
+        }
 
         let bridge = bridges[remote];
+
+        console.log("new bridge");
 
         if (!bridge) {
             bridge = new mqttBridge();
             bridges[remote] = bridge;
-            bridge.connect(remote, mqtt_session);
+            bridge.connect(remote, options);
         }
         return bridge;
     };
@@ -5917,7 +5923,8 @@ var cotonic = cotonic || {};
         var self = this;
         var wid;
 
-        this.connect = function ( remote, mqtt_session ) {
+        this.connect = function ( remote, options ) {
+            const mqtt_session = options.mqtt_session;
             self.wid = "bridge/" + remote;
             self.remote = remote;
             self.local_topics = {
@@ -5938,8 +5945,10 @@ var cotonic = cotonic || {};
             cotonic.broker.subscribe(self.local_topics.session_in, relayIn);
             cotonic.broker.subscribe(self.local_topics.session_status, sessionStatus);
 
+            console.log("new session");
+
             // 3. Start a mqtt_session WebWorker for the remote
-            self.session = mqtt_session.newSession(remote, self.local_topics);
+            self.session = mqtt_session.newSession(remote, self.local_topics, options);
             publishStatus();
         };
 

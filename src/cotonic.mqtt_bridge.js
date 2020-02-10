@@ -31,16 +31,21 @@ var cotonic = cotonic || {};
     // Bridges to remote servers and clients
     var bridges = {};
 
-    var newBridge = function( remote, mqtt_session ) {
+    var newBridge = function( remote, options ) {
         remote = remote || 'origin';
-        mqtt_session = mqtt_session || cotonic.mqtt_session;
+        options = options || {};
+        if(!options.mqtt_session) {
+            options.mqtt_session = cotonic.mqtt_session;
+        }
 
         let bridge = bridges[remote];
+
+        console.log("new bridge");
 
         if (!bridge) {
             bridge = new mqttBridge();
             bridges[remote] = bridge;
-            bridge.connect(remote, mqtt_session);
+            bridge.connect(remote, options);
         }
         return bridge;
     };
@@ -73,7 +78,8 @@ var cotonic = cotonic || {};
         var self = this;
         var wid;
 
-        this.connect = function ( remote, mqtt_session ) {
+        this.connect = function ( remote, options ) {
+            const mqtt_session = options.mqtt_session;
             self.wid = "bridge/" + remote;
             self.remote = remote;
             self.local_topics = {
@@ -94,8 +100,10 @@ var cotonic = cotonic || {};
             cotonic.broker.subscribe(self.local_topics.session_in, relayIn);
             cotonic.broker.subscribe(self.local_topics.session_status, sessionStatus);
 
+            console.log("new session");
+
             // 3. Start a mqtt_session WebWorker for the remote
-            self.session = mqtt_session.newSession(remote, self.local_topics);
+            self.session = mqtt_session.newSession(remote, self.local_topics, options);
             publishStatus();
         };
 

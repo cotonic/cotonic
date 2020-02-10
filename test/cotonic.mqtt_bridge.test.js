@@ -54,7 +54,7 @@ QUnit.test("Connect with mock mqtt_bridge", function(assert) {
         };
     }
 
-    let bridge = mqtt_bridge.newBridge("mock", mockSession);
+    let bridge = mqtt_bridge.newBridge("mock", {mqtt_session: mockSession});
     assert.equal(!!bridge, true, "Check if bridge is created");
 
     cotonic.broker.subscribe("$bridge/mock/status", function(m) {

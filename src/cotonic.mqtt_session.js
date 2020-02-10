@@ -51,14 +51,15 @@ var cotonic = cotonic || {};
     const MQTT_RC_PACKET_ID_IN_USE         = 145;
     const MQTT_RC_PACKET_ID_NOT_FOUND      = 146;
 
-    var newSession = function( remote, bridgeTopics ) {
+    var newSession = function( remote, bridgeTopics, options ) {
         remote = remote || 'origin';
         if (sessions[remote]) {
             return sessions[remote];
         } else {
+            console.log("new-session");
             var ch = new mqttSession(bridgeTopics);
             sessions[remote] = ch;
-            ch.connect(remote);
+            ch.connect(remote, options);
             return ch;
         }
     };
@@ -127,7 +128,7 @@ var cotonic = cotonic || {};
         this.messageNr = 0;
         this.awaitingAck = {};
         this.awaitingRel = {};
-        this.authUserPassword = { username: '', password: '' };
+        this.authUserPassword = { username: undefined, password: undefined };
         this.disconnectReason = '';
 
         var self = this;
@@ -174,13 +175,8 @@ var cotonic = cotonic || {};
          * Start a transport to the remote
          * Called by the bridge or other components that manage a MQTT connection
          */
-        this.connect = function( remote ) {
-            if (remote == 'origin') {
-                self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self );
-                // TODO: also start SSE+postback transport for fallback if ws not working
-            } else {
-                // TODO: start webRTC dataChannel for p2p
-            }
+        this.connect = function( remote, options ) {
+            self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self, options );
         };
 
         this.disconnect = function () {
@@ -222,6 +218,7 @@ var cotonic = cotonic || {};
                             session_expiry_interval: MQTT_SESSION_EXPIRY
                         }
                     };
+                    console.log(connectMessage);
                     self.isSentConnect = self.sendMessage(connectMessage, true);
                     if (self.isSentConnect) {
                         self.isWaitConnack = true;
@@ -599,8 +596,8 @@ var cotonic = cotonic || {};
                             break;
                         case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
                             // Bad credentials, retry anonymous
-                            self.authUserPassword.username = '';
-                            self.authUserPassword.password = '';
+                            self.authUserPassword.username = undefined;
+                            self.authUserPassword.password = undefined;
                         case MQTT_RC_CLIENT_ID_INVALID:
                             // On next retry let the server pick a client id.
                             self.clientId = '';
