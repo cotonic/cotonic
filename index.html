@@ -185,7 +185,7 @@ pre {
                     <li> - <a href="#cotonic.mqtt_bridge.newBridge">findBridge</a>
                     <li> - <a href="#cotonic.mqtt_bridge.deleteBridge">deleteBridge</a>
                 </ul>
-
+                
                 <!-- UI -->
                 <a href="#cotonic.ui" class="toc_title">
                     ui
@@ -200,6 +200,14 @@ pre {
                     <li> - <a href="#cotonic.ui.updateStateData">updateStateData</a>
                     <li> - <a href="#cotonic.ui.updateStateClass">updateStateClass</a>
                     <li> - <a href="#cotonic.ui.on">on</a>
+                </ul>
+
+                <a class="toc_title" href="#cotonic.tokenizer">
+                    tokenizer
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#cotonic.tokenizer.tokens">tokens</a>
+                    <li> - <a href="#cotonic.tokenizer.charref">charref</a>
                 </ul>
 
                 <a class="toc_title" href="#worker.functions">
@@ -219,6 +227,7 @@ pre {
                     <li> - <a href="#worker.on_connect">on_connect</a>
                     <li> - <a href="#worker.on_error">on_error</a>
                 </ul>
+
 
                 <a class="toc_title" href="#models">
                     Models
@@ -880,6 +889,79 @@ document.addEvenListener("click", function(e) {
 => When somebody clicks on an element with has a data-topic="a/topic"
    attribute, the event will be published on that topic.</pre>
 
+            <h3 id="cotonic.tokenizer">tokenizer</h3>
+
+            <p>
+            The tokenizer transforms text to html tokens. The tokenizer is used by the
+            user interface composer in order to call the incremental-dom api.
+            It uses incremental-dom to do in-place diffing of the dom-tree.
+            <br>
+            <em>Note: The tokenizer does not parse or validate the html. It just
+                tokenizes the input.</em>
+
+            </p>
+
+            <!-- tokens -->
+            <p id="cotonic.tokenizer.tokens">
+            <strong class="header">tokens</strong> <code>cotonic.tokenizer.tokens(text)</code>
+            <br>
+            Transforms a string with html tags into a list of tokens. The tokens are
+            objects of the form: <tt>{type: "type", [args]}</tt>, with type being one of:
+            <dl>
+                <dt><tt>open</tt><dt>
+                <dd>Represents an open tag. Contains the attribute <tt>tag</tt> which is
+                set to the tagname of the element, and the attribute <tt>attributes</tt>
+                which is a list of attributes of the element.
+                </dd>
+
+                <dt><tt>close</tt><dt>
+                <dd>Represents a close tag. Contains the attribute <tt>tag</tt> which is
+                set to the tagname of the close element.</dd>
+
+                <dt><tt>void</tt><dt>
+                <dd>Represents a void element. The attribute <tt>tag</tt> is set to the 
+                tagname of the void element.</dd>
+
+                <dt><tt>text</tt><dt>
+                <dd>Represents a test element. The attribute <tt>data</tt> is set to the
+                text data.</dd>
+
+                <dt><tt>doctype</tt><dt>
+                <dd>Represents a doctype element. The attribute <tt>attributes</tt> is 
+                set to the attributes of the element.</dd>
+
+                <dt><tt>pi</tt><dt>
+                <dd>Represents a processing instruction element. The attribute <tt>tag</tt>
+                is set to the tagname of the processing instruction. The attribute
+                <tt>arguments</tt> contains the list of attributes.</dd>
+
+                <dt><tt>comment</tt><dt>
+                <dd>Represents a comment element. The attribute <tt>data</tt> contains 
+                the text in the comment element.</dd>
+            </dl>
+            </p>
+            <pre>
+cotonic.tokenizer.tokens("&lt;div class='example'&gt;Tokenizing&lt;br /&gt; is cool&lt/div&gt;");
+=> [{type: "open", tag: "div", attributes: ["class", "example"]},
+    {type: "text", data: "Tokenizing"},
+    {type: "void", tag: "br", attributes: []},
+    {type: "text", data: " is cool"},
+    {type: "close", tag: "div"}] </pre>
+
+            <!-- charref -->
+            <p id="cotonic.tokenizer.charref">
+            <strong class="header">charref</strong> <code>cotonic.tokenizer.charref(text)</code>
+            <br>
+            Transforms a html charref into a character.
+            </p>
+            <pre>
+cotonic.tokenizer.charref("#128540");
+=> "😜" 
+cotonic.tokenizer.charref("amp");
+=> "&"</pre>
+
+
+
             <h2 id="worker.functions">Worker Functions</h2>
             <p>
             Workers are stand alone processes. They have no shared data with the page, nor
@@ -1535,6 +1617,10 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             <h3 id="links">Links</h3>
 
             <p>
+               <a href="https://medium.com/google-developers/introducing-incremental-dom-e98f79ce2c5f">Introduction to Incremental DOM</a>
+            </p>
+
+            <p>
                <a href="https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html">MQTT Version 5.0 - OASIS</a>
             </p>
 
@@ -1549,7 +1635,7 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             <h3 id="changelog">Change Log</h3>
 
             <p id="1.0.2">
-            <strong class="header">1.0.1</strong> &mdash; <small><i>Feb 10, 2020</i></small> &mdash;
+            <strong class="header">1.0.2</strong> &mdash; <small><i>Feb 10, 2020</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.1...1.0.2">Diff</a> &mdash;
             <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.2/index.html"l>Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.2.tar.gz" download>Download</a>
