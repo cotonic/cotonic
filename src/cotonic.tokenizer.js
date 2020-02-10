@@ -687,8 +687,8 @@ var cotonic = cotonic || {};
                 || c === LT || c === GT || c === AMPERSAND) {
 
                 u = charref(data.slice(offsetStart, d.offset));
-
-                if (u === undefined) {
+                if (u === null) {
+                    // Not a charref, use as-is
                     u = data.slice(offsetStart - 1, d.offset)
                 }
 
@@ -697,8 +697,7 @@ var cotonic = cotonic || {};
 
             if (c === COLON) {
                 u = charref(data.slice(offsetStart, d.offset));
-
-                if (u === undefined) {
+                if (u === null) {
                     throw "invalid_charref";
                 } else {
                     return value(u, d.inc_col());
@@ -1068,8 +1067,12 @@ var cotonic = cotonic || {};
     let charref = (function () {
         let element = document.createElement("div");
 
+        const cache = {};
+
         return function (raw) {
-            let d;
+            let d = cache[raw];
+            if(d !== undefined) return d;
+
             if (raw.slice(-1) == ";") {
                 element.innerHTML = "&" + raw;
             } else {
@@ -1082,14 +1085,15 @@ var cotonic = cotonic || {};
             /* Array.from not available on IE when it is in Quirks mode */
             if (Array.from) {
                 if (Array.from(d).length != 1) {
-                    return undefined;
+                    d = null; // This was not a charref;
                 }
             } else {
                 if (d.split(/(?=(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/).length != 1) {
-                    return undefined;
+                    d = null; // This was not a charref
                 }
             }
 
+            cache[raw] = d;
             return d;
         }
     })();
