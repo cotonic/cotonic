@@ -19,7 +19,7 @@
 var cotonic = cotonic || {};
 
 /* Current cotonic version */
-cotonic.VERSION = "1.0.1";
+cotonic.VERSION = "1.0.2";
 
 (function(cotonic) {
 
