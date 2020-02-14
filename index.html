@@ -219,7 +219,7 @@ pre {
                     <li> - <a href="#worker.is_connected">is_connected</a>
 
                     <li> - <a href="#worker.subscribe">subscribe</a>
-                    <li> - <a href="#worker.unsubscribe">subscribe</a>
+                    <li> - <a href="#worker.unsubscribe">unsubscribe</a>
                     <li> - <a href="#worker.publish">publish</a>
                     <li> - <a href="#worker.call">call</a>
 
@@ -575,32 +575,89 @@ cotonic.broker.publish("truck/001/speed", 74, {retain: true});
             <p id="cotonic.broker.subscribe">
             <strong class="header">subscribe</strong> <code>cotonic.broker.subscribe(topics, callback, [options])</code>
             <br>
-            Subscribe to the topics. The callback will be called when a message which matches one of the topics
-            is published.
+            Subscribe to topics. Argument <tt>topics</tt> can either be a single topic, or a list of topics.
+            The function <tt>callback</tt> will be called when a message which matches
+            one of the topics is published. It is a function is called with two arguments, <tt>message</tt>
+            and <tt>info</tt>. Argument <tt>message</tt> is the received mqtt message, and <tt>info</tt>
+            the returned information object returned by <a href="#cotonic.mqtt.extract">extract</a>.
+            This makes it possible to easily extract information from the topic.
+            Parameter <tt>options</tt> can be 
+            <dl>
+                <dt><tt>wid</tt></dt>
+                <dd>The worker if used for making the scription. Can be used to differentiate
+                subscriptions from different components on the page. Defaults to: <tt>0</tt></dd>
+
+                <dt><tt>qos</tt></dt>
+                <dd>The quality-of-service of the subscription. Defaults to: <tt>0</tt></dd>
+
+                <dt><tt>retain_handling</tt></dt>
+                <dd>[todo]</dd>
+
+                <dt><tt>retain_as_published</tt></dt>
+                <dd>[todo]</dd>
+
+                <dt><tt>no_local</tt></dt>
+                <dd>[todo]</dd>
+
+                <dt><tt>properties</tt></dt>
+                <dd>[todo]</dd>
+            </dl>
             </p>
             <pre>
-// [TODO]
-cotonic.broker.subscribe();</pre>
+cotonic.broker.subscribe("truck/+truck_id/speed",
+    function(msg, info) {
+         console.log("Truck", info.truckid, "speed:", msg.payload);
+    },
+    {wid: "example"});
+=> The function will now be called when a truck publishes its speed.</pre>
 
             <!-- unsubscribe -->
             <p id="cotonic.broker.unsubscribe">
             <strong class="header">unsubscribe</strong> <code>cotonic.broker.unsubscribe(topics, [options])</code>
             <br>
-            Unsubscribe from the topics.
+            Unsubscribe from the topics. The parameter <tt>topics</tt> can be a single topic as a string,
+            or a list of topics. The optional parameter <tt>options</tt> is an object which has the following
+            properties.
+            <dl>
+                <dt>wid</dt>
+                <dd>The worker id from which to unsubscribe from. Defaults to: <tt>0</tt></dd>
+            </dl>
+
             </p>
             <pre>
-// [TODO]
-cotonic.broker.unsubscribe();</pre>
+cotonic.broker.unsubscribe("truck/+truck_id/speed",
+                           {wid: "example"});
+=> The subscriptions for topic "truck/+truck_id/speed" for worker "example" will not be called anymore.
+</pre>
 
             <!-- call -->
             <p id="cotonic.broker.call">
             <strong class="header">call</strong> <code>cotonic.broker.call(topic, payload, [options])</code>
             <br>
-            Call a topic, returns a promise for the response.
+            Call is a special kind of publish where the publisher expects an answer back. The <tt>payload</tt>
+            will be published on <tt>topic</tt> using the <tt>options</tt> as described in
+            <a href="#cotonic.broker.publish">publish</a>.
+            The caller will be temporarily subscribed to a reply topic. When an answer is received on this
+            reply topic, the returned promise will be resolved. When no answer is received, the promise will
+            be rejected with a reason.
+            The option parameter can have the following extra options:
+            <dl>
+                <dt><tt>timeout</tt></dt>
+                <dl>
+                    The timeout in milliseconds to use before rejecting
+                    the returned promise.  Default: <tt>15000</tt>, or
+                    15 seconds.
+                </dl>
+            </dl>
             </p>
             <pre>
-// [TODO]
-cotonic.broker.call();</pre>
+cotonic.broker.call("model/localStorage/get/username", {}, {timeout: 1000})
+.then(function(username) {
+    console.log("The username is:", username");
+})
+.catch(function(e) {
+    console.log("Could not get username within 1 second.", e);
+});</pre>
 
             <h3 id="cotonic.mqtt">MQTT</h3>
             <p>
@@ -1463,8 +1520,11 @@ cotonic.broker.subscribe("model/serviceWorker/event/ping",
             </p>
             <pre>
 cotonic.broker.call("model/localStorage/get/a")
-.then(function(m) { console.log(m.payload) }); 
-            </pre>
+.then(
+    function(m) {
+        console.log("a is set to:", m.payload)
+    }
+);</pre>
 
             <p id="model.localStorage.post.key">
             <strong class="header">post/+key</strong>
@@ -1527,7 +1587,7 @@ cotonic.broker.subscribe("model/localStorage/event/ping",
             contents as payload, or <tt>null</tt> if it is not found.
             </p>
             <pre>
-self.call("model/get/sessionStorage/item-1")
+self.call("model/sessionStorage/get/item-1")
 .then(function(m) {
     console.log("item-1", m.payload);
 });
@@ -1540,7 +1600,7 @@ self.call("model/get/sessionStorage/item-1")
             Get a sub element stored as <tt>key.subkey</tt> from the sessionStorage.
             </p>
             <pre>
-self.call("model/get/sessionStorage/item-2/a")
+self.call("model/sessionStorage/get/item-2/a")
 .then(function(m) {
     console.log("item-2", m.payload);
 });
