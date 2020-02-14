@@ -25,8 +25,11 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-    // console.log("Service FETCH", event);
-    event.respondWith( fetch( event.request ) );
+    if (!event.request.headers.get('range')) {
+        // fetch drops the 'range' header, which is used
+        // with video and audio requests.
+        event.respondWith( fetch( event.request ) );
+    }
 });
 
 self.addEventListener('message', function(event) {
