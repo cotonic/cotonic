@@ -123,7 +123,7 @@ cotonic.js: dist/cotonic-bundle.js src/polyfill_check.js
 	cat src/polyfill_check.js dist/cotonic-bundle.js > cotonic.js
 
 cotonic-worker.js: dist/cotonic-worker-bundle.js src/polyfill_check.js
-	cat src/polyfill_check.js dist/cotonic-worker-bundle.js > cotonic-worker.js
+	cat src/polyfill_worker.js dist/cotonic-worker-bundle.js > cotonic-worker.js
 
 cotonic-service-worker.js: dist/cotonic-service-worker-bundle.js
 	cp dist/cotonic-service-worker-bundle.js cotonic-service-worker.js
