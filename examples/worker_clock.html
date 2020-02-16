@@ -42,21 +42,29 @@
                 data-base-worker-src="/cotonic-worker.js"></script>
 
         <script>
-            let hands_worker = null;
+            function main() {
+                let hands_worker = null;
 
-            cotonic.broker.subscribe("spawn", function() {
-                if(!hands_worker) {
-                    hands_worker = cotonic.spawn("/examples/clock_worker.js");
-                }
-            })
+                cotonic.broker.subscribe("spawn",
+                    function() {
+                        if(!hands_worker) {
+                            hands_worker = cotonic.spawn("/examples/clock_worker.js");
+                        }
+                    })
 
-            cotonic.broker.subscribe("stop", function() {
-                if(hands_worker) {
-                    cotonic.exit(hands_worker);
-                    hands_worker = null;
-                }
-            })
+                cotonic.broker.subscribe("stop", function() {
+                    if(hands_worker) {
+                        cotonic.exit(hands_worker);
+                        hands_worker = null;
+                    }
+                })
+            }
 
+            if(window.cotonic) {
+                main();
+            } else {
+                window.addEventListener("cotonic-ready", main)
+            }
         </script>
     </body>
 </html>

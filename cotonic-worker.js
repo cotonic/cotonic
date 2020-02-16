@@ -1,36 +1,22 @@
-"use strict";
 
 (function(global) {
-    function hasAllFeatures() {
-        return global.Promise && global.fetch && String.prototype.codePointAt;
-    }
+    if(!(global.Promise && global.fetch && String.prototype.startsWith && String.prototype.codePointAt)) {
+        //const src = https://polyfill.io/v3/polyfill.min.js?features=String.prototype.startsWith%2CString.prototype.codePointAt%2Cfetch%2CPromise
+        const src = "https://polyfill.io/v3/polyfill.js?features=String.prototype.startsWith%2CString.prototype.codePointAt%2Cfetch%2CPromise"
 
-    function loadScript(src, done) {
-        if(document) {
-            var js = document.createElement('script');
+        if(typeof global.document !== "undefined") {
+            const js = document.createElement('script');
+
+            js.type = "text/javascript";
+            js.async = false;
             js.src = src;
-            js.onload = done.bind(null, {needed: true, loaded: true});
-            js.onerror = function() {
-                done({needed: true,
-                    loaded: false,
-                    error: new Error('Failed to load script ' + src)
-                });
-            };
             document.head.appendChild(js);
         } else {
-            importScript(src);
-            done({needed: true, loaded: true});
+            importScripts(src);
         }
-    }
+    } 
+}(this));
 
-    if(hasAllFeatures()) {
-        main.bind(global)({needed: false});
-    } else {
-        loadScript("https://polyfill.io/v3/polyfill.min.js?features=Promise%2Cfetch%2CString.prototype.codePointAt",
-            main.bind(global));
-    }
-
-    function main(polyfillStatus) {
 /**
  * Copyright 2018 The Cotonic Authors. All Rights Reserved.
  *
@@ -644,8 +630,3 @@ var cotonic = cotonic || {};
     self.addEventListener("message", init);
 })(self);
 
-        // SPLIT HERE
-        global.cotonic = cotonic;
-    }
-
-}(this))
