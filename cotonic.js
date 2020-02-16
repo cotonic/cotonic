@@ -1,3 +1,36 @@
+"use strict";
+
+(function(global) {
+    function hasAllFeatures() {
+        return global.Promise && global.fetch && String.prototype.codePointAt;
+    }
+
+    function loadScript(src, done) {
+        if(document) {
+            var js = document.createElement('script');
+            js.src = src;
+            js.onload = done.bind(null, {needed: true, loaded: true});
+            js.onerror = function() {
+                done({needed: true,
+                    loaded: false,
+                    error: new Error('Failed to load script ' + src)
+                });
+            };
+            document.head.appendChild(js);
+        } else {
+            importScript(src);
+            done({needed: true, loaded: true});
+        }
+    }
+
+    if(hasAllFeatures()) {
+        main.bind(global)({needed: false});
+    } else {
+        loadScript("https://polyfill.io/v3/polyfill.min.js?features=Promise%2Cfetch%2CString.prototype.codePointAt",
+            main.bind(global));
+    }
+
+    function main(polyfillStatus) {
 /**
  * @license
  * Copyright 2015 The Incremental DOM Authors. All Rights Reserved.
@@ -5644,9 +5677,11 @@ var cotonic = cotonic || {};
         let ps = [];
 
         if (typeof(URLSearchParams) === 'function') {
-            const searchParams = new URLSearchParams(qs);
-            for (let p of searchParams) {
-                ps.push(p);
+            const searchParams = new URLSearchParams(qs).entries();
+            let p = searchParams.next();
+            while(!p.done) {
+                ps.push(p.value);
+                searchParams.next()
             }
         } else {
             // For IE11...
@@ -6149,6 +6184,9 @@ var cotonic = cotonic || {};
     const SESSION_KEY = 75;
     const SECURE_PUBLISH = 69;
 
+    // If there is no text encoder or decoder we can't work
+    if(!(window||self).TextEncoder) return;
+
     let textEncoder = new TextEncoder("utf-8");
     let textDecoder = new TextDecoder("utf-8");
 
@@ -6462,3 +6500,8 @@ var cotonic = cotonic || {};
 
     window.dispatchEvent(event);
 }(cotonic));
+        // SPLIT HERE
+        global.cotonic = cotonic;
+    }
+
+}(this))

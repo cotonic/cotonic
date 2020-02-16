@@ -119,11 +119,14 @@ dist: dist/cotonic-bundle.js \
 
 # Release
 
-cotonic.js: dist/cotonic-bundle.js
-	cp dist/cotonic-bundle.js cotonic.js
+dist/poly-aa: src/polyfill_check.js
+	split -p "// SPLIT HERE" src/polyfill_check.js "dist/poly-"
 
-cotonic-worker.js: dist/cotonic-worker-bundle.js
-	cp dist/cotonic-worker-bundle.js cotonic-worker.js
+cotonic.js: dist/cotonic-bundle.js dist/poly-aa
+	cat dist/poly-aa dist/cotonic-bundle.js dist/poly-ab > cotonic.js
+
+cotonic-worker.js: dist/cotonic-worker-bundle.js dist/poly-aa 
+	cat dist/poly-aa dist/cotonic-worker-bundle.js dist/poly-ab > cotonic-worker.js
 
 cotonic-service-worker.js: dist/cotonic-service-worker-bundle.js
 	cp dist/cotonic-service-worker-bundle.js cotonic-service-worker.js

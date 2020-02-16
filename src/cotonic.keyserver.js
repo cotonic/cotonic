@@ -36,6 +36,9 @@ var cotonic = cotonic || {};
     const SESSION_KEY = 75;
     const SECURE_PUBLISH = 69;
 
+    // If there is no text encoder or decoder we can't work
+    if(!(window||self).TextEncoder) return;
+
     let textEncoder = new TextEncoder("utf-8");
     let textDecoder = new TextDecoder("utf-8");
 
