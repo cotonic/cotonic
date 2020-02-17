@@ -119,10 +119,10 @@ dist: dist/cotonic-bundle.js \
 
 # Release
 
-cotonic.js: dist/cotonic-bundle.js src/polyfill_check.js
-	cat src/polyfill_check.js dist/cotonic-bundle.js > cotonic.js
+cotonic.js: dist/cotonic-bundle.js src/polyfill_page.js
+	cat src/polyfill_page.js dist/cotonic-bundle.js > cotonic.js
 
-cotonic-worker.js: dist/cotonic-worker-bundle.js src/polyfill_check.js
+cotonic-worker.js: dist/cotonic-worker-bundle.js src/polyfill_worker.js
 	cat src/polyfill_worker.js dist/cotonic-worker-bundle.js > cotonic-worker.js
 
 cotonic-service-worker.js: dist/cotonic-service-worker-bundle.js
