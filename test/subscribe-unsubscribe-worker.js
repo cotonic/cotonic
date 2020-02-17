@@ -4,7 +4,7 @@
 
 "use strict";
 
-importScripts("http://localhost:6227/src/cotonic.mqtt.js");
+importScripts("/src/cotonic.mqtt.js");
 
 console.log("subscribe-unsubscribe-worker start")
 

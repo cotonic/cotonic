@@ -15,8 +15,8 @@
  */
 
 "use strict";
-var cotonic = cotonic || {};
 
+var cotonic = cotonic || {};
 
 (function(cotonic) {
     let clients;

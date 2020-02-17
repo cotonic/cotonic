@@ -22,7 +22,6 @@ var cotonic = cotonic || {};
 cotonic.VERSION = "1.0.2";
 
 (function(cotonic) {
-
     /* Get the data-base-worker-src from the script tag that loads
      * cotonic on this page.
      */
@@ -37,7 +36,6 @@ cotonic.VERSION = "1.0.2";
             return "/lib/cotonic/cotonic-worker-bundle.js?v=1";
         }
     })();
-
 
     let next_worker_id = 1;
     let workers = {};
