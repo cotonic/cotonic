@@ -4,14 +4,10 @@
 
 "use strict";
 
-importScripts("/src/cotonic.mqtt.js");
-
-console.log("subscribe-unsubscribe-worker start")
-
+importScripts("/src/polyfill_worker.js",
+              "/src/cotonic.mqtt.js");
 
 self.on_connect = function() {
-    console.log("subscribe-unsubscribe-worker connect")
-     
     function ab() {
     }
 

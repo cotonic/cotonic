@@ -56,7 +56,6 @@ var cotonic = cotonic || {};
 cotonic.VERSION = "1.0.2";
 
 (function(cotonic) {
-
     /* Get the data-base-worker-src from the script tag that loads
      * cotonic on this page.
      */
@@ -71,7 +70,6 @@ cotonic.VERSION = "1.0.2";
             return "/lib/cotonic/cotonic-worker-bundle.js?v=1";
         }
     })();
-
 
     let next_worker_id = 1;
     let workers = {};
@@ -127,11 +125,9 @@ cotonic.VERSION = "1.0.2";
         if(!base) {
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
-        const blob = new Blob(["importScripts(\"", ensure_hostname(base), "\");"]);
-        const blobURL = window.URL.createObjectURL(blob);
 
         const worker_id = next_worker_id++;
-        let worker = new Worker(blobURL);
+        const worker = new Worker(base);
 
         worker.postMessage(["init", {
             url: ensure_hostname(url),
@@ -1957,8 +1953,8 @@ var cotonic = cotonic || {};
  */
 
 "use strict";
-var cotonic = cotonic || {};
 
+var cotonic = cotonic || {};
 
 (function(cotonic) {
     let clients;
