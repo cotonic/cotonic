@@ -91,11 +91,9 @@ cotonic.VERSION = "1.0.2";
         if(!base) {
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
-        const blob = new Blob(["importScripts(\"", ensure_hostname(base), "\");"]);
-        const blobURL = window.URL.createObjectURL(blob);
 
         const worker_id = next_worker_id++;
-        let worker = new Worker(blobURL);
+        const worker = new Worker(base);
 
         worker.postMessage(["init", {
             url: ensure_hostname(url),
