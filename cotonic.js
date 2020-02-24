@@ -6824,6 +6824,10 @@ var cotonic = cotonic || {};
                 msg = JSON.parse(msg);
             }
             cotonic.ui.on(topic, msg, event, { cancel: cancel });
+
+            if(event.type === "submit" && event.target.getAttribute("data-onsubmit-reset") !== null) {
+                event.target.reset();
+            }
         }
     }
 
