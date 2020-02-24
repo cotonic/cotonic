@@ -110,7 +110,7 @@ var cotonic = cotonic || {};
         /* Lookup the element we want to update */
         const elt = document.getElementById(id);
 
-        if(elt === undefined)  {
+        if(elt === null)  {
             /* It is not here, maybe it is the next time around */
             return;
         }
