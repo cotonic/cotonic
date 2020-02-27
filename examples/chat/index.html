@@ -109,15 +109,16 @@
                 {msg: msg, user_id: self_id, nick: nick});
         })
 
-        cotonic.broker.subscribe(cotonic.mqtt.fill("$bridge/+broker/status", {broker: broker}), function(m) {
-            if(m.payload.hasOwnProperty("is_connected")) {
-                systemMessage(m.payload.is_connected?"You are now connected. Subscribed to topic \"cotonic/chat\".":"Currently disconnected.");
-            }
-        })
 
         systemMessage("Connecting to " + broker);
 
         cotonic.mqtt_bridge.newBridge(broker, {protocol: "wss", controller_path: "/mqtt"});
+
+        cotonic.broker.subscribe(cotonic.mqtt.fill("$bridge/+broker/status", {broker: broker}), function(m) {
+            if(m.payload.hasOwnProperty("is_connected")) {
+                systemMessage(m.payload.is_connected?"You are now connected, and subscribed to topic \"cotonic/chat\".":"Currently disconnected.");
+            }
+        })
 
         cotonic.broker.subscribe(cotonic.mqtt.fill("bridge/+broker/cotonic/chat", {broker: broker}),
             function(msg, inf) {
@@ -144,7 +145,7 @@
                 updateView();
             });
 
-
+        // Create the message view
         function view() {
             const tokens = [];
 
