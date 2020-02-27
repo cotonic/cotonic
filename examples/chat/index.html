@@ -3,13 +3,13 @@
     <head>
         <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="https://unpkg.com/picnic">
 
+        <link rel="stylesheet" href="https://unpkg.com/turretcss@5.2.1/dist/turretcss.min.css">
 <style>
 
 :root {
-  --bubble-primary-color: navy;
-  --bubble-secondary-color: lightgray;
+  --bubble-primary-color: rgb(233, 235, 238); // gray;
+  --bubble-secondary-color: #79de79;
 
   --bubble-vertical-padding: 10px;
   --bubble-radius: 15px;
@@ -55,8 +55,8 @@
 
 .bubble.system span {
     padding: var(--bubble-system-vertical-padding) var(--bubble-system-radius);
-    background: lightblue;
-    color: gray;
+    background: #b6cdfb;
+    color: #5b606b; 
     border-radius: var(--bubble-system-radius);
 }
 
@@ -66,8 +66,6 @@
 
 .bubble.other span {
     background: var(--bubble-secondary-color);
-    color: black;
-
     border-top-right-radius: var(--bubble-radius);
     border-bottom-right-radius: var(--bubble-radius);
 }
@@ -76,8 +74,6 @@
 } 
 .bubble.self span {
     background: var(--bubble-primary-color);
-    color: white;
-
     border-top-left-radius: var(--bubble-radius);
     border-bottom-left-radius: var(--bubble-radius);
 }
@@ -93,8 +89,9 @@
 
 .bubble-name {
     display: inline-block;
-    color: var(--bubble-secondary-color);
-    background: black;
+    //color: var(--bubble-secondary-color);
+    background: var(--bubble-primary-color);
+    border-width: 2px;
     border-top-right-radius: 10px;
     padding-top: 8px;
     padding-bottom: 8px;
@@ -121,62 +118,99 @@
     transform-origin: 100% 100% 0;
 }
 
+div.chat-box {
+    width: 400px; 
+    float: right;
+}
+
+nav * {
+    vertical-align: middle;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+nav a:hover {
+    text-decoration: none;
+}
+
+nav .brand {
+    white-space: nowrap;
+}
+
+nav .logo {
+    height: 2em;
+    margin-right: .3em;
+}
 
 </style>
     </head>
 
     <body id="main">
-        <nav style="position: absolute;">
-            <a href="/" class="brand">
-                <img class="logo" src="/doc/favicon/apple-touch-icon.png" />
-                <span>Cotonic</span>
-            </a>
-            <div class="menu">
-            <h1>Chat Example</h1>
-            </div>
+
+        <nav class="nav-inline background-light-100 box-shadow-xxl">
+            <ul>
+                <li><a href="/" class="brand">
+                        <img class="logo" src="/doc/favicon/apple-touch-icon.png" />
+                        <span>Cotonic</span>
+                    </a>
+                </li>
+                <li>
+                    <span>Chat Example</span>
+                </li>
+            </ul>
         </nav>
-        <main style="position:relative; top: 10%; padding: 30px;">
 
-        <a href="." target="_blank">Open another instance</a>
+        <main style="padding: 30px;">
 
-        <div class="flex four">
-            <div></div>
-
-            <div class="half">
-                <article class="card">
-                    <form data-onsubmit-topic="chat/message"
-                          data-onsubmit-reset
-                          data-onsubmit-cancel="preventDefault">
-
-                        <header>
-                            <div class="flex two">
-                                <label for"nick">Nickname:</label>
-                                <input name="nick" value="Joe" />
-                            </div>
-                        </header>
-                        <div id="bubble-container" style="height: 300px; max-height: 400px; overflow-x: auto;">
-                        </div>
-                        <footer>
-                            <input name="message" placeholder="Type a message.." />
-                            <input type="submit" value="Send">
-                        </footer>
-                    </form>
-                </article>
-            </div>
-            <div></div>
+        <div class="container">
+            <a href="." target="_blank">Open another instance</a>
         </div>
 
-        </main>
+        <div class="container">
+
+        <div class="chat-box box-shadow-xxl">
+            <header class="background-primary-200 padding-xs">
+                <form data-onsubmit-topic="chat/nick" data-onsubmit-cancel="preventDefault">
+                    <div class="input-group">
+                        <input id="nick" name="nick" value="" />
+                        <button class="button button-primary" type="submit">Nickname</button>
+                    </div>
+                </form>
+            </header>
+
+            <div id="bubble-container" class="padding-xs" style="height: 400px; overflow-x: auto;">
+            </div>
+
+            <footer class="background-primary-200 padding-xs">
+                <form data-onsubmit-topic="chat/message"
+                      data-onsubmit-reset
+                      data-onsubmit-cancel="preventDefault">
+
+                    <div class="input-group">
+                        <input name="message" placeholder="Type a message.." />
+                        <button type="submit" class="button button-primary">Send</button>
+                    </div>
+                </form>
+            </footer>
+        </div>
+        </div>
+
         
         <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
     <script>
-        const decoder = new TextDecoder("utf-8");
         const messages = [];
         const self_id = Math.floor(Math.random() * 1000000);
 
         const bubble_container = document.getElementById("bubble-container");
+        // const broker = "test.mosquitto.org:8081"
+        const broker = "mqtt.eclipse.org"
 
-        const broker = "test.mosquitto.org:8081"
+        const presetNicks = ["Joe", "Mike", "Robert", "Micky", "Maus", "Donald", "Bruce", "Wayne", "Clark",
+            "Kent", "Sarah", "Connor", "Mary", "Shelley", "Rosemary", "Wilma", "Louis", "Selina",
+            "Barbara", "Gordon", "Herbert", "The Count"];
+
+        let nick = presetNicks[Math.floor(Math.random() * presetNicks.length)];
+        document.getElementById("nick").setAttribute("value", nick);
 
         cotonic.broker.publish("model/ui/insert/bubble-container", {
             priority: 10,
@@ -198,9 +232,12 @@
             updateView();
         }
 
-        cotonic.broker.subscribe("chat/message", function(m, a) {
+        cotonic.broker.subscribe("chat/nick", function(m) {
+            nick = m.payload.value.nick;
+        });
+
+        cotonic.broker.subscribe("chat/message", function(m) {
             const msg = m.payload.value.message;
-            const nick = m.payload.value.nick;
 
             cotonic.broker.publish(cotonic.mqtt.fill("bridge/+broker/cotonic/chat/channel-1", {broker: broker}),
                 {msg: msg, user_id: self_id, nick: nick});
@@ -208,13 +245,13 @@
 
         cotonic.broker.subscribe(cotonic.mqtt.fill("$bridge/+broker/status", {broker: broker}), function(m) {
             if(m.payload.hasOwnProperty("is_connected")) {
-                systemMessage(m.payload.is_connected?"Connected":"Disconnected");
+                systemMessage(m.payload.is_connected?"You are now connected.":"Currently disconnected.");
             }
         })
 
-        systemMessage("Connecting...");
+        systemMessage("Connecting to " + broker);
 
-        cotonic.mqtt_bridge.newBridge(broker, {protocol: "wss"});
+        cotonic.mqtt_bridge.newBridge(broker, {protocol: "wss", controller_path: "/mqtt"});
 
         cotonic.broker.subscribe(cotonic.mqtt.fill("bridge/+broker/cotonic/chat/+channel",
             {broker: broker, channel: "+channel"}),
