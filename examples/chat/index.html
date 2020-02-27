@@ -162,8 +162,10 @@ nav .logo {
         <main style="padding: 30px;">
 
         <div class="container">
+            <p>
+            Chat with any tab connected to the same broker and mqtt topic.
+            </p>
             <a href="." target="_blank">Open another instance</a>
-
             <a href="https://github.com/cotonic/cotonic/tree/master/examples/chat" target="chat_example_code">Code</a>
         </div>
 
@@ -240,13 +242,13 @@ nav .logo {
         cotonic.broker.subscribe("chat/message", function(m) {
             const msg = m.payload.value.message;
 
-            cotonic.broker.publish(cotonic.mqtt.fill("bridge/+broker/cotonic/chat/channel-1", {broker: broker}),
+            cotonic.broker.publish(cotonic.mqtt.fill("bridge/+broker/cotonic/chat", {broker: broker}),
                 {msg: msg, user_id: self_id, nick: nick});
         })
 
         cotonic.broker.subscribe(cotonic.mqtt.fill("$bridge/+broker/status", {broker: broker}), function(m) {
             if(m.payload.hasOwnProperty("is_connected")) {
-                systemMessage(m.payload.is_connected?"You are now connected.":"Currently disconnected.");
+                systemMessage(m.payload.is_connected?"You are now connected. Subscribed to topic \"cotonic/chat\".":"Currently disconnected.");
             }
         })
 
@@ -254,8 +256,7 @@ nav .logo {
 
         cotonic.mqtt_bridge.newBridge(broker, {protocol: "wss", controller_path: "/mqtt"});
 
-        cotonic.broker.subscribe(cotonic.mqtt.fill("bridge/+broker/cotonic/chat/+channel",
-            {broker: broker, channel: "+channel"}),
+        cotonic.broker.subscribe(cotonic.mqtt.fill("bridge/+broker/cotonic/chat", {broker: broker}),
             function(msg, inf) {
                 /* 
                  * Filter out messages from the local broker. We want messages from 
