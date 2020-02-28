@@ -109,8 +109,9 @@
 }
 
 div.chat-box {
-    width: 400px; 
-    float: right;
+    margin: auto;
+    width: 50%;
+    min-width: 350px;
 }
 
 div#bubble-container {
