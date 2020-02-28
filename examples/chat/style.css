@@ -113,7 +113,7 @@ div.chat-box {
     float: right;
 }
 
-div.bubble-container {
+div#bubble-container {
     height: 350px;
     overflow-x: auto;
 }
