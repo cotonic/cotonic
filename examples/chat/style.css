@@ -113,6 +113,11 @@ div.chat-box {
     float: right;
 }
 
+div.bubble-container {
+    height: 350px;
+    overflow-x: auto;
+}
+
 nav * {
     vertical-align: middle;
     text-decoration: none;

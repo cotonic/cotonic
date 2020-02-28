@@ -29,14 +29,28 @@
             <p>
             Chat with any tab connected to the same broker and mqtt topic.
             </p>
-            <a href="." target="_blank">Open another instance</a>
-            <a href="https://github.com/cotonic/cotonic/tree/master/examples/chat" target="chat_example_code">Code</a>
+            
+            <p>
+            This example connects the page to <a href="https://mqtt.eclipse.org"><code>mqtt.eclipse.org</code></a>,
+            a public, test MQTT broker service. And subscribes to topic <code>cotonic/chat</code>. Chat messages
+            which are published on this topic will be displayed in the chat box.
+            </p>
+
+            <p>
+            You can open <a href=".">another tab</a> and chat with yourself if nobody is online.
+            </p>
+
+            <p>
+            And examine the 
+            <a href="https://github.com/cotonic/cotonic/tree/master/examples/chat" target="chat_example_code">code</a>
+            </a>
         </div>
 
         <div class="container">
 
         <div class="chat-box box-shadow-xxl">
             <header class="background-primary-200 padding-xs">
+                <!-- publish the data of the form on local topic "chat/nick" -->
                 <form data-onsubmit-topic="chat/nick" data-onsubmit-cancel="preventDefault">
                     <div class="input-group">
                         <input id="nick" name="nick" value="" />
@@ -45,10 +59,11 @@
                 </form>
             </header>
 
-            <div id="bubble-container" class="padding-xs" style="height: 400px; overflow-x: auto;">
+            <div id="bubble-container" class="padding-xs"">
             </div>
 
             <footer class="background-primary-200 padding-xs">
+                <!-- publish the data of the form on local topic "chat/message" -->
                 <form data-onsubmit-topic="chat/message"
                       data-onsubmit-reset
                       data-onsubmit-cancel="preventDefault">
@@ -62,13 +77,11 @@
         </div>
         </div>
 
-        
         <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
     <script>
         const messages = [];
         const self_id = Math.floor(Math.random() * 1000000);
 
-        const bubble_container = document.getElementById("bubble-container");
         const broker = "mqtt.eclipse.org"
 
         const presetNicks = ["Joe", "Mike", "Robert", "Micky", "Maus", "Donald", "Bruce", "Wayne", "Clark",
@@ -78,30 +91,59 @@
         let nick = presetNicks[Math.floor(Math.random() * presetNicks.length)];
         document.getElementById("nick").setAttribute("value", nick);
 
+        /**
+         * Register the bubble-container with the user interface composer.
+         * See: https://cotonic.org/#model.ui
+         */
         cotonic.broker.publish("model/ui/insert/bubble-container", {
             priority: 10,
             initialData: view(),
             inner: true
         });
 
+        /**
+         * Scroll the bubble container to the bottom
+         */
+        const bubble_container = document.getElementById("bubble-container");
         function scrollToBottom() {
             bubble_container.scrollTop = bubble_container.scrollHeight
         }
         
+        /**
+         * Update the view. Publishes the updated bubble view, and scrolls
+         * it to the bottom.
+         */
         function updateView() {
             cotonic.broker.publish("model/ui/update/bubble-container", view());
             setTimeout(scrollToBottom, 20);  // Wait a little bit before scrolling
         }
 
+        /**
+         * Publish a system messages. The will be displayed centered in the 
+         * chat.
+         */
         function systemMessage(msg) {
             messages.push({user_id: "$sys", msg: msg});
             updateView();
         }
 
+        /**
+         * Subscribe to the local topic "chat/nick", When the user 
+         * submits the form to change the nickname, it will save
+         * the nickname in the local state of the chat.
+         * The new nickname will be used for the next chat message.
+         */
         cotonic.broker.subscribe("chat/nick", function(m) {
             nick = m.payload.value.nick;
         });
 
+        /**
+         * Subscribe to the local topic "chat/message". When the user
+         * presses sent, the data in the form will be published on
+         * this topic, it will then be re-published on the bridge.
+         * When the bridge is connected, this message will be published
+         * on the remote broker.
+         */
         cotonic.broker.subscribe("chat/message", function(m) {
             const msg = m.payload.value.message;
 
@@ -109,17 +151,27 @@
                 {msg: msg, user_id: self_id, nick: nick});
         })
 
-
+        /**
+         * Send a system message we are going to connect to the broker
+         */
         systemMessage("Connecting to " + broker);
-
         cotonic.mqtt_bridge.newBridge(broker, {protocol: "wss", controller_path: "/mqtt"});
 
+        /**
+         * Subscribe to the broker status. Its status will be published on a topic.
+         * Sends system messages to indicate to the user what state the bridge has.
+         */ 
         cotonic.broker.subscribe(cotonic.mqtt.fill("$bridge/+broker/status", {broker: broker}), function(m) {
             if(m.payload.hasOwnProperty("is_connected")) {
                 systemMessage(m.payload.is_connected?"You are now connected, and subscribed to topic \"cotonic/chat\".":"Currently disconnected.");
             }
         })
 
+        /**
+         * Subscribe to the "cotonic/chat" topic via the broker. All messages, including your own
+         * will be received here. The message will be added to the local chat state, and the
+         * view will be updated.
+         */
         cotonic.broker.subscribe(cotonic.mqtt.fill("bridge/+broker/cotonic/chat", {broker: broker}),
             function(msg, inf) {
                 /* 
@@ -128,6 +180,8 @@
                  * it could be null.
                  */
                 if(!msg.hasOwnProperty("packet_id")) {
+                    if(!msg.payload.msg) return;
+
                     messages.push(msg.payload);
                     updateView();
                     return;
@@ -135,9 +189,12 @@
 
                 let p = msg.payload;
 
+                // Check if this is a chat message.
                 if(!(p.nick && p.msg))
                     return;
 
+                // When it is a message from ourself, don't display it
+                // the message was already inserted.
                 if(p.user_id === self_id)
                     return;
 
@@ -145,7 +202,10 @@
                 updateView();
             });
 
-        // Create the message view
+        /**
+         * Create the message view. Produces an array of tokens which can be used
+         * by the user interface composer.
+         */
         function view() {
             const tokens = [];
 
@@ -209,7 +269,6 @@
 
             return tokens;
         }
-
     </script>
     </body>
 </html>
