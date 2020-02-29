@@ -18,6 +18,9 @@
 var cotonic = cotonic || {};
 
 (function (cotonic) {
+    // This does not work on IE11
+    if(window.msCrypto) return;
+
     // Sizes of keys, iv's and such.
     const KEY_BYTES = 32;        // 256 bits
     const IV_BYTES = 16;         // 128 bits
@@ -35,9 +38,6 @@ var cotonic = cotonic || {};
     const TICKETS = 84;
     const SESSION_KEY = 75;
     const SECURE_PUBLISH = 69;
-
-    // If there is no text encoder or decoder we can't work
-    if(!(window||self).TextEncoder) return;
 
     let textEncoder = new TextEncoder("utf-8");
     let textDecoder = new TextDecoder("utf-8");
