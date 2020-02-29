@@ -13,7 +13,7 @@ function string2bin( s ) {
 
 
 QUnit.test("Partial packet", function(assert) {
-    var m, r, _;
+    var a, m, r, _;
 
     try { _ = mqtt_packet.decode(new Uint8Array([ 240, 2, 0 ])); }
     catch (E) { m = E; }
@@ -23,7 +23,8 @@ QUnit.test("Partial packet", function(assert) {
     catch (E) { m = E; }
     assert.equal(m, "malformed", "Malformed packet");
 
-    [ m, r ] = mqtt_packet.decode(new Uint8Array([ 240, 2, 0, 0, 1, 2, 3 ]));
+    a = mqtt_packet.decode(new Uint8Array([ 240, 2, 0, 0, 1, 2, 3 ]));
+    m = a[0], r = a[1];
     assert.deepEqual(r, new Uint8Array([ 1, 2, 3 ]), "Extra data");
 });
 
