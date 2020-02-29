@@ -4,7 +4,9 @@
 
 "use strict";
 
-importScripts("../src/cotonic.mqtt.js", "../src/cotonic.worker.js");
+importScripts("/src/polyfill_worker.js",
+              "/src/cotonic.mqtt.js",
+              "/src/cotonic.worker.js");
 
 self.on_connect = function() {
     self.subscribe("test/a/b", function(msg, params) {

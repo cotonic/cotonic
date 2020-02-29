@@ -4,7 +4,9 @@
 
 "use strict";
 
-importScripts("../src/cotonic.worker.js");
+console.log("test worker here");
+
+importScripts("/src/cotonic.worker.js");
 
 self.on_connect = function() {
     console.log("connected");

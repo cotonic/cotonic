@@ -1,11 +1,7 @@
 //
 // HTML Worker Tests.
 //
-
-"use strict";
-
-QUnit.test("Receive connect from worker", function(assert) {
-    assert.timeout(500);
+"use strict"; QUnit.test("Receive connect from worker", function(assert) { assert.timeout(1000);
     var done = assert.async();
 
     var worker = new Worker("connect-worker.js");
@@ -20,7 +16,7 @@ QUnit.test("Receive connect from worker", function(assert) {
 });
 
 QUnit.test("Connect and subscribe worker", function(assert) {
-    assert.timeout(500);
+    assert.timeout(1000);
     var done = assert.async();
 
     var connected = false;
@@ -51,27 +47,28 @@ QUnit.test("Connect and subscribe worker", function(assert) {
 
 QUnit.test("Subscribe and unsubscribe worker",
     function(assert) {
+        assert.timeout(10000);
         var done = assert.async();
 
         function handler(msg, bindings) {
             let subs; 
 
-            if(bindings.what == "sub") {
+            if(bindings.what === "sub") {
                 subs = cotonic.broker.find_subscriptions_below("test/a/b")
                 assert.equal(subs.length, 1, "The worker should be subscribed.");
             } 
 
-            if(bindings.what == "unsub") {
+            if(bindings.what === "unsub") {
                 subs = cotonic.broker.find_subscriptions_below("test/a/b")
                 assert.equal(subs.length, 0, "The worker should be unsubscribed.");
             }
 
-            if(bindings.what == "done") {
+            if(bindings.what === "done") {
                 done();
             }
         }
 
-        cotonic.broker.subscribe("subscribe-unsubscribe-worker/+what", handler)
+        cotonic.broker.subscribe("subscribe-unsubscribe-worker/+what", handler);
         cotonic.spawn("/test/subscribe-unsubscribe-worker.js");
     }
 )

@@ -25,7 +25,6 @@ zotonic-lib: dist dist/zotonic-wired-bundle.js
 dist/zotonic-wired-bundle.js: lib
 	cat lib/incremental-dom-min.js \
 		src/empty.js \
-		polyfill/*.js \
 		src/cotonic.js \
 		src/cotonic.ui.js \
 		src/cotonic.tokenizer.js \
@@ -89,7 +88,6 @@ test/lib/qunit-composite.js:
 dist/cotonic-bundle.js: lib
 	cat lib/incremental-dom-min.js \
 		src/empty.js \
-		polyfill/*.js \
 		src/cotonic.js \
 		src/cotonic.idom.js \
 		src/cotonic.tokenizer.js \
@@ -107,8 +105,7 @@ dist/cotonic-bundle.js: lib
 		> dist/cotonic-bundle.js
 
 dist/cotonic-worker-bundle.js: lib
-	cat polyfill/*.js \
-		src/cotonic.mqtt.js \
+	cat src/cotonic.mqtt.js \
 		src/cotonic.worker.js \
 		> dist/cotonic-worker-bundle.js
 
@@ -122,11 +119,11 @@ dist: dist/cotonic-bundle.js \
 
 # Release
 
-cotonic.js: dist/cotonic-bundle.js
-	cp dist/cotonic-bundle.js cotonic.js
+cotonic.js: dist/cotonic-bundle.js src/polyfill_page.js
+	cat src/polyfill_page.js dist/cotonic-bundle.js > cotonic.js
 
-cotonic-worker.js: dist/cotonic-worker-bundle.js
-	cp dist/cotonic-worker-bundle.js cotonic-worker.js
+cotonic-worker.js: dist/cotonic-worker-bundle.js src/polyfill_worker.js
+	cat src/polyfill_worker.js dist/cotonic-worker-bundle.js > cotonic-worker.js
 
 cotonic-service-worker.js: dist/cotonic-service-worker-bundle.js
 	cp dist/cotonic-service-worker-bundle.js cotonic-service-worker.js

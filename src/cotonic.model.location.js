@@ -93,9 +93,11 @@ var cotonic = cotonic || {};
         let ps = [];
 
         if (typeof(URLSearchParams) === 'function') {
-            const searchParams = new URLSearchParams(qs);
-            for (let p of searchParams) {
-                ps.push(p);
+            const searchParams = new URLSearchParams(qs).entries();
+            let p = searchParams.next();
+            while(!p.done) {
+                ps.push(p.value);
+                searchParams.next()
             }
         } else {
             // For IE11...
