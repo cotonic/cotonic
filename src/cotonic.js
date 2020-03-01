@@ -19,7 +19,7 @@
 var cotonic = cotonic || {};
 
 /* Current cotonic version */
-cotonic.VERSION = "1.0.2";
+cotonic.VERSION = "1.0.3";
 
 (function(cotonic) {
     /* Get the data-base-worker-src from the script tag that loads

@@ -129,7 +129,7 @@ pre {
         <section id="sidebar">
             <div>
                 <a class="toc_title" href="#">
-                    Cotonic <span class="version">(1.0.2)</span>
+                    Cotonic <span class="version">(1.0.3)</span>
                 </a>
 
                 <ul class="toc_section">
@@ -1693,6 +1693,30 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             </p>
 
             <h3 id="changelog">Change Log</h3>
+
+            <p id="1.0.3">
+            <strong class="header">1.0.3</strong> &mdash; <small><i>Mar 1, 2020</i></small> &mdash;
+            <a href="https://github.com/cotonic/cotonic/compare/1.0.2...1.0.3">Diff</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.3/index.html"l>Docs</a> &mdash;
+            <a href="https://github.com/cotonic/cotonic/archive/1.0.3.tar.gz" download>Download</a>
+            <br />
+            <ul>
+                <li>
+                    Added more documentation and an example.
+                </li>
+                <li>
+                    Load the base worker library via a standard importScripts, instead of url blob.
+                </li>
+                <li>
+                    The bridge now supports connecting to any MQTT server.
+                </li>
+                <li>
+                    Removed the embedded polyfills, and use an external polyfill provider when needed.
+                    Mostly for IE11.
+                </li>
+            </ul>
+            </p>
+
 
             <p id="1.0.2">
             <strong class="header">1.0.2</strong> &mdash; <small><i>Feb 10, 2020</i></small> &mdash;
