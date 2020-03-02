@@ -2,6 +2,8 @@
 
 *An operating system for your web page.*
 
+Read the [documentation](https://cotonic.org)
+
 ## Why do you need this?
 
 Today's websites are build by multi-disciplinary teams. A lot of sites
