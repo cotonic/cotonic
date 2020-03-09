@@ -1,43 +1,40 @@
 <html>
     <head>
-        <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
+        <style type="text/css">
+        body{
+          text-align:center;
+          background:#dfdfdf;
+        }
 
-<style>
-body{
-  text-align:center;
-  background:#dfdfdf;
-}
+        #subtitles {
+          font-size: 72px;
+          font-family:'Verdana';
+          padding: 150px 30px 30px 30px;
 
-#subtitles {
-  font-size: 72px;
-  font-family:'Verdana';
-  padding: 150px 30px 30px 30px;
-
-  color: transparent;
-  text-shadow: 0 0 5px rgba(0,0,0,0.8);
-}
-
-</style>
+          color: transparent;
+          text-shadow: 0 0 5px rgba(0,0,0,0.8);
+        }
+        </style>
     </head>
     <body id="main">
         <div id="subtitles">
         </div>
 
-    <script>
-        const decoder = new TextDecoder("utf-8");
+        <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
+        <script>
+            const decoder = new TextDecoder("utf-8");
 
-        cotonic.mqtt_bridge.newBridge("test.mosquitto.org:8081",
-            {protocol: "wss"});
+            cotonic.mqtt_bridge.newBridge("test.mosquitto.org:8081", { name: 'bbc-bridge', protocol: "wss"});
 
-        const subtitles = document.getElementById("subtitles");
+            const subtitles = document.getElementById("subtitles");
 
-        cotonic.broker.subscribe("bridge/test.mosquitto.org:8081/bbc/subtitles/bbc_news24/raw",
-            function(m, t) {
-                const s = decoder.decode(m.payload);
-                subtitles.innerHTML = s;
-            });
+            cotonic.broker.subscribe("bridge/bbc-bridge/bbc/subtitles/bbc_news24/raw",
+                function(m, t) {
+                    const s = decoder.decode(m.payload);
+                    subtitles.innerHTML = s;
+                });
 
 
-    </script>
+        </script>
     </body>
 </html>

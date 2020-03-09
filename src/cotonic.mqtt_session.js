@@ -39,7 +39,7 @@ var cotonic = cotonic || {};
     // Lookup list of all remotes with their connections
     // One of them is 'origin' (which is a special case)
     var sessions = {};
-    var bridge_topics = {};
+    var bridgeTopics = {};
 
     const MQTT_KEEP_ALIVE = 300;                  // Default PINGREQ interval in seconds
     const MQTT_SESSION_EXPIRY = 1800;             // Expire the session if we couldn't reconnect in 30 minutes
@@ -56,7 +56,7 @@ var cotonic = cotonic || {};
         if (sessions[remote]) {
             return sessions[remote];
         } else {
-            console.log("new-session");
+            // console.log("new-session");
             var ch = new mqttSession(bridgeTopics);
             sessions[remote] = ch;
             ch.connect(remote, options);
@@ -112,10 +112,11 @@ var cotonic = cotonic || {};
      * Keeps track of logged on user and authentication.
      * Tries to reconnect if needed.
      */
-    function mqttSession( mqttBridgeTopics ) {
+    function mqttSession( mqttBridgeTopics, options ) {
         this.bridgeTopics = mqttBridgeTopics;   // mqtt_bridge responsible for this session
         this.connections = {};                  // Websocket and other connections
         this.clientId = '';                     // Assigned by server
+        this.cleanStart = true;
         this.sendQueue = [];                    // Queued outgoing messages
         this.receiveQueue = [];                 // Queued incoming messages
         this.isSentConnect = false;
@@ -176,6 +177,17 @@ var cotonic = cotonic || {};
          * Called by the bridge or other components that manage a MQTT connection
          */
         this.connect = function( remote, options ) {
+            options = options || {};
+            if (typeof options.client_id === "string") {
+                self.clientId = options.client_id;
+            }
+            if (typeof options.clean_start === "boolean") {
+                self.cleanStart = options.clean_start;
+            }
+            if (typeof options.username === "string") {
+                self.authUserPassword.username = options.username;
+                self.authUserPassword.password = options.password || undefined;
+            }
             self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self, options );
         };
 
@@ -210,7 +222,7 @@ var cotonic = cotonic || {};
                     let connectMessage = {
                         type: 'connect',
                         client_id: self.clientId,
-                        clean_start: self.clientId === '',
+                        clean_start: self.cleanStart,
                         keep_alive: MQTT_KEEP_ALIVE,
                         username: self.authUserPassword.username,
                         password: self.authUserPassword.password,
@@ -218,7 +230,7 @@ var cotonic = cotonic || {};
                             session_expiry_interval: MQTT_SESSION_EXPIRY
                         }
                     };
-                    console.log(connectMessage);
+                    // console.log(connectMessage);
                     self.isSentConnect = self.sendMessage(connectMessage, true);
                     if (self.isSentConnect) {
                         self.isWaitConnack = true;
@@ -555,7 +567,7 @@ var cotonic = cotonic || {};
         function handleReceivedMessage ( msg ) {
             var replyMsg;
 
-            console.log(msg);
+            // console.log(msg);
             switch (msg.type) {
                 case 'connack':
                     if (!isStateWaitingConnAck()) {
@@ -576,6 +588,7 @@ var cotonic = cotonic || {};
                                 self.clientId = msg.properties.assigned_client_identifier;
                                 self.awaitingRel = {};
                                 self.awaitingAck = {};
+                                self.cleanStart = false;
                             }
                             if (typeof self.connectProps.server_keep_alive == "number") {
                                 self.keepAliveInterval = self.connectProps.server_keep_alive;
@@ -824,7 +837,7 @@ var cotonic = cotonic || {};
         function publishStatus( isConnected ) {
             localPublish(
                 self.bridgeTopics.session_status,
-                { is_connected: isConnected },
+                { is_connected: isConnected, client_id: self.clientId  },
                 { retain: true });
         }
 

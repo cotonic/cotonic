@@ -18,15 +18,15 @@
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-    const BRIDGE_LOCAL_TOPIC = "bridge/+remote/#topic";
-    const BRIDGE_STATUS_TOPIC = "$bridge/+remote/status";
-    const BRIDGE_AUTH_TOPIC = "$bridge/+remote/auth";
-    const BRIDGE_CONTROL_TOPIC = "$bridge/+remote/control";
+    const BRIDGE_LOCAL_TOPIC = "bridge/+name/#topic";
+    const BRIDGE_STATUS_TOPIC = "$bridge/+name/status";
+    const BRIDGE_AUTH_TOPIC = "$bridge/+name/auth";
+    const BRIDGE_CONTROL_TOPIC = "$bridge/+name/control";
 
-    const SESSION_IN_TOPIC = "session/+remote/in"
-    const SESSION_OUT_TOPIC = "session/+remote/out"
-    const SESSION_STATUS_TOPIC = "session/+remote/status"
-    const SESSION_CONTROL_TOPIC = "session/+remote/control"
+    const SESSION_IN_TOPIC = "session/+name/in"
+    const SESSION_OUT_TOPIC = "session/+name/out"
+    const SESSION_STATUS_TOPIC = "session/+name/status"
+    const SESSION_CONTROL_TOPIC = "session/+name/control"
 
     // Bridges to remote servers and clients
     var bridges = {};
@@ -40,7 +40,7 @@ var cotonic = cotonic || {};
 
         let bridge = bridges[remote];
 
-        console.log("new bridge");
+        // console.log("new bridge");
 
         if (!bridge) {
             bridge = new mqttBridge();
@@ -68,41 +68,45 @@ var cotonic = cotonic || {};
     function mqttBridge () {
 
         var remote;
+        var name;
         var session;
         var clientId;
         var routingId;
         var local_topics = {};
         var sessionTopic;
         var is_connected = false;
+        var is_ui_state = false;
         var session_present = false;
         var self = this;
         var wid;
 
         this.connect = function ( remote, options ) {
             const mqtt_session = options.mqtt_session;
-            self.wid = "bridge/" + remote;
-            self.remote = remote;
+            self.name = (options.name || remote.replace(/[^0-9\p{L}\.]/gu, '-'));
+            self.remote = self.name;
+            self.wid = "bridge/" + self.name;
+            self.is_ui_state = options.is_ui_state || (remote == 'origin');
             self.local_topics = {
                 // Comm between local broker and bridge
-                bridge_local: cotonic.mqtt.fill(BRIDGE_LOCAL_TOPIC, {remote: remote, topic: "#topic"}),
-                bridge_status: cotonic.mqtt.fill(BRIDGE_STATUS_TOPIC, {remote: remote}),
-                bridge_auth: cotonic.mqtt.fill(BRIDGE_AUTH_TOPIC, {remote: remote}),
-                bridge_control: cotonic.mqtt.fill(BRIDGE_CONTROL_TOPIC, {remote: remote}),
+                bridge_local: cotonic.mqtt.fill(BRIDGE_LOCAL_TOPIC, {name: self.name, topic: "#topic"}),
+                bridge_status: cotonic.mqtt.fill(BRIDGE_STATUS_TOPIC, {name: self.name}),
+                bridge_auth: cotonic.mqtt.fill(BRIDGE_AUTH_TOPIC, {name: self.name}),
+                bridge_control: cotonic.mqtt.fill(BRIDGE_CONTROL_TOPIC, {name: self.name}),
 
                 // Comm between session and bridge
-                session_in: cotonic.mqtt.fill(SESSION_IN_TOPIC, {remote: remote}),
-                session_out: cotonic.mqtt.fill(SESSION_OUT_TOPIC, {remote: remote}),
-                session_status: cotonic.mqtt.fill(SESSION_STATUS_TOPIC, {remote: remote}),
-                session_control: cotonic.mqtt.fill(SESSION_CONTROL_TOPIC, {remote: remote})
+                session_in: cotonic.mqtt.fill(SESSION_IN_TOPIC, {name: self.name}),
+                session_out: cotonic.mqtt.fill(SESSION_OUT_TOPIC, {name: self.name}),
+                session_status: cotonic.mqtt.fill(SESSION_STATUS_TOPIC, {name: self.name}),
+                session_control: cotonic.mqtt.fill(SESSION_CONTROL_TOPIC, {name: self.name})
             };
             cotonic.broker.subscribe(self.local_topics.bridge_local, relayOut, {wid: self.wid, no_local: true});
             cotonic.broker.subscribe(self.local_topics.bridge_control, bridgeControl);
             cotonic.broker.subscribe(self.local_topics.session_in, relayIn);
             cotonic.broker.subscribe(self.local_topics.session_status, sessionStatus);
 
-            console.log("new session");
+            // console.log("new session");
 
-            // 3. Start a mqtt_session WebWorker for the remote
+            // Start a mqtt_session for the remote
             self.session = mqtt_session.newSession(remote, self.local_topics, options);
             publishStatus();
         };
@@ -112,7 +116,7 @@ var cotonic = cotonic || {};
             // console.log("handleBridgeLocal", msg, props)
             switch (msg.type) {
                 case 'publish':
-                    // - remove "bridge/+remote/" from the topic
+                    // - remove "bridge/+name/" from the topic
                     // - rewrite response_topic (prefix "bridge/+routingId/")
                     // - publish to local_topics.session_out
                     msg.topic = dropRoutingTopic(msg.topic);
@@ -252,7 +256,7 @@ var cotonic = cotonic || {};
         }
 
         function resubscribeTopics ( ) {
-            let subs = cotonic.broker.find_subscriptions_below("bridge/" + self.remote);
+            let subs = cotonic.broker.find_subscriptions_below("bridge/" + self.name);
             let topics = {};
             for (let i = 0; i < subs.length; i++) {
                 if (subs[i].wid == self.wid) {
@@ -302,7 +306,7 @@ var cotonic = cotonic || {};
         }
 
         function localRoutingTopic ( topic ) {
-            return "bridge/" + self.remote + "/" + topic;
+            return "bridge/" + self.name + "/" + topic;
         }
 
         function dropRoutingTopic ( topic ) {
@@ -314,13 +318,29 @@ var cotonic = cotonic || {};
                 self.local_topics.bridge_status,
                 {
                     is_connected: self.is_connected,
-                    session_present: self.session_present
+                    session_present: self.session_present,
+                    client_id: self.clientId
                 },
                 { retain: true });
 
             cotonic.broker.publish(
                 'model/sessionStorage/post/mqtt$clientBridgeTopic',
                 remoteClientTopic(""));
+
+            if (self.is_ui_state) {
+                let ui = {
+                    classes: [],
+                    status: {
+                        'remote': self.remote,
+                    }
+                }
+                if (self.is_connected) {
+                    ui.classes.push('connected');
+                } else {
+                    ui.classes.push('disconnected');
+                }
+                cotonic.broker.publish("model/bridge/event/ui-status", ui);
+            }
         }
 
     }
