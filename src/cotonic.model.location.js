@@ -93,12 +93,10 @@ var cotonic = cotonic || {};
         let ps = [];
 
         if (typeof(URLSearchParams) === 'function') {
-            const searchParams = new URLSearchParams(qs).entries();
-            let p = searchParams.next();
-            while(!p.done) {
-                ps.push(p.value);
-                searchParams.next()
-            }
+            const searchParams = new URLSearchParams(qs);
+            searchParams.forEach(function(value, key) {
+                ps.push([ key, value ]);
+            });
         } else {
             // For IE11...
             if (qs.length > 0) {
