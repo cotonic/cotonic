@@ -58,7 +58,7 @@
                 </form>
             </header>
 
-            <div id="bubble-container" class="padding-xs"">
+            <div id="bubble-container" class="padding-xs">
             </div>
 
             <footer class="background-primary-200 padding-xs">
@@ -76,11 +76,13 @@
         </div>
 
         <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
-    <script>
+
+    <script type="text/javascript">
         const messages = [];
         const self_id = Math.floor(Math.random() * 1000000);
 
-        const broker = "mqtt.eclipse.org"
+        const broker = "mqtt.eclipse.org";
+        const broker_path = "/mqtt";
 
         const presetNicks = ["Joe", "Mike", "Robert", "Micky", "Maus", "Donald", "Bruce", "Wayne", "Clark",
             "Kent", "Sarah", "Connor", "Mary", "Shelley", "Rosemary", "Wilma", "Louis", "Selina",
@@ -106,7 +108,7 @@
         function scrollToBottom() {
             bubble_container.scrollTop = bubble_container.scrollHeight
         }
-        
+
         /**
          * Update the view. Publishes the updated bubble view, and scrolls
          * it to the bottom.
@@ -145,35 +147,39 @@
         cotonic.broker.subscribe("chat/message", function(m) {
             const msg = m.payload.value.message;
 
-            cotonic.broker.publish(cotonic.mqtt.fill("bridge/+broker/cotonic/chat", {broker: broker}),
+            cotonic.broker.publish("bridge/broker/cotonic/chat",
                 {msg: msg, user_id: self_id, nick: nick});
         })
 
         /**
-         * Send a system message we are going to connect to the broker
-         */
-        systemMessage("Connecting to " + broker);
-        cotonic.mqtt_bridge.newBridge(broker, {protocol: "wss", controller_path: "/mqtt"});
-
-        /**
          * Subscribe to the broker status. Its status will be published on a topic.
          * Sends system messages to indicate to the user what state the bridge has.
-         */ 
-        cotonic.broker.subscribe(cotonic.mqtt.fill("$bridge/+broker/status", {broker: broker}), function(m) {
+         */
+        cotonic.broker.subscribe("$bridge/broker/status", function(m) {
             if(m.payload.hasOwnProperty("is_connected")) {
-                systemMessage(m.payload.is_connected?"You are now connected, and subscribed to topic \"cotonic/chat\".":"Currently disconnected.");
+                systemMessage(
+                    m.payload.is_connected ? "You are now connected, and subscribed to topic \"cotonic/chat\"."
+                                           : "Currently disconnected.");
             }
         })
+
+        /**
+         * Send a system message we are going to connect to the broker
+         * The option 'is_ui_state' tells the bridge to publish its state to the ui model so that on the html tag
+         * the 'ui-state-bridge-connected' class and the attribute data-ui-state-bridge-connection is set.
+         */
+        systemMessage("Connecting to " + broker);
+        cotonic.mqtt_bridge.newBridge(broker, { name: 'broker', protocol: "wss", controller_path: broker_path, is_ui_state: true });
 
         /**
          * Subscribe to the "cotonic/chat" topic via the broker. All messages, including your own
          * will be received here. The message will be added to the local chat state, and the
          * view will be updated.
          */
-        cotonic.broker.subscribe(cotonic.mqtt.fill("bridge/+broker/cotonic/chat", {broker: broker}),
+        cotonic.broker.subscribe("bridge/broker/cotonic/chat",
             function(msg, inf) {
-                /* 
-                 * Filter out messages from the local broker. We want messages from 
+                /*
+                 * Filter out messages from the local broker. We want messages from
                  * the remote broker only. These have the packet_id property set, but
                  * it could be null.
                  */
@@ -183,7 +189,7 @@
                     messages.push(msg.payload);
                     updateView();
                     return;
-                } 
+                }
 
                 let p = msg.payload;
 
