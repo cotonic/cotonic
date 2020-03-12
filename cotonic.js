@@ -5843,7 +5843,7 @@ var cotonic = cotonic || {};
     }
 
     cotonic.broker.subscribe("model/serviceWorker/post/broadcast/+channel", function(msg, bindings) {
-        if (navigator.serviceWorker.controller) {
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
             let data = {
                 type: "broadcast",
                 message: msg,
