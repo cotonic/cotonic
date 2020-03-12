@@ -1,7 +1,7 @@
 # Security
 
-In cotonic all independent components need to communicat with each other,
-because there is no way of knowing where a message originates from
+In cotonic all independent components need to communicate with each other,
+because there is no way of knowing where a message originates from.
 
 ## UBF(A)
 

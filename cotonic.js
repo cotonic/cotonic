@@ -5813,7 +5813,20 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 
     if (navigator.serviceWorker) {
-        navigator.serviceWorker.register('/cotonic-service-worker.js');
+        navigator.serviceWorker
+            .register('/cotonic-service-worker.js')
+            .catch(
+                function(error) {
+                    switch (error.name) {
+                        case 'SecurityError':
+                            console.log("Could not start serviceWorker due to a SecurityError.");
+                            console.log("See https://cotonic.org/#model.serviceWorker for more information.");
+                            break;
+                        default:
+                            console.log("Could not start serviceWorker: ", error.message);
+                            break;
+                    }
+                });
 
         navigator.serviceWorker.addEventListener('message', function(event) {
             switch (event.data.type) {
