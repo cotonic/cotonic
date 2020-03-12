@@ -98,6 +98,13 @@ pre {
     margin: 0px 0 30px;
 }
 
+.note {
+    border: 1px solid #ee8;
+    background-color: #ffc;
+    padding: 0 10px;
+    color: #333;
+}
+
 @media only screen and (-webkit-min-device-pixel-ratio: 1.5) and (max-width: 640px),
        only screen and (-o-min-device-pixel-ratio: 3/2) and (max-width: 640px),
        only screen and (min-device-pixel-ratio: 1.5) and (max-width: 640px) {
@@ -1469,6 +1476,22 @@ self.subscribe("model/ui/event/user-activity",
             from the same site. This makes it possible to communicate important state
             to all tabs.
             </p>
+
+            <div class="note">
+                <p>
+                <strong class="header">A Note on Security</strong>
+                <br>
+                The serviceWorker needs https to work correctly. The <i>Chrome</i> browser
+                does not accept self-signed certificates for running serviceWorkers.
+                Either run from localhost, use a real certificate, or follow the instructions
+                <a href="https://deanhume.com/testing-service-workers-locally-with-self-signed-certificates/" target="_blank">on this page by Dean Hume</a>.
+                </p>
+
+                <p>
+                Safari and Firefox accept self-signed certificates for
+                running the serviceWorker.
+                </p>
+            </div>
 
             <p id="model.serviceWorker.post.broadcast.channel">
             <strong class="header">post/broadcast/+channel</strong>
