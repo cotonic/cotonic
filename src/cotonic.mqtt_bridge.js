@@ -82,7 +82,7 @@ var cotonic = cotonic || {};
 
         this.connect = function ( remote, options ) {
             const mqtt_session = options.mqtt_session;
-            self.name = (options.name || remote.replace(/[^0-9\p{L}\.]/gu, '-'));
+            self.name = (options.name || remote.replace(/[^0-9a-zA-Z\.]/g, '-'));
             self.remote = self.name;
             self.wid = "bridge/" + self.name;
             self.is_ui_state = options.is_ui_state || (remote == 'origin');
