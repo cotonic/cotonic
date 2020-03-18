@@ -272,6 +272,7 @@ pre {
                     <li> - <a href="#model.ui.update.key">update/+key</a>
                     <li> - <a href="#model.ui.delete.key">delete/+key</a>
                     <li> - <a href="#model.ui.event.recent-activity">event/recent-activity</a>
+                    <li> - <a href="#model.ui.event.dom-updated">event/dom-updated/+key</a>
                     <li> - <a href="#model.ui.event.ui-status">event/ui-status</a>
                 </ul>
 
@@ -1389,6 +1390,14 @@ cotonic.broker.subscribe("model/location/event/ping",
 
             <h3 id="model.ui">model/ui</h3>
 
+            <p>
+            The ui model can be used to update the dom by publishing messages on one of the
+            <tt>model/ui/#</tt> topics. Elements can be inserted, deleted and updated. When
+            elements in the dom-tree are updated, the a message
+            <tt>model/ui/event/dom-updated/+key</tt> is published. This can be used to
+            react to dom-changes when they happen.
+            </p>
+
             <p id="model.ui.insert.key">
             <strong class="header">insert/+key</strong>
             <br>
@@ -1459,14 +1468,34 @@ self.subscribe("model/ui/event/user-activity",
         const a = m.payload.is_active:"active":"not active";
         console.log("The user is: ", a);
     }
-) 
+); 
 => Displays the user's activity status.</pre>
+
+            <p id="model.ui.event.dom-updated">
+            <strong class="header">event/dom-updated/+key</strong>
+            <br>
+            When the dom-tree is updated a message will be published. The
+            message is fired after the dom-tree is updated.
+            </p>
+            <pre>
+cotonic.broker.subscribe("model/ui/event/dom-updated/message-container",
+    function(m) {
+        const c = document.getElementById("message-container");
+        c.scrollTop = c.scrollHeight
+    }
+);
+=> Scrolls the messages bubble container to the bottom.
+            </pre>
+
+
 
             <p id="model.ui.event.ui-status">
             <strong class="header">event/ui-status</strong>
             <br>
             </p>
             <pre></pre>
+
+
 
             <!-- serviceWorker model -->
             <h3 id="model.serviceWorker">model/serviceWorker</h3>
