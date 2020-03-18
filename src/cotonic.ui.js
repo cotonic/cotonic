@@ -112,10 +112,10 @@ var cotonic = cotonic || {};
 
         if(elt === null)  {
             /* It is not here, maybe it is the next time around */
-            return;
+            return false;
         }
 
-        renderElement(elt, id);
+        return renderElement(elt, id);
     }
 
     function renderElement(elt, id) {
@@ -133,12 +133,23 @@ var cotonic = cotonic || {};
             cotonic.idom.patchOuter(elt, s.data);
         }
         s.dirty = false;
+        return true;
     }
 
     function render() {
+        let updated_ids = [];
+
         for(let i = 0; i < order.length; i++) {
-            renderId(order[i].id);
+            if (renderId(order[i].id)) {
+                updated_ids.push(order[i].id);
+            }
         }
+        setTimeout(
+            function() {
+                for(let i = 0; i < updated_ids.length; i++) {
+                    cotonic.broker.publish("model/ui/event/dom-updated/" + updated_ids[i], { id: updated_ids[i] });
+                }
+            }, 0);
         dirty = false;
     }
 
