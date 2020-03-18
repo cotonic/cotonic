@@ -102,20 +102,11 @@
         });
 
         /**
-         * Scroll the bubble container to the bottom
-         */
-        const bubble_container = document.getElementById("bubble-container");
-        function scrollToBottom() {
-            bubble_container.scrollTop = bubble_container.scrollHeight
-        }
-
-        /**
          * Update the view. Publishes the updated bubble view, and scrolls
          * it to the bottom.
          */
         function updateView() {
             cotonic.broker.publish("model/ui/update/bubble-container", view());
-            setTimeout(scrollToBottom, 20);  // Wait a little bit before scrolling
         }
 
         /**
@@ -126,6 +117,15 @@
             messages.push({user_id: "$sys", msg: msg});
             updateView();
         }
+
+        /**
+         * Scroll the messages to the bottom when the view is updated. 
+         */
+        cotonic.broker.subscribe("model/ui/event/dom-updated/bubble-container",
+            function(m) {
+                const c = document.getElementById("bubble-container");
+                c.scrollTop = c.scrollHeight
+            });
 
         /**
          * Subscribe to the local topic "chat/nick", When the user 
