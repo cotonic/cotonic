@@ -29,7 +29,8 @@ Building blocks for managing state and html:
  * Reflect state in the attributes of html and body tags, use
    css to change the page according to the state
 
-The great thing is that you can use the parts separately.
+The great thing is that you can use the parts separately, with
+frontend libraries, and even with languages like Elm.
 
 ## Why do you need this?
 
