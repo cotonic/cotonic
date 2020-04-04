@@ -12,7 +12,7 @@ Infrastructure for communication:
 
  * Publish and subscribe to a topic tree on your web page
  * Publish and subscribe between tabs in the same browser
- * Publish and subscribe between the page and a (MQTT)[http://mqtt.org/] server
+ * Publish and subscribe between the page and a [MQTT](http://mqtt.org/) server
  * Subscribe to topics on the page _and_ the server
  * Publish from the server to the page
  * Publish from the page to the server
@@ -81,11 +81,13 @@ Cotonic depends on the Web Worker, so it is supported on IE11 and up.
 
 ## Dependencies:
 
+The Incremental-DOM library is used for updating the DOM:
+
 https://github.com/google/incremental-DOM
 
 ## Want to help?
 
-Do you want to help? We are in active development. All help is welcome. Feel free 
+Do you want to help? We are in active development. All help is welcome. Feel free
 to ask questions or provide feedback.
 
 ## Development
@@ -107,13 +109,13 @@ point your browser to the directory with tests.
 
 ## Software using Cotonic
 
-Cotonic is integrated into the content management system (Zotonic)[http://zotonic.com/].
+Cotonic is integrated into the content management system [Zotonic](http://zotonic.com/).
 
 ## Thanks
 
-Big thanks to the (SIDN Fonds)[https://www.sidnfonds.nl] for supporting our development.
+Big thanks to the [SIDN Fonds](https://www.sidnfonds.nl/) for supporting our development.
 
 ## TODO
 
-Integration of encryption components and p2p communication using webrtc.
+Integration of encryption components and p2p communication using WebRTC.
 
