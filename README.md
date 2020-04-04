@@ -23,7 +23,7 @@ Infrastructure for using Web Workers:
  * Communicate with and between Web Workers using the topic tree
  * Use a Service Worker for seamless communication between pages
 
-Building blocks for managing state and html and on the page:
+Building blocks for managing state and html:
 
  * Update HTML elements with new content, using incremental DOM updates
  * Reflect state in the attributes of html and body tags, use
