@@ -27,7 +27,7 @@ Building blocks for managing state and html:
 
  * Update HTML elements with new content, using incremental DOM updates
  * Reflect state in the attributes of html and body tags, use
-   css to communicate to change the page according to the state
+   css to change the page according to the state
 
 The great thing is that you can use the parts separately.
 
