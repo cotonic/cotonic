@@ -71,7 +71,6 @@ var cotonic = cotonic || {};
         let topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
 
         if (typeof topic === "string") {
-            let msg = event.target.getAttribute( "data-on"+event.type+"-message" );
             let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
 
             if (cancel === null) {
@@ -91,10 +90,26 @@ var cotonic = cotonic || {};
                         break;
                 }
             }
-            if (typeof msg === "string") {
-                msg = JSON.parse(msg);
+
+            if (event.target.hasAttribute( "data-on"+event.type+"-message" )) {
+                let msg = event.target.getAttribute( "data-on"+event.type+"-message" );
+                if (typeof msg === "string") {
+                    msg = JSON.parse(msg);
+                }
+            } else {
+                let attrs = event.target.attributes;
+                msg = {};
+                for (let i = attrs.length - 1; i >= 0; i--) {
+                    msg[attrs[i].name] = attrs[i].value;
+                }
             }
-            cotonic.ui.on(topic, msg, event, { cancel: cancel });
+            let options = {
+                cancel: cancel
+            }
+            if (event.target.hasAttribute( "data-on"+event.type+"-response-topic" )) {
+                options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" )
+            }
+            cotonic.ui.on(topic, msg, event, options);
 
             if(event.type === "submit" && event.target.getAttribute("data-onsubmit-reset") !== null) {
                 event.target.reset();

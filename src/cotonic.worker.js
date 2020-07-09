@@ -1,5 +1,5 @@
 /**
- * Copyright 2016, 2017, 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016-2020 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@ var cotonic = cotonic || {};
         packet_id: 1,
         subscriptions: {},      // topic -> [callback]
         pending_acks: {},       // sub-id -> callback
+
+        is_depends_provided: false,
+        depends: {},            // name -> boolean
+        provides: [],           // list of strings
 
         selfClose: self.close
     }
@@ -102,8 +106,6 @@ var cotonic = cotonic || {};
                     if (model.subscriptions[mqtt_topic]) {
                         // TODO: check qos / retain_handling
                         //       if qos > or retain_handling < then resubscribe
-                        already_subscribed = true;
-
                         let subs = model.subscriptions[mqtt_topic];
                         subs.push({topic: t.topic, callback: data.callback})
                         if(data.ack_callback) {
@@ -223,12 +225,26 @@ var cotonic = cotonic || {};
                 delete model.response_handlers[data.topic];
             }
 
+            // Dependency tracking
+            if(typeof data.is_provided == "boolean") {
+                if(typeof model.depends[ data.provided ] == "boolean") {
+                    model.depends[data.provided] = data.is_provided;
+                }
+            }
+
         } else if(state.disconnected(model)) {
             if(data.type == "connect") {
                 // console.log("worker - connect");
                 // model.client_id = data.client_id;
                 model.connected = false;
                 model.connecting = true;
+                for(let i = 0; i < data.depends.length; i++) {
+                    model.depends[ data.depends[i] ] = false;
+                }
+                model.provides = data.provides;
+                if(model.name && model.provides.indexOf(model.name) == -1) {
+                    model.provides.push(model.name);
+                }
                 self.postMessage({
                     type: "connect",
                     client_id: model.client_id,
@@ -255,6 +271,30 @@ var cotonic = cotonic || {};
             }
         } else {
             // TODO
+        }
+
+        if (state.connected(model) && !model.is_depends_provided) {
+            let is_depends_provided = true;
+            for(const dep in model.depends) {
+                is_depends_provided = is_depends_provided && model.depends[dep];
+            }
+            model.is_depends_provided = is_depends_provided;
+            if(is_depends_provided) {
+                if (self.on_depends_provided) {
+                    self.on_depends_provided();
+                }
+                if(model.name) {
+                    self.publish("worker/" + model.name + "/event/ping", "pong", { retain: true });
+                }
+                for(let i=0; i<model.provides.length; i++) {
+                    let p = model.provides[i];
+                    if(p.match(/^model\//)) {
+                        self.publish(p + "/event/ping", "pong", { retain: true });
+                    } else {
+                        self.publish("worker/" + p + "/event/ping", "pong", { retain: true });
+                    }
+                }
+            }
         }
 
         state.render(model);
@@ -343,6 +383,27 @@ var cotonic = cotonic || {};
         }, 1000);
     }
 
+    actions.model_ping = function(data) {
+        model.present({
+            is_provided: data.payload === "pong",
+            provided: "model/" + data.model
+        });
+    }
+
+    actions.worker_ping = function(data) {
+        model.present({
+            is_provided: data.payload === "pong",
+            provided: "worker/" + data.worker
+        });
+    }
+
+    actions.bridge_origin_status = function(data) {
+        model.present({
+            is_provided: data.is_connected || false,
+            provided: "bridge/origin"
+        });
+    }
+
     /** External api */
     self.is_connected = function() {
         return state.connected(model);
@@ -352,11 +413,16 @@ var cotonic = cotonic || {};
         actions.close();
     }
 
-    self.connect = function(willTopic, willPayload) {
-        actions.connect({
-            will_topic: willTopic,
-            will_payload: willPayload
-        });
+    self.connect = function(options) {
+        // Valid options:
+        // - will_topic
+        // - will_payload
+        // - depends        list of states needed to be set before started
+        // - provides       list of states provided after started
+        options = options || {};
+        options.provides = options.provides || [];
+        options.depends = options.depends || [];
+        actions.connect(options);
     }
 
     self.subscribe = function(topics, callback, ack_callback) {
@@ -434,6 +500,26 @@ var cotonic = cotonic || {};
     }
 
     self.connack_received = function() {
+        if(Object.keys(model.depends).length > 0) {
+            self.subscribe(
+                "model/+model/event/ping",
+                function(msg, bindings) {
+                    actions.model_ping({ model: bindings.model, payload: msg.payload });
+                });
+            self.subscribe(
+                "worker/+worker/event/ping",
+                function(msg, bindings) {
+                    actions.worker_ping({ worker: bindings.worker, payload: msg.payload });
+                });
+
+            if(typeof model.depends["bridge/origin"] == "boolean") {
+                self.subscribe(
+                    "$bridge/origin/status",
+                    function(msg) {
+                        actions.bridge_origin_status(msg.payload);
+                    });
+            }
+        }
         self.subscribe(model.response_topic_prefix + "+", self.response, self.on_connect);
     };
 

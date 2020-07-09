@@ -210,6 +210,41 @@ cotonic.VERSION = "1.0.3";
         receive_handler = handler;
     }
 
+    /**
+     * Clean the sessionStorage on open of new window.
+     * Keep keys that are prefixed with "persist-".
+     */
+    function cleanupSessionStorage() {
+        if (!window.name || window.name == "null") {
+            window.name = makeid(32);
+        }
+        if (sessionStorage.getItem('windowName') != window.name) {
+            let keys = Object.keys(sessionStorage);
+            for (let i in keys) {
+                let k = keys[i];
+                if (!k.match(/^persist-/)) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        }
+        sessionStorage.setItem('windowName', window.name);
+    }
+
+    /**
+     * Generate a random id of length characters
+     */
+    function makeid(length) {
+        let result     = '';
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let len        = characters.length;
+        for (let i = 0; i < length; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * len));
+        }
+        return result;
+    }
+
+    cleanupSessionStorage();
+
     cotonic.set_worker_base_src = set_worker_base_src;
 
     cotonic.spawn = spawn;
@@ -1486,7 +1521,7 @@ var cotonic = cotonic || {};
     }
 
     /**
-     * Update representation of `id`  
+     * Update representation of `id`
      */
     function update(id, htmlOrTokens) {
         let currentState = state[id];
@@ -1560,7 +1595,15 @@ var cotonic = cotonic || {};
         };
 
         // console.log("ui.on", topic, payload);
-        cotonic.broker.publish(topic, payload, pubopts);
+        if (options.response_topic) {
+            cotonic.broker.call(topic, payload, pubopts)
+                .then( function(resp) {
+                    console.log(resp);
+                    cotonic.broker.publish(options.response_topic, resp.payload, pubopts);
+                });
+        } else {
+            cotonic.broker.publish(topic, payload, pubopts);
+        }
 
         if (typeof event.type == 'string') {
             switch (options.cancel) {
@@ -5790,6 +5833,12 @@ var cotonic = cotonic || {};
         maybeRespond(resp, msg);
     });
 
+    cotonic.broker.subscribe("model/location/post/redirect", function(msg) {
+        if (msg.payload.url) {
+            window.location = msg.payload.url;
+        }
+    });
+
     function maybeRespond(result, msg) {
         if(msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, result);
@@ -6054,7 +6103,6 @@ var cotonic = cotonic || {};
         let topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
 
         if (typeof topic === "string") {
-            let msg = event.target.getAttribute( "data-on"+event.type+"-message" );
             let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
 
             if (cancel === null) {
@@ -6074,10 +6122,26 @@ var cotonic = cotonic || {};
                         break;
                 }
             }
-            if (typeof msg === "string") {
-                msg = JSON.parse(msg);
+
+            if (event.target.hasAttribute( "data-on"+event.type+"-message" )) {
+                let msg = event.target.getAttribute( "data-on"+event.type+"-message" );
+                if (typeof msg === "string") {
+                    msg = JSON.parse(msg);
+                }
+            } else {
+                let attrs = event.target.attributes;
+                msg = {};
+                for (let i = attrs.length - 1; i >= 0; i--) {
+                    msg[attrs[i].name] = attrs[i].value;
+                }
             }
-            cotonic.ui.on(topic, msg, event, { cancel: cancel });
+            let options = {
+                cancel: cancel
+            }
+            if (event.target.hasAttribute( "data-on"+event.type+"-response-topic" )) {
+                options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" )
+            }
+            cotonic.ui.on(topic, msg, event, options);
 
             if(event.type === "submit" && event.target.getAttribute("data-onsubmit-reset") !== null) {
                 event.target.reset();
@@ -6197,6 +6261,120 @@ var cotonic = cotonic || {};
     init();
 
 }(cotonic));
+/**
+ * Copyright 2020 The Cotonic Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+"use strict";
+
+var cotonic = cotonic || {};
+
+(function(cotonic) {
+
+    function init() {
+    }
+
+    cotonic.broker.subscribe("model/window/post/close",
+        function(msg, bindings) {
+            let result;
+
+            if (window.opener) {
+                window.close();
+                result = true;
+            } else {
+                result = false;
+            }
+            if(msg.properties.response_topic) {
+                cotonic.broker.publish(msg.properties.response_topic, result);
+            }
+        });
+
+    cotonic.broker.subscribe("model/window/post/open",
+        function(msg, bindings) {
+            let options = {
+                full:0,             // set the height/width to the current window, show scrollbars etc.
+                centerBrowser:1,    // center window over browser window? {1 (YES) or 0 (NO)}. overrides top and left
+                centerScreen:0,     // center window over entire screen? {1 (YES) or 0 (NO)}. overrides top and left
+                height:500,         // sets the height in pixels of the window.
+                left:0,             // left position when the window appears.
+                location:0,         // determines whether the address bar is displayed {1 (YES) or 0 (NO)}.
+                menubar:0,          // determines whether the menu bar is displayed {1 (YES) or 0 (NO)}.
+                resizable:0,        // whether the window can be resized {1 (YES) or 0 (NO)}. Can also be overloaded using resizable.
+                scrollbars:0,       // determines whether scrollbars appear on the window {1 (YES) or 0 (NO)}.
+                status:0,           // whether a status line appears at the bottom of the window {1 (YES) or 0 (NO)}.
+                width:500,          // sets the width in pixels of the window.
+                name:null,          // name of window
+                location:null,      // url used for the popup
+                top:0,              // top position when the window appears.
+                toolbar:0           // determines whether a toolbar (includes the forward and back buttons) is displayed {1 (YES) or 0 (NO)}.
+            }
+            if (typeof msg.payload.message == "object") {
+                let attrs = msg.payload.message;
+                if (attrs.href) {
+                    options.location = msg.payload.message.href;
+                    if (msg.payload.message['data-window']) {
+                        if (typeof msg.payload.message['data-window'] == "string") {
+                            attrs = JSON.parse(msg.payload.message['data-window']);
+                        }
+                    } else {
+                        attrs = {};
+                    }
+                }
+                let keys = Object.keys(attrs);
+                for (let k in keys) {
+                    options[k] = attrs[k];
+                }
+                let features = 'height=' + options.height +
+                               ',width=' + options.width +
+                               ',toolbar=' + (options.toolbar?'yes':'no') +
+                               ',scrollbars=' + (options.scrollbars?'yes':'no') +
+                               ',status=' + (options.status?'yes':'no') +
+                               ',resizable=' + (options.resizable?'yes':'no') +
+                               ',location=' + (options.location?'yes':'no') +
+                               ',menubar=' + (options.menubar?'yes':'no');
+
+                let top, left;
+
+                if (options.centerBrowser && !options.centerScreen) {
+                    top = window.screenY + (((window.outerHeight/2) - (options.height/2)));
+                    left = window.screenX + (((window.outerWidth/2) - (options.width/2)));
+                } else if (options.centerScreen) {
+                    top = (screen.height - options.height)/2;
+                    left = (screen.width - options.width)/2;
+                } else {
+                    top = options.top;
+                    left = options.left;
+                }
+                if (options.name) {
+                    options.name = options.name.replace(/[^a-zA-Z0-9]/g,'_');
+                }
+                let w = window.open(options.location, options.name, features+',left='+Math.ceil(left)+',top='+Math.ceil(top));
+                // setTimeout(
+                //     function() {
+                //         if (w.innerWidth != undefined && w.innerWidth > 0) {
+                //             w.resizeBy(options.width - w.innerWidth, options.height - w.innerHeight);
+                //         }
+                //     }, 500);
+                w.focus();
+            }
+        });
+
+    init();
+
+}(cotonic));
+
 /**
  * Copyright 2018 The Cotonic Authors. All Rights Reserved.
  *

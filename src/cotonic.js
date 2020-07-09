@@ -162,6 +162,41 @@ cotonic.VERSION = "1.0.3";
         receive_handler = handler;
     }
 
+    /**
+     * Clean the sessionStorage on open of new window.
+     * Keep keys that are prefixed with "persist-".
+     */
+    function cleanupSessionStorage() {
+        if (!window.name || window.name == "null") {
+            window.name = makeid(32);
+        }
+        if (sessionStorage.getItem('windowName') != window.name) {
+            let keys = Object.keys(sessionStorage);
+            for (let i in keys) {
+                let k = keys[i];
+                if (!k.match(/^persist-/)) {
+                    sessionStorage.removeItem(k);
+                }
+            }
+        }
+        sessionStorage.setItem('windowName', window.name);
+    }
+
+    /**
+     * Generate a random id of length characters
+     */
+    function makeid(length) {
+        let result     = '';
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let len        = characters.length;
+        for (let i = 0; i < length; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * len));
+        }
+        return result;
+    }
+
+    cleanupSessionStorage();
+
     cotonic.set_worker_base_src = set_worker_base_src;
 
     cotonic.spawn = spawn;

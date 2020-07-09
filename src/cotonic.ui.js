@@ -92,7 +92,7 @@ var cotonic = cotonic || {};
     }
 
     /**
-     * Update representation of `id`  
+     * Update representation of `id`
      */
     function update(id, htmlOrTokens) {
         let currentState = state[id];
@@ -166,7 +166,15 @@ var cotonic = cotonic || {};
         };
 
         // console.log("ui.on", topic, payload);
-        cotonic.broker.publish(topic, payload, pubopts);
+        if (options.response_topic) {
+            cotonic.broker.call(topic, payload, pubopts)
+                .then( function(resp) {
+                    console.log(resp);
+                    cotonic.broker.publish(options.response_topic, resp.payload, pubopts);
+                });
+        } else {
+            cotonic.broker.publish(topic, payload, pubopts);
+        }
 
         if (typeof event.type == 'string') {
             switch (options.cancel) {

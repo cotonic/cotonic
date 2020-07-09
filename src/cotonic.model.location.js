@@ -170,6 +170,12 @@ var cotonic = cotonic || {};
         maybeRespond(resp, msg);
     });
 
+    cotonic.broker.subscribe("model/location/post/redirect", function(msg) {
+        if (msg.payload.url) {
+            window.location = msg.payload.url;
+        }
+    });
+
     function maybeRespond(result, msg) {
         if(msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, result);
