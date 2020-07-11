@@ -21,4 +21,4 @@ self.on_connect = function() {
     self.publish("subscribe-unsubscribe-worker/done");
 }
 
-self.connect("subscribe-unsubscribe-worker");
+self.connect({name: "subscribe-unsubscribe-worker"});

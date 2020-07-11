@@ -14,4 +14,4 @@ self.on_connect = function() {
     })
 }
 
-self.connect("subscribe-worker");
+self.connect({name: "subscribe-worker"});

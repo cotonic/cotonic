@@ -12,4 +12,4 @@ self.on_connect = function() {
     console.log("connected");
 }
 
-self.connect("test-worker");
+self.connect({name: "test-worker"});
