@@ -21,6 +21,7 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 
     let location = {};
+    let isNavigating = false;
 
     function init() {
         cotonic.broker.publish("model/location/event/ping", "pong", { retain: true });
@@ -143,22 +144,24 @@ var cotonic = cotonic || {};
 
     cotonic.broker.subscribe("model/auth/event/auth-changing",
         function(msg, bindings) {
-            // Authentication is changing, possible actions:
-            // - Reload page
-            // - Redirect to other page (from the 'p' query argument, passed via 'onauth')
-            // - Do nothing (the ui will adapt itself)
-            let onauth = msg.payload.onauth || document.body.parentNode.getAttribute("data-onauth");
+            if (!isNavigating) {
+                // Authentication is changing, possible actions:
+                // - Reload page
+                // - Redirect to other page (from the 'p' query argument, passed via 'onauth')
+                // - Do nothing (the ui will adapt itself)
+                let onauth = msg.payload.onauth || document.body.parentNode.getAttribute("data-onauth");
 
-            if (onauth === null || onauth !== "#") {
-                setTimeout(function() {
-                   if (onauth === null || onauth === '#reload') {
-                        window.location.reload(true);
-                    } else if (onauth.charAt(0) == '/') {
-                        window.location.href = onauth;
-                    } else if (onauth.charAt(0) == '#') {
-                        window.location.hash = onauth;
-                    }
-                }, 0);
+                if (onauth === null || onauth !== "#") {
+                    setTimeout(function() {
+                       if (onauth === null || onauth === '#reload') {
+                            window.location.reload(true);
+                        } else if (onauth.charAt(0) == '/') {
+                            window.location.href = onauth;
+                        } else if (onauth.charAt(0) == '#') {
+                            window.location.hash = onauth;
+                        }
+                    }, 0);
+                }
             }
         }
     );
@@ -173,6 +176,8 @@ var cotonic = cotonic || {};
     cotonic.broker.subscribe("model/location/post/redirect", function(msg) {
         if (msg.payload.url) {
             window.location = msg.payload.url;
+            isNavigating = true;
+            setTimeout(function() { isNavigating = false; }, 1000);
         }
     });
 
