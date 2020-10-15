@@ -18,8 +18,8 @@
             In this example the hands of the clock are managed by a single web-worker.
             </p>
 
-            <button onclick="cotonic.broker.publish('spawn');">Spawn Worker</button>
-            <button onclick="cotonic.broker.publish('stop');">Stop Worker</button>
+            <button data-onclick-topic="spawn">Spawn Worker</button>
+            <button data-onclick-topic="stop">Stop Worker</button>
 
           <!-- The svg can be placed as is.  -->
           <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
