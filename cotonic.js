@@ -1453,7 +1453,7 @@ var cotonic = cotonic || {};
     const stateData = {};
     const stateClass = {};
 
-    var dirty = false;
+    let animationFrameRequestId = undefined;
 
     /**
      * insert element to the prioritized patch list.
@@ -1495,10 +1495,10 @@ var cotonic = cotonic || {};
         // insert the item
         arr.splice(index, 0, item);
 
-        dirty = true;
+        requestRender();
     };
 
-    /**
+     /**
      * Get the representation of an element. 
      */
     function retrieve(id) {
@@ -1532,7 +1532,8 @@ var cotonic = cotonic || {};
 
         currentState.data = htmlOrTokens;
         currentState.dirty = true;
-        dirty = true;
+
+        requestRender();
     }
 
     function renderId(id) {
@@ -1562,24 +1563,26 @@ var cotonic = cotonic || {};
             cotonic.idom.patchOuter(elt, s.data);
         }
         s.dirty = false;
+
         return true;
     }
 
     function render() {
-        let updated_ids = [];
+        const updated_ids = [];
 
         for(let i = 0; i < order.length; i++) {
             if (renderId(order[i].id)) {
                 updated_ids.push(order[i].id);
             }
         }
+
         setTimeout(
             function() {
                 for(let i = 0; i < updated_ids.length; i++) {
                     cotonic.broker.publish("model/ui/event/dom-updated/" + updated_ids[i], { id: updated_ids[i] });
                 }
-            }, 0);
-        dirty = false;
+            },
+            0);
     }
 
     function on(topic, msg, event, options) {
@@ -1842,13 +1845,19 @@ var cotonic = cotonic || {};
         }
     }
 
-    function renderLoop(){
-        if (dirty) {
+    function requestRender() {
+        if(animationFrameRequestId) {
+            return;
+        }
+
+        function renderUpdate() {
+            animationFrameRequestId = undefined;
             render();
         }
-        window.requestAnimationFrame(renderLoop);
+
+        animationFrameRequestId = window.requestAnimationFrame(renderUpdate);
     }
-    renderLoop();
+
 
     cotonic.ui = cotonic.ui || {};
 
