@@ -32,6 +32,8 @@ var cotonic = cotonic || {};
 
         connected: false,
         connecting: false,
+        connect_accept: undefined,
+        connect_reject: undefined,
 
         packet_id: 1,
         subscriptions: {},      // topic -> [callback]
@@ -238,9 +240,13 @@ var cotonic = cotonic || {};
                 // model.client_id = data.client_id;
                 model.connected = false;
                 model.connecting = true;
+                model.connect_accept = data.connect_accept;
+                model.connect_reject = data.connect_reject;
+
                 for(let i = 0; i < data.depends.length; i++) {
                     model.depends[ data.depends[i] ] = false;
                 }
+
                 model.provides = data.provides;
                 if(model.name && model.provides.indexOf(model.name) == -1) {
                     model.provides.push(model.name);
@@ -256,17 +262,24 @@ var cotonic = cotonic || {};
                 console.error("Message during disconnect state", data);
             }
         } else if(state.connecting(model)) {
+            const accept = model.connect_accept;
+            const reject = model.connect_reject;
+
+            model.connect_accept = undefined;
+            model.connect_reject = undefined;
+
             if(data.type == "connack" && data.from == "broker") {
                 // assume reason_code == 0
                 // register assigned client identifier?
                 model.connecting = false;
                 model.connected = true;
-                setTimeout(self.connack_received, 0);
+
+                setTimeout(self.connack_received.bind(null, accept), 0);
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
-                if(self.on_error) {
-                    self.on_error("connect_timeout");
+                if(reject) {
+                    reject("connect_timeout");
                 }
             }
         } else {
@@ -419,10 +432,29 @@ var cotonic = cotonic || {};
         // - will_payload
         // - depends        list of states needed to be set before started
         // - provides       list of states provided after started
+        
         options = options || {};
         options.provides = options.provides || [];
         options.depends = options.depends || [];
-        actions.connect(options);
+
+        if(self.on_connect || self.on_error) {
+            if(self.on_connect) console.warn("Using self.on_connect is deprecated. Please use returned promise");
+            if(self.on_error) console.warn("Using on_error is deprecated. Please use returned promise");
+
+            options.connect_accept = self.on_connect;
+            options.connect_reject = self.on_error;
+
+            actions.connect(options);
+        } else {
+            return new Promise(
+                function(accept, reject) {
+                    options.connect_accept = accept;
+                    options.connect_reject = reject;
+                    actions.connect(options);
+                }
+            )
+        }
+
     }
 
     self.subscribe = function(topics, callback, ack_callback) {
@@ -499,7 +531,7 @@ var cotonic = cotonic || {};
         return willRespond;
     }
 
-    self.connack_received = function() {
+    self.connack_received = function(accept) {
         if(Object.keys(model.depends).length > 0) {
             self.subscribe(
                 "model/+model/event/ping",
@@ -520,7 +552,7 @@ var cotonic = cotonic || {};
                     });
             }
         }
-        self.subscribe(model.response_topic_prefix + "+", self.response, self.on_connect);
+        self.subscribe(model.response_topic_prefix + "+", self.response, accept);
     };
 
     self.abs_url = function(path) {

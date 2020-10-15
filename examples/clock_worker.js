@@ -3,7 +3,7 @@
 
 console.log("clock worker here");
 
-self.on_connect = function() {
+function initialize() {
     const date = new Date();
 
     self.publish("model/ui/insert/second", 
@@ -23,7 +23,7 @@ self.on_connect = function() {
     }, 125);
 };
 
-self.connect("clock-worker");
+self.connect().then(initialize);
 
 function second_hand(date) {
     const angle = ((date.getSeconds() * 1000) + date.getMilliseconds()) * 0.006;
