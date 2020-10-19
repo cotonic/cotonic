@@ -22,9 +22,9 @@ var cotonic = cotonic || {};
 
 (function(cotonic) {
 
-    if (navigator.serviceWorker) {
+    if (cotonic.config.start_service_worker && navigator.serviceWorker) {
         navigator.serviceWorker
-            .register('/cotonic-service-worker.js')
+            .register(cotonic.config.service_worker_src)
             .catch(
                 function(error) {
                     switch (error.name) {

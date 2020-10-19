@@ -22,18 +22,24 @@ var cotonic = cotonic || {};
 cotonic.VERSION = "1.0.3";
 
 (function(cotonic) {
+    cotonic.config = cotonic.config || {};
+
+
     /* Get the data-base-worker-src from the script tag that loads
      * cotonic on this page.
      */
-    let BASE_WORKER_SRC = (function() {
+    (function() {
         const currentScript = document.currentScript || (function() {
             const scripts = document.getElementsByTagName("script");
             return scripts[scripts.length - 1];
         })();
+
         if(currentScript && currentScript.getAttribute("data-base-worker-src")) {
-            return currentScript.getAttribute("data-base-worker-src");
+            load_config_defaults({base_worker_src:
+                currentScript.getAttribute("data-base-worker-src")});
         } else {
-            return "/lib/cotonic/cotonic-worker-bundle.js?v=1";
+            load_config_defaults({base_worker_src:
+                "/lib/cotonic/cotonic-worker-bundle.js?v=1"})
         }
     })();
 
@@ -42,10 +48,15 @@ cotonic.VERSION = "1.0.3";
     let receive_handler = null;
 
     /**
-     * Set the base worker src url programatically
+     * Load config defaults into the cotonic.config object. Modules
+     * can call this function to add their default config settings
      */
-    function set_worker_base_src(url) {
-        BASE_WORKER_SRC = url;
+    function load_config_defaults(options) {
+        for(let key in options) {
+            if(!cotonic.config.hasOwnProperty(key)) {
+                cotonic.config[key] = options[key];
+            }
+        }
     }
 
     /**
@@ -73,11 +84,11 @@ cotonic.VERSION = "1.0.3";
      * Start a worker
      */
     function spawn(url, args) {
-        if(!BASE_WORKER_SRC){
+        if(!cotonic.config.base_worker_src){
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
 
-        return spawn_named("", url, BASE_WORKER_SRC, args);
+        return spawn_named("", url, cotonic.config.base_worker_src, args);
     }
 
     /**
@@ -87,7 +98,7 @@ cotonic.VERSION = "1.0.3";
     function spawn_named(name, url, base, args) {
         // TODO: check if the name of the worker is unique (or empty).
         // Return the existing worker_id if already running.
-        base = base || BASE_WORKER_SRC;
+        base = base || cotonic.config.base_worker_src;
         if(!base) {
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
@@ -197,7 +208,7 @@ cotonic.VERSION = "1.0.3";
 
     cleanupSessionStorage();
 
-    cotonic.set_worker_base_src = set_worker_base_src;
+    cotonic.load_config_defaults = load_config_defaults;
 
     cotonic.spawn = spawn;
     cotonic.spawn_named = spawn_named;
