@@ -21,6 +21,9 @@
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+    cotonic.load_config_defaults(
+        {start_service_worker: true,
+         service_worker_src: "/cotonic-service-worker.js"});
 
     if (cotonic.config.start_service_worker && navigator.serviceWorker) {
         navigator.serviceWorker

@@ -283,6 +283,7 @@ pre {
                     <li> - <a href="#model.serviceWorker.post.broadcast.channel">post/broadcast/+channel</a>
                     <li> - <a href="#model.serviceWorker.event.broadcast.channel">event/broadcast/+channel</a>
                     <li> - <a href="#model.serviceWorker.event.ping">event/ping</a>
+                    <li> - <a href="#model.serviceWorker.config"><em>Configuration</em></a>
                 </ul>
 
                 <a class="toc_title" href="#model.localStorage">
@@ -489,20 +490,26 @@ cotonic.receive(function(message, worker_id) {
     console.log("Received", message, "from worker", worker_id);
 });</pre>
             
-            <pre>
-&ltscript data-worker-base-src="/lib/cotonic-worker.js" src="/lib/cotonic.js"&gt;&lt;/script&gt;
-=> Cotonic will use '/lib/cotonic-worker.js' when new workers are spawned.</pre>
-
             <!-- configuration -->
             <p id="cotonic.config">
             <em class="header">Configuration</em>
             <br>
-
+            The page function has one configuration option. 
+            <dl>
+                <dt><tt>base_worker_src</tt></dt>
+                <dd>The url for the base worker runtime for cotonic. This runtime provides
+                    the required communication primitives.</dd>
+            </dl>
             </p>
             <pre>
+&ltscripts&gt;
+    window.cotonic = window.cotonic || {};
+    window.cotonic.config = {
+        base_worker_src: "/base/worker-bundle.js"
+    };
+&lt;/script&gt;
+&ltscripts src="cotonic.js"&gt;&lt;/script&gt;
 </pre>
-
-            
 
             <!-- Broker -->
 
@@ -1559,6 +1566,37 @@ cotonic.broker.subscribe("model/serviceWorker/event/ping",
         console.log("the serviceWorker model is enabled")
    });</pre>
 
+            <p id="model.serviceWorker.config">
+            <strong class="header"><em>Configuration</em></strong>
+            <br>
+            The service worker model has two configuration options.
+            <dl>
+                <dt><tt>start_service_worker</tt></dt>
+                <dd>When set to <tt>false</tt>, the service worker will not start.
+                    <br /><strong>default</strong> <tt>true</tt></dd>
+                <dt><tt>service_worker_src</tt></dt>
+                <dd>The url of the service worker which should be started.
+                    <br/ ><strong>default</strong>
+                    <tt>/cotonic-service-worker.js</tt></dd>
+            </dl>
+            
+            </p>
+
+            <pre>
+&ltscripts&gt;
+    window.cotonic = window.cotonic || {};
+    window.cotonic.config = {
+        start_service_worker: true,
+        service_worker_src: "/cotonic-service-worker.js"
+    };
+&lt;/script&gt;
+&ltscripts src="cotonic.js"&gt;&lt;/script&gt;
+
+</pre>
+
+
+            <!-- localStorage model -->
+
             <h3 id="model.localStorage">model/localStorage</h3>
 
             <p id="model.localStorage.get.key">
@@ -1573,6 +1611,7 @@ cotonic.broker.call("model/localStorage/get/a")
         console.log("a is set to:", m.payload)
     }
 );</pre>
+
 
             <p id="model.localStorage.post.key">
             <strong class="header">post/+key</strong>
@@ -1813,8 +1852,14 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
         </section>
 
         <!-- Load cotonic to be able to play with it in the console -->
-        <script type="text/javascript" src="/cotonic.js"
-                data-base-worker-src="/cotonic-worker.js"></script>
+        <script>
+            window.cotonic = window.cotonic || {};
+            window.cotonic.config = {
+                start_service_worker: false,
+                base_worker_src: "/cotonic-worker.js"
+            }
+        </script>
+        <script type="text/javascript" src="/cotonic.js"></script>
         <script>
             console.log("Welcome to COTONIC. You can try the api in the console");
             console.log("------------------------------------------------------");
