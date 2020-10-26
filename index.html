@@ -833,17 +833,38 @@ cotonic.mqtt_bridge.deleteBridge("test.mosquitto.org:8081");</pre>
 
             <!-- insert -->
             <p id="cotonic.ui.insert">
-            <strong class="header">insert</strong> <code>cotonic.ui.insert(targetId, isInner, initialHTML, [priority])</code>
+            <strong class="header">insert</strong> <code>cotonic.ui.insert(targetId, mode, initialHTML, [priority])</code>
             <br>
             Insert a new html snippet into the user interface composer. The snippet will be stored under the given
             targetId. The element will not be placed in the dom-tree immediately. This will happen when one of the 
-            render functions is called. The isInner boolean flag indicates if only innerHTML of the target element must
-            be updated, or the outerHTML. The optional priority parameter indicates the render order of the elements.
+            render functions is called. Parameter <tt>mode</tt> supports the following options:
+
+            <dl>
+                <dt><tt>inner</tt> or <tt>true</tt></dt>
+                <dd>The html-snippets update the innerHTML of the element.</dd>
+
+                <dt><tt>outer</tt> or <tt>false</tt></dt>
+                <dd>The html-snippets update the outerHTML of the element.</dd>
+
+                <dt><tt>shadow-open</tt> or <tt>shadow</tt></dt>
+                <dd>The html-snippets update the shadow DOM of the element. The element will be the shadow host.
+                    The shadow dom will be put in "open" mode.  When the shadow dow was not yet initialised, it will
+                    be initialised when the element is rendered the first time. Using the shadow-dom makes it possible
+                    to isolate the component from the css rules which are present on the page.
+                </dd>
+
+                <dt><tt>shadow-closed</tt></dt>
+                <dd>Like "shadow-open", with the difference that the shadow dom will be initialised in "closed" mode.</dd>
+            </dl>
+
+            The optional priority parameter indicates the render order of the elements.
             Elements with a high priority are rendedered before lower priorities. This makes it possible to nest
             elements.
             </p>
             <pre>
-cotonic.ui.insert("root", false, "&lt;p&gt;Hello World!&lt;/p&gt;");</pre>
+cotonic.ui.insert("root", "outer", "&lt;p&gt;Hello World!&lt;/p&gt;");
+
+cotonic.ui.insert("shadow-root", "shadow", "&lt;p&gt;Hello World!&lt;/p&gt;"); </pre>
 
             <!-- get -->
             <p id="cotonic.ui.get">
@@ -1777,6 +1798,10 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
 
             <p>
                <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage">sessionStorage API</a>
+            </p>
+
+            <p>
+               <a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM">Using shadow DOM</a>
             </p>
 
             <h3 id="changelog">Change Log</h3>
