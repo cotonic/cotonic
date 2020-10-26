@@ -29,10 +29,16 @@ var cotonic = cotonic || {};
     /**
      * insert element to the prioritized patch list.
      */
-    function insert(id, inner, initialData, priority) {
+    function insert(id, mode, initialData, priority) {
+        if(mode === true) {
+            mode = "inner";
+        } else if(mode === false) {
+            mode = "outer"
+        }
+
         state[id] = {
             id: id,
-            inner: inner,
+            mode: mode,
             data: initialData,
             dirty: true
         };
@@ -119,6 +125,19 @@ var cotonic = cotonic || {};
         return renderElement(elt, id);
     }
 
+    function initializeShadowRoot(elt, mode) {
+        if(elt.shadowRoot)
+            return elt.shadowRoot;
+
+        if(mode === "shadow-closed") {
+            mode = "closed";
+        } else {
+            mode = "open"
+        }
+
+        return elt.attachShadow({mode: mode});
+    }
+
     function renderElement(elt, id) {
         const s = state[id];
 
@@ -128,11 +147,23 @@ var cotonic = cotonic || {};
         }
 
         /* Patch the element */
-        if(s.inner) {
-            cotonic.idom.patchInner(elt, s.data);
-        } else {
-            cotonic.idom.patchOuter(elt, s.data);
+        switch(s.mode) {
+            case "inner": 
+                cotonic.idom.patchInner(elt, s.data);
+                break;
+            case "outer":
+                cotonic.idom.patchOuter(elt, s.data);
+                break;
+            case "shadow":
+            case "shadow-open":
+            case "shadow-closed":
+                if(!s.shadowRoot) {
+                    s.shadowRoot = initializeShadowRoot(elt, s.mode);
+                }
+
+                cotonic.idom.patchInner(s.shadowRoot, s.data);
         }
+
         s.dirty = false;
 
         return true;
@@ -150,10 +181,16 @@ var cotonic = cotonic || {};
         setTimeout(
             function() {
                 for(let i = 0; i < updated_ids.length; i++) {
-                    cotonic.broker.publish("model/ui/event/dom-updated/" + updated_ids[i], { id: updated_ids[i] });
+                    publish("model/ui/event/dom-updated/" + updated_ids[i], { id: updated_ids[i] });
                 }
             },
             0);
+    }
+
+    function publish(topic, message, pubopts) {
+        if(!cotonic.broker) return;
+
+        cotonic.broker.publish(topic, message, pubopts);
     }
 
     function on(topic, msg, event, options) {
@@ -173,10 +210,10 @@ var cotonic = cotonic || {};
             cotonic.broker.call(topic, payload, pubopts)
                 .then( function(resp) {
                     console.log(resp);
-                    cotonic.broker.publish(options.response_topic, resp.payload, pubopts);
+                    publish(options.response_topic, resp.payload, pubopts);
                 });
         } else {
-            cotonic.broker.publish(topic, payload, pubopts);
+            publish(topic, payload, pubopts);
         }
 
         if (typeof event.type == 'string') {
