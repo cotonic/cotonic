@@ -262,6 +262,7 @@ pre {
                     <li> - <a href="#model.location.event.pathname">event/pathname</a>
                     <li> - <a href="#model.location.event.hash">event/hash</a>
                     <li> - <a href="#model.location.event.ping">event/ping</a>
+                    <li> - <a href="#model.location.config"><em>Configuration</em></a>
                 </ul>
 
                 <a class="toc_title" href="#model.ui">
@@ -502,13 +503,13 @@ cotonic.receive(function(message, worker_id) {
             </dl>
             </p>
             <pre>
-&ltscripts&gt;
+&lt;script&gt;
     window.cotonic = window.cotonic || {};
     window.cotonic.config = {
         base_worker_src: "/base/worker-bundle.js"
     };
 &lt;/script&gt;
-&ltscripts src="cotonic.js"&gt;&lt;/script&gt;
+&lt;script src="cotonic.js"&gt;&lt;/script&gt;
 </pre>
 
             <!-- Broker -->
@@ -1417,6 +1418,33 @@ cotonic.broker.subscribe("model/location/event/ping",
     })
 => Logs a message on the console when the location model is enabled.</pre>
 
+            <p id="model.location.config">
+            <strong class="header"><em>Configuration</em></strong>
+            <br>
+            The location has one configuration option.
+            <dl>
+                <dt><tt>pathname_search</tt></dt>
+                <dd>Set to the current search parameters of the page. Alternatively this setting
+                can can be done as <tt>data-cotonic-pathname-search</tt> attribute on the body tag. dd>
+            </dl>
+            
+            </p>
+
+            <pre>
+&ltscript&gt;
+    window.cotonic = window.cotonic || {};
+    window.cotonic.config = {
+        start_service_worker: true,
+        pathname_search: "q=110&amp;j=yes"
+    };
+&lt;/script&gt;
+&ltscript src="cotonic.js"&gt;&lt;/script&gt;
+</pre>
+            <pre>
+&lt;body data-cotonic-pathname-search="q=110&amp;j=yes"&gt;
+...
+&lt;/body&gt;
+</pre>
 
             <h3 id="model.ui">model/ui</h3>
 
@@ -1610,14 +1638,14 @@ cotonic.broker.subscribe("model/serviceWorker/event/ping",
             </p>
 
             <pre>
-&ltscripts&gt;
+&ltscript&gt;
     window.cotonic = window.cotonic || {};
     window.cotonic.config = {
         start_service_worker: true,
         service_worker_src: "/cotonic-service-worker.js"
     };
 &lt;/script&gt;
-&ltscripts src="cotonic.js"&gt;&lt;/script&gt;
+&lt;script src="cotonic.js"&gt;&lt;/script&gt;
 
 </pre>
 
