@@ -134,7 +134,7 @@ var cotonic = cotonic || {};
         } else {
             mode = "open"
         }
-
+        
         return elt.attachShadow({mode: mode});
     }
 
@@ -159,6 +159,7 @@ var cotonic = cotonic || {};
             case "shadow-closed":
                 if(!s.shadowRoot) {
                     s.shadowRoot = initializeShadowRoot(elt, s.mode);
+                    publish("model/ui/event/new-shadow-root/" + id, { id: id, shadow_root: s.shadowRoot });
                 }
 
                 cotonic.idom.patchInner(s.shadowRoot, s.data);

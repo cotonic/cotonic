@@ -48,9 +48,13 @@ var cotonic = cotonic || {};
         document.addEventListener("focus", activity_event, { passive: true });
         setInterval(activity_publish, 10000);
 
-        // Hook into topic-connected event handlers (submit, click, etc.)
-        document.addEventListener("submit", topic_event);
-        document.addEventListener("click", topic_event);
+        initTopicEvents(document);
+    }
+
+    // Hook into topic-connected event handlers (submit, click, etc.)
+    function initTopicEvents(elt) {
+        elt.addEventListener("submit", topic_event);
+        elt.addEventListener("click", topic_event);
     }
 
     // The topic 'model/ui/event/recent-activity' is periodically pinged with a flag
@@ -223,6 +227,13 @@ var cotonic = cotonic || {};
             if ("classes" in msg.payload) {
                 cotonic.ui.updateStateClass(bindings.model, msg.payload.classes);
             }
+        }
+    );
+
+    // Init the topic event listener when new shadow roots are added.
+    cotonic.broker.subscribe("model/ui/event/new-shadow-root/+",
+        function(msg, bindings) {
+            initTopicEvents(msg.payload.shadow_root);
         }
     );
 

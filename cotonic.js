@@ -1574,7 +1574,7 @@ var cotonic = cotonic || {};
         } else {
             mode = "open"
         }
-
+        
         return elt.attachShadow({mode: mode});
     }
 
@@ -1599,6 +1599,7 @@ var cotonic = cotonic || {};
             case "shadow-closed":
                 if(!s.shadowRoot) {
                     s.shadowRoot = initializeShadowRoot(elt, s.mode);
+                    publish("model/ui/event/new-shadow-root/" + id, { id: id, shadow_root: s.shadowRoot });
                 }
 
                 cotonic.idom.patchInner(s.shadowRoot, s.data);
@@ -6145,9 +6146,13 @@ var cotonic = cotonic || {};
         document.addEventListener("focus", activity_event, { passive: true });
         setInterval(activity_publish, 10000);
 
-        // Hook into topic-connected event handlers (submit, click, etc.)
-        document.addEventListener("submit", topic_event);
-        document.addEventListener("click", topic_event);
+        initTopicEvents(document);
+    }
+
+    // Hook into topic-connected event handlers (submit, click, etc.)
+    function initTopicEvents(elt) {
+        elt.addEventListener("submit", topic_event);
+        elt.addEventListener("click", topic_event);
     }
 
     // The topic 'model/ui/event/recent-activity' is periodically pinged with a flag
@@ -6322,6 +6327,16 @@ var cotonic = cotonic || {};
             }
         }
     );
+
+    // Bind to the event where the ui component notifies that new shadow
+    // roots are added.
+    cotonic.broker.subscribe("model/ui/event/new-shadow-root/+",
+        function(msg, bindings) {
+            initTopicEvents(msg.payload.shadow_root);
+            console.log("init-topic-events", msg, bindings);
+        }
+    );
+
 
     init();
 
