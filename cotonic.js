@@ -4383,7 +4383,7 @@ var cotonic = cotonic || {};
          */
         cotonic.broker.subscribe('model/auth/event/auth-changing', function(_msg) {
             if (sessions['origin']) {
-                sessions['origin'].disconnect( 'auth-changing' );
+                sessions['origin'].disconnect( MQTT_RC_DISCONNECT_WITH_WILL );
             }
         });
 
@@ -4499,13 +4499,26 @@ var cotonic = cotonic || {};
             self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self, options );
         };
 
-        this.disconnect = function () {
-            let msg = {
+        this.disconnect = function (reasonCode) {
+            if(reasonCode === undefined) {
+                reasonCode = MQTT_RC_SUCCESS;
+            }
+
+            const msg = {
                 type: 'disconnect',
-                reason_code: MQTT_RC_DISCONNECT_WITH_WILL
+                reason_code: reasonCode
             };
+            
             self.sendMessage(msg);
             self.clientId = '';
+
+            if(reasonCode === MQTT_RC_SUCCESS) {
+                self.connections['ws'].closeConnection();
+                delete self.connections['ws'];
+                publishStatus(false);
+            }
+
+            sessionToBridge({type: "disconnect"});
         };
 
         this.reconnect = function( remote ) {
@@ -4538,7 +4551,6 @@ var cotonic = cotonic || {};
                             session_expiry_interval: MQTT_SESSION_EXPIRY
                         }
                     };
-                    // console.log(connectMessage);
                     self.isSentConnect = self.sendMessage(connectMessage, true);
                     if (self.isSentConnect) {
                         self.isWaitConnack = true;
@@ -4875,7 +4887,6 @@ var cotonic = cotonic || {};
         function handleReceivedMessage ( msg ) {
             var replyMsg;
 
-            // console.log(msg);
             switch (msg.type) {
                 case 'connack':
                     if (!isStateWaitingConnAck()) {
@@ -5166,6 +5177,8 @@ var cotonic = cotonic || {};
     cotonic.mqtt_session.newSession = newSession;
     cotonic.mqtt_session.findSession = findSession;
 
+    cotonic.mqtt_session.sessions = sessions;
+
     init();
 
 }(cotonic));
@@ -5219,6 +5232,15 @@ var cotonic = cotonic || {};
             bridge.connect(remote, options);
         }
         return bridge;
+    };
+
+    var disconnectBridge = function( remote ) {
+        const bridge = findBridge(remote);
+
+        if(!bridge)
+            return;
+
+        return bridge.disconnect();
     };
 
     var findBridge = function( remote ) {
@@ -5281,6 +5303,12 @@ var cotonic = cotonic || {};
             self.session = mqtt_session.newSession(remote, self.local_topics, options);
             publishStatus();
         };
+
+        // Disconnect the session of this bridge.
+        this.disconnect = function() {
+            self.session.disconnect();
+            publishStatus();
+        }
 
         // Relay a publish message to the remote
         function relayOut ( msg, props ) {
@@ -5520,8 +5548,11 @@ var cotonic = cotonic || {};
     // Publish the MQTT bridge functions.
     cotonic.mqtt_bridge = cotonic.mqtt_bridge || {};
     cotonic.mqtt_bridge.newBridge = newBridge;
+    cotonic.mqtt_bridge.disconnectBridge = disconnectBridge;
     cotonic.mqtt_bridge.findBridge = findBridge;
     cotonic.mqtt_bridge.deleteBridge = deleteBridge;
+
+    cotonic.mqtt_bridge.bridges = bridges;
 
 }(cotonic));
 /**
@@ -6328,15 +6359,12 @@ var cotonic = cotonic || {};
         }
     );
 
-    // Bind to the event where the ui component notifies that new shadow
-    // roots are added.
+    // Init the topic event listener when new shadow roots are added.
     cotonic.broker.subscribe("model/ui/event/new-shadow-root/+",
         function(msg, bindings) {
             initTopicEvents(msg.payload.shadow_root);
-            console.log("init-topic-events", msg, bindings);
         }
     );
-
 
     init();
 

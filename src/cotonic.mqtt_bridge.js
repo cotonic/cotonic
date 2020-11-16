@@ -50,6 +50,15 @@ var cotonic = cotonic || {};
         return bridge;
     };
 
+    var disconnectBridge = function( remote ) {
+        const bridge = findBridge(remote);
+
+        if(!bridge)
+            return;
+
+        return bridge.disconnect();
+    };
+
     var findBridge = function( remote ) {
         remote = remote || 'origin';
         return bridges[remote];
@@ -110,6 +119,12 @@ var cotonic = cotonic || {};
             self.session = mqtt_session.newSession(remote, self.local_topics, options);
             publishStatus();
         };
+
+        // Disconnect the session of this bridge.
+        this.disconnect = function() {
+            self.session.disconnect();
+            publishStatus();
+        }
 
         // Relay a publish message to the remote
         function relayOut ( msg, props ) {
@@ -349,7 +364,10 @@ var cotonic = cotonic || {};
     // Publish the MQTT bridge functions.
     cotonic.mqtt_bridge = cotonic.mqtt_bridge || {};
     cotonic.mqtt_bridge.newBridge = newBridge;
+    cotonic.mqtt_bridge.disconnectBridge = disconnectBridge;
     cotonic.mqtt_bridge.findBridge = findBridge;
     cotonic.mqtt_bridge.deleteBridge = deleteBridge;
+
+    cotonic.mqtt_bridge.bridges = bridges;
 
 }(cotonic));
