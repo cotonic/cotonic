@@ -5902,6 +5902,14 @@ var cotonic = cotonic || {};
         }
     });
 
+    cotonic.broker.subscribe("model/location/post/redirect/back", function(msg) {
+        if ('referrer' in document) {
+            window.location = document.referrer;
+        } else {
+            window.history.back();
+        }
+    });
+
     function maybeRespond(result, msg) {
         if(msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, result);
@@ -6328,15 +6336,12 @@ var cotonic = cotonic || {};
         }
     );
 
-    // Bind to the event where the ui component notifies that new shadow
-    // roots are added.
+    // Init the topic event listener when new shadow roots are added.
     cotonic.broker.subscribe("model/ui/event/new-shadow-root/+",
         function(msg, bindings) {
             initTopicEvents(msg.payload.shadow_root);
-            console.log("init-topic-events", msg, bindings);
         }
     );
-
 
     init();
 

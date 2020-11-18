@@ -181,6 +181,14 @@ var cotonic = cotonic || {};
         }
     });
 
+    cotonic.broker.subscribe("model/location/post/redirect/back", function(msg) {
+        if ('referrer' in document) {
+            window.location = document.referrer;
+        } else {
+            window.history.back();
+        }
+    });
+
     function maybeRespond(result, msg) {
         if(msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, result);
