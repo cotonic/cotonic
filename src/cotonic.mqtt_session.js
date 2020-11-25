@@ -69,13 +69,19 @@ var cotonic = cotonic || {};
         return sessions[remote];
     };
 
+    var deleteSession = function( remote ) {
+        remote = remote || 'origin';
+
+        delete sessions[remote];
+    }
+
     function init() {
         /**
          * Called if the authentication on the origin connection is changing
          */
         cotonic.broker.subscribe('model/auth/event/auth-changing', function(_msg) {
             if (sessions['origin']) {
-                sessions['origin'].disconnect( 'auth-changing' );
+                sessions['origin'].disconnect( MQTT_RC_DISCONNECT_WITH_WILL );
             }
         });
 
@@ -191,13 +197,29 @@ var cotonic = cotonic || {};
             self.connections['ws'] = cotonic.mqtt_transport.ws.newTransport( remote, self, options );
         };
 
-        this.disconnect = function () {
-            let msg = {
+        this.disconnect = function (reasonCode) {
+            if(reasonCode === undefined) {
+                reasonCode = MQTT_RC_SUCCESS;
+            }
+
+            const msg = {
                 type: 'disconnect',
-                reason_code: MQTT_RC_DISCONNECT_WITH_WILL
+                reason_code: reasonCode
             };
+            
             self.sendMessage(msg);
             self.clientId = '';
+
+            if(reasonCode === MQTT_RC_SUCCESS) {
+                const transport = self.connections['ws']
+                if(transport) {
+                    transport.closeConnection();
+                    delete self.connections['ws'];
+                    publishStatus(false);
+                }
+            }
+
+            sessionToBridge({type: "disconnect"});
         };
 
         this.reconnect = function( remote ) {
@@ -230,7 +252,6 @@ var cotonic = cotonic || {};
                             session_expiry_interval: MQTT_SESSION_EXPIRY
                         }
                     };
-                    // console.log(connectMessage);
                     self.isSentConnect = self.sendMessage(connectMessage, true);
                     if (self.isSentConnect) {
                         self.isWaitConnack = true;
@@ -567,7 +588,6 @@ var cotonic = cotonic || {};
         function handleReceivedMessage ( msg ) {
             var replyMsg;
 
-            // console.log(msg);
             switch (msg.type) {
                 case 'connack':
                     if (!isStateWaitingConnAck()) {
@@ -857,6 +877,7 @@ var cotonic = cotonic || {};
     cotonic.mqtt_session = cotonic.mqtt_session || {};
     cotonic.mqtt_session.newSession = newSession;
     cotonic.mqtt_session.findSession = findSession;
+    cotonic.mqtt_session.deleteSession = deleteSession;
 
     init();
 

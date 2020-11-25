@@ -40,14 +40,21 @@ var cotonic = cotonic || {};
 
         let bridge = bridges[remote];
 
-        // console.log("new bridge");
-
         if (!bridge) {
             bridge = new mqttBridge();
             bridges[remote] = bridge;
             bridge.connect(remote, options);
         }
         return bridge;
+    };
+
+    var disconnectBridge = function( remote ) {
+        const bridge = findBridge(remote);
+
+        if(!bridge)
+            return;
+
+        return bridge.disconnect();
     };
 
     var findBridge = function( remote ) {
@@ -81,9 +88,9 @@ var cotonic = cotonic || {};
         var wid;
 
         this.connect = function ( remote, options ) {
-            const mqtt_session = options.mqtt_session;
+            self.mqtt_session = options.mqtt_session;
             self.name = (options.name || remote.replace(/[^0-9a-zA-Z\.]/g, '-'));
-            self.remote = self.name;
+            self.remote = remote;
             self.wid = "bridge/" + self.name;
             self.is_ui_state = options.is_ui_state || (remote == 'origin');
             self.local_topics = {
@@ -104,12 +111,19 @@ var cotonic = cotonic || {};
             cotonic.broker.subscribe(self.local_topics.session_in, relayIn);
             cotonic.broker.subscribe(self.local_topics.session_status, sessionStatus);
 
-            // console.log("new session");
-
             // Start a mqtt_session for the remote
-            self.session = mqtt_session.newSession(remote, self.local_topics, options);
+            self.session = self.mqtt_session.newSession(remote, self.local_topics, options);
             publishStatus();
         };
+
+        // Disconnect the session of this bridge.
+        this.disconnect = function() {
+            self.session.disconnect();
+            self.mqtt_session.deleteSession(self.remote);
+            self.session = undefined;
+            self.mqtt_session = undefined;
+            publishStatus();
+        }
 
         // Relay a publish message to the remote
         function relayOut ( msg, props ) {
@@ -332,6 +346,7 @@ var cotonic = cotonic || {};
                     classes: [],
                     status: {
                         'remote': self.remote,
+                        'name': self.name
                     }
                 }
                 if (self.is_connected) {
@@ -349,7 +364,10 @@ var cotonic = cotonic || {};
     // Publish the MQTT bridge functions.
     cotonic.mqtt_bridge = cotonic.mqtt_bridge || {};
     cotonic.mqtt_bridge.newBridge = newBridge;
+    cotonic.mqtt_bridge.disconnectBridge = disconnectBridge;
     cotonic.mqtt_bridge.findBridge = findBridge;
     cotonic.mqtt_bridge.deleteBridge = deleteBridge;
+
+    cotonic.mqtt_bridge.bridges = bridges;
 
 }(cotonic));
