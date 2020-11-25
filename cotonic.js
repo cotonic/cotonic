@@ -5526,8 +5526,6 @@ var cotonic = cotonic || {};
         }
 
         function publishStatus() {
-            console.log("publishStatus", self);
-
             cotonic.broker.publish(
                 self.local_topics.bridge_status,
                 {
