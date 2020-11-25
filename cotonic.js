@@ -6178,7 +6178,8 @@ var cotonic = cotonic || {};
     // Map form submit and element clicks to topics.
 
     function topic_event( event ) {
-        let topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
+        const topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
+        let msg;
 
         if (typeof topic === "string") {
             let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
@@ -6202,7 +6203,7 @@ var cotonic = cotonic || {};
             }
 
             if (event.target.hasAttribute( "data-on"+event.type+"-message" )) {
-                let msg = event.target.getAttribute( "data-on"+event.type+"-message" );
+                msg = event.target.getAttribute( "data-on"+event.type+"-message" );
                 if (typeof msg === "string") {
                     msg = JSON.parse(msg);
                 }
@@ -6213,12 +6214,15 @@ var cotonic = cotonic || {};
                     msg[attrs[i].name] = attrs[i].value;
                 }
             }
+
             let options = {
                 cancel: cancel
             }
+
             if (event.target.hasAttribute( "data-on"+event.type+"-response-topic" )) {
                 options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" )
             }
+
             cotonic.ui.on(topic, msg, event, options);
 
             if(event.type === "submit" && event.target.getAttribute("data-onsubmit-reset") !== null) {
