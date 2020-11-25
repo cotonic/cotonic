@@ -69,6 +69,14 @@ var cotonic = cotonic || {};
         return sessions[remote];
     };
 
+    var deleteSession = function( remote ) {
+        remote = remote || 'origin';
+
+        delete sessions[remote];
+
+        console.log("deleteSession", sessions);
+    }
+
     function init() {
         /**
          * Called if the authentication on the origin connection is changing
@@ -205,9 +213,12 @@ var cotonic = cotonic || {};
             self.clientId = '';
 
             if(reasonCode === MQTT_RC_SUCCESS) {
-                self.connections['ws'].closeConnection();
-                delete self.connections['ws'];
-                publishStatus(false);
+                const transport = self.connections['ws']
+                if(transport) {
+                    transport.closeConnection();
+                    delete self.connections['ws'];
+                    publishStatus(false);
+                }
             }
 
             sessionToBridge({type: "disconnect"});
@@ -868,6 +879,7 @@ var cotonic = cotonic || {};
     cotonic.mqtt_session = cotonic.mqtt_session || {};
     cotonic.mqtt_session.newSession = newSession;
     cotonic.mqtt_session.findSession = findSession;
+    cotonic.mqtt_session.deleteSession = deleteSession;
 
     cotonic.mqtt_session.sessions = sessions;
 
