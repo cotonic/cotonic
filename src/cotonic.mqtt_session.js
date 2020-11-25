@@ -73,8 +73,6 @@ var cotonic = cotonic || {};
         remote = remote || 'origin';
 
         delete sessions[remote];
-
-        console.log("deleteSession", sessions);
     }
 
     function init() {
@@ -880,8 +878,6 @@ var cotonic = cotonic || {};
     cotonic.mqtt_session.newSession = newSession;
     cotonic.mqtt_session.findSession = findSession;
     cotonic.mqtt_session.deleteSession = deleteSession;
-
-    cotonic.mqtt_session.sessions = sessions;
 
     init();
 
