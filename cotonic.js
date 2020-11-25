@@ -4381,8 +4381,6 @@ var cotonic = cotonic || {};
         remote = remote || 'origin';
 
         delete sessions[remote];
-
-        console.log("deleteSession", sessions);
     }
 
     function init() {
@@ -5189,8 +5187,6 @@ var cotonic = cotonic || {};
     cotonic.mqtt_session.findSession = findSession;
     cotonic.mqtt_session.deleteSession = deleteSession;
 
-    cotonic.mqtt_session.sessions = sessions;
-
     init();
 
 }(cotonic));
@@ -5363,11 +5359,9 @@ var cotonic = cotonic || {};
                     cotonic.broker.publish_mqtt_message(relay, { wid: self.wid });
                     break;
                 case 'connack':
-                    console.log("connack relay");
                     sessionConnack(relay);
                     break;
                 case 'disconnect':
-                    console.log("disconnect relay");
                     self.is_connected = false;
                     publishStatus();
                     break;
