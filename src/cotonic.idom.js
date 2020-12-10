@@ -38,11 +38,11 @@ var cotonic = cotonic || {};
             }
 
             if(token.type == "void") {
-                return idom.elementVoid.apply(null,  [token.tag, null, null].concat(token.attributes))
+                return idom.elementVoid.apply(null,  [token.tag, token.key, null].concat(token.attributes))
             }
 
             if(token.type == "open") {
-                return idom.elementOpen.apply(null,  [token.tag, null, null].concat(token.attributes))
+                return idom.elementOpen.apply(null,  [token.tag, token.key, null].concat(token.attributes))
             }
         }
 
