@@ -182,7 +182,10 @@ var cotonic = cotonic || {};
             self.data = new Uint8Array(0);
             self.isConnected = false;
             self.awaitPong = true;
-            self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
+            // EMQ is erronously accepting any protocol starting with `mqtt`, so it accepts
+            // 'mqtt.cotonic.org', which starts the extra handshake.
+            // self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
+            self.socket = new WebSocket( self.remoteUrl, [ "mqtt" ] );
             self.socket.binaryType = 'arraybuffer';
             self.socket.onopen = function() {
                 self.isConnected = true;
