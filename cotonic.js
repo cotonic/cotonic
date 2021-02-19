@@ -72,7 +72,6 @@ cotonic.VERSION = "1.0.4";
 (function(cotonic) {
     cotonic.config = cotonic.config || {};
 
-
     /* Get the data-base-worker-src from the script tag that loads
      * cotonic on this page.
      */
@@ -252,6 +251,10 @@ cotonic.VERSION = "1.0.4";
             result += characters.charAt(Math.floor(Math.random() * len));
         }
         return result;
+    }
+
+    if (!cotonic.ready) {
+        cotonic.ready = new Promise(function(resolve) { cotonic.readyResolve = resolve; });
     }
 
     cleanupSessionStorage();
@@ -2086,6 +2089,7 @@ var cotonic = cotonic || {};
     let clients;
     let root;
     let response_nr = 0;
+    let promised = {};
 
     /* Trie implementation */
     const CHILDREN = 0;
@@ -2323,6 +2327,21 @@ var cotonic = cotonic || {};
         cotonic.send(wid, {type: "pingresp"});
     }
 
+    function send_promised(topics) {
+        for (k in topics) {
+            const pattern = topics[k];
+            for (p in promised) {
+                if (cotonic.mqtt.matches(pattern, p)) {
+                    for (m in promised[p]) {
+                        let msg = promised[p][m];
+                        publish_mqtt_message(msg.message, msg.options);
+                    }
+                    delete promised[p];
+                }
+            }
+        }
+    }
+
     /**
      * Subscribe from main page
      */
@@ -2357,9 +2376,9 @@ var cotonic = cotonic || {};
 
         const result = subscribe_subscriber({type: "page", wid: options.wid, callback: callback}, msg);
         send_retained(result.retained);
+        window.setTimeout(send_promised, 0, topics);
         return result.acks;
     }
-
 
     function subscribe_subscriber(subscription, msg) {
         let bridge_topics = {};
@@ -2489,14 +2508,30 @@ var cotonic = cotonic || {};
     }
 
     function publish_mqtt_message(msg, options) {
+        let isPromised = false;
+
+        if (msg.topic.indexOf("$promised/") == 0) {
+            isPromised = true;
+            msg.topic = msg.topic.substr("$promised/".length);
+        }
+
         const subscriptions = match(msg.topic);
+        const wid = options ? options.wid : undefined;
+        const subscriptionsCount = subscriptions.length;
+
         if(msg.retain) {
             retain(msg);
         }
 
-        const wid = options ? options.wid : undefined;
-        for(let i = 0; i < subscriptions.length; i++) {
-            publish_subscriber(subscriptions[i], msg, wid);
+        if (subscriptionsCount == 0 && isPromised) {
+            if (!promised[msg.topic]) {
+                promised[msg.topic] = [];
+            }
+            promised[msg.topic].push({ message: msg, options: options });
+        } else {
+            for(let i = 0; i < subscriptionsCount; i++) {
+                publish_subscriber(subscriptions[i], msg, wid);
+            }
         }
     }
 
@@ -4175,9 +4210,10 @@ var cotonic = cotonic || {};
             self.data = new Uint8Array(0);
             self.isConnected = false;
             self.awaitPong = true;
-            self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
-            self.socket.binaryType = 'arraybuffer';
-            self.socket.onopen = function() {
+            self.socket = undefined;
+
+            let callOnOpen = false;
+            let onopen = function() {
                 self.isConnected = true;
                 if (self.socket.protocol == 'mqtt.cotonic.org') {
                     // Send ping and await pong to check channel.
@@ -4191,12 +4227,32 @@ var cotonic = cotonic || {};
                     self.session.connected('ws');
                 }
             };
+
+            if (cotonic.bridgeSocket && cotonic.bridgeSocket.url == self.remoteUrl) {
+                switch (cotonic.bridgeSocket.readyState) {
+                    case 0:
+                        self.socket = cotonic.bridgeSocket;
+                        break;
+                    case 1:
+                        callOnOpen = true;
+                        self.socket = cotonic.bridgeSocket;
+                        break;
+                    default:
+                        break;
+                }
+                cotonic.bridgeSocket = undefined;
+            }
+            if (!self.socket) {
+                self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
+            }
+            self.socket.binaryType = 'arraybuffer';
+            self.socket.onopen = onopen;
             self.socket.onclose = function() {
                 handleError('ws-close');
-            };
+            };;
             self.socket.onerror = function() {
                 handleError('ws-error');
-            };
+            };;
             self.socket.onmessage = function( message ) {
                 if (message.data instanceof ArrayBuffer) {
                     var data = new Uint8Array(message.data);
@@ -4213,6 +4269,9 @@ var cotonic = cotonic || {};
                     }
                 }
             };
+            if (callOnOpen) {
+                onopen();
+            }
             return true;
         }
 
@@ -4306,6 +4365,7 @@ var cotonic = cotonic || {};
     cotonic.mqtt_transport.ws.newTransport = newTransport;
 
 }(cotonic));
+
 /**
  * Copyright 2018 The Cotonic Authors. All Rights Reserved.
  *
@@ -6194,6 +6254,13 @@ var cotonic = cotonic || {};
         setInterval(activity_publish, 10000);
 
         initTopicEvents(document);
+
+        if (cotonic.bufferedEvents) {
+            for (e in cotonic.bufferedEvents) {
+                topic_event(cotonic.bufferedEvents[e], true);
+            }
+            cotonic.bufferedEvents = [];
+        }
     }
 
     // Hook into topic-connected event handlers (submit, click, etc.)
@@ -6216,28 +6283,35 @@ var cotonic = cotonic || {};
 
     // Map form submit and element clicks to topics.
 
-    function topic_event( event ) {
+    function topic_event( event, isBuffered ) {
         const topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
         let msg;
 
         if (typeof topic === "string") {
-            let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
+            let cancel = true;
 
-            if (cancel === null) {
-                cancel = true;
+            if (isBuffered) {
+                // Buffered events are already canceled
+                cancel = false;
             } else {
-                switch (cancel) {
-                    case "0":
-                    case "no":
-                    case "false":
-                        cancel = false;
-                        break;
-                    case "preventDefault":
-                        cancel = 'preventDefault';
-                        break;
-                    default:
-                        cancel = true;
-                        break;
+                let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
+
+                if (cancel === null) {
+                    cancel = true;
+                } else {
+                    switch (cancel) {
+                        case "0":
+                        case "no":
+                        case "false":
+                            cancel = false;
+                            break;
+                        case "preventDefault":
+                            cancel = 'preventDefault';
+                            break;
+                        default:
+                            cancel = true;
+                            break;
+                    }
                 }
             }
 
@@ -6851,6 +6925,9 @@ var cotonic = cotonic || {};
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+    // Resolve the cotonic.ready promise
+    cotonic.readyResolve();
+
     // Old fashioned way for IE as it can't handle: new Event('cotonic-ready');
     let event = document.createEvent('Event');
     event.initEvent('cotonic-ready', true, true);

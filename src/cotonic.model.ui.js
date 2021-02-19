@@ -49,6 +49,13 @@ var cotonic = cotonic || {};
         setInterval(activity_publish, 10000);
 
         initTopicEvents(document);
+
+        if (cotonic.bufferedEvents) {
+            for (e in cotonic.bufferedEvents) {
+                topic_event(cotonic.bufferedEvents[e], true);
+            }
+            cotonic.bufferedEvents = [];
+        }
     }
 
     // Hook into topic-connected event handlers (submit, click, etc.)
@@ -71,28 +78,35 @@ var cotonic = cotonic || {};
 
     // Map form submit and element clicks to topics.
 
-    function topic_event( event ) {
+    function topic_event( event, isBuffered ) {
         const topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
         let msg;
 
         if (typeof topic === "string") {
-            let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
+            let cancel = true;
 
-            if (cancel === null) {
-                cancel = true;
+            if (isBuffered) {
+                // Buffered events are already canceled
+                cancel = false;
             } else {
-                switch (cancel) {
-                    case "0":
-                    case "no":
-                    case "false":
-                        cancel = false;
-                        break;
-                    case "preventDefault":
-                        cancel = 'preventDefault';
-                        break;
-                    default:
-                        cancel = true;
-                        break;
+                let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
+
+                if (cancel === null) {
+                    cancel = true;
+                } else {
+                    switch (cancel) {
+                        case "0":
+                        case "no":
+                        case "false":
+                            cancel = false;
+                            break;
+                        case "preventDefault":
+                            cancel = 'preventDefault';
+                            break;
+                        default:
+                            cancel = true;
+                            break;
+                    }
                 }
             }
 

@@ -22,6 +22,7 @@ var cotonic = cotonic || {};
     let clients;
     let root;
     let response_nr = 0;
+    let promised = {};
 
     /* Trie implementation */
     const CHILDREN = 0;
@@ -259,6 +260,21 @@ var cotonic = cotonic || {};
         cotonic.send(wid, {type: "pingresp"});
     }
 
+    function send_promised(topics) {
+        for (k in topics) {
+            const pattern = topics[k];
+            for (p in promised) {
+                if (cotonic.mqtt.matches(pattern, p)) {
+                    for (m in promised[p]) {
+                        let msg = promised[p][m];
+                        publish_mqtt_message(msg.message, msg.options);
+                    }
+                    delete promised[p];
+                }
+            }
+        }
+    }
+
     /**
      * Subscribe from main page
      */
@@ -293,9 +309,9 @@ var cotonic = cotonic || {};
 
         const result = subscribe_subscriber({type: "page", wid: options.wid, callback: callback}, msg);
         send_retained(result.retained);
+        window.setTimeout(send_promised, 0, topics);
         return result.acks;
     }
-
 
     function subscribe_subscriber(subscription, msg) {
         let bridge_topics = {};
@@ -425,14 +441,30 @@ var cotonic = cotonic || {};
     }
 
     function publish_mqtt_message(msg, options) {
+        let isPromised = false;
+
+        if (msg.topic.indexOf("$promised/") == 0) {
+            isPromised = true;
+            msg.topic = msg.topic.substr("$promised/".length);
+        }
+
         const subscriptions = match(msg.topic);
+        const wid = options ? options.wid : undefined;
+        const subscriptionsCount = subscriptions.length;
+
         if(msg.retain) {
             retain(msg);
         }
 
-        const wid = options ? options.wid : undefined;
-        for(let i = 0; i < subscriptions.length; i++) {
-            publish_subscriber(subscriptions[i], msg, wid);
+        if (subscriptionsCount == 0 && isPromised) {
+            if (!promised[msg.topic]) {
+                promised[msg.topic] = [];
+            }
+            promised[msg.topic].push({ message: msg, options: options });
+        } else {
+            for(let i = 0; i < subscriptionsCount; i++) {
+                publish_subscriber(subscriptions[i], msg, wid);
+            }
         }
     }
 

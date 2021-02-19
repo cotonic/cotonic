@@ -182,12 +182,10 @@ var cotonic = cotonic || {};
             self.data = new Uint8Array(0);
             self.isConnected = false;
             self.awaitPong = true;
-            // EMQ is erronously accepting any protocol starting with `mqtt`, so it accepts
-            // 'mqtt.cotonic.org', which starts the extra handshake.
-            // self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
-            self.socket = new WebSocket( self.remoteUrl, [ "mqtt" ] );
-            self.socket.binaryType = 'arraybuffer';
-            self.socket.onopen = function() {
+            self.socket = undefined;
+
+            let callOnOpen = false;
+            let onopen = function() {
                 self.isConnected = true;
                 if (self.socket.protocol == 'mqtt.cotonic.org') {
                     // Send ping and await pong to check channel.
@@ -201,12 +199,35 @@ var cotonic = cotonic || {};
                     self.session.connected('ws');
                 }
             };
+
+            if (cotonic.bridgeSocket && cotonic.bridgeSocket.url == self.remoteUrl) {
+                switch (cotonic.bridgeSocket.readyState) {
+                    case 0:
+                        self.socket = cotonic.bridgeSocket;
+                        break;
+                    case 1:
+                        callOnOpen = true;
+                        self.socket = cotonic.bridgeSocket;
+                        break;
+                    default:
+                        break;
+                }
+                cotonic.bridgeSocket = undefined;
+            }
+            if (!self.socket) {
+                // EMQ is erronously accepting any protocol starting with `mqtt`, so it accepts
+                // 'mqtt.cotonic.org', which starts the extra handshake.
+                // self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
+                self.socket = new WebSocket( self.remoteUrl, [ "mqtt" ] );
+            }
+            self.socket.binaryType = 'arraybuffer';
+            self.socket.onopen = onopen;
             self.socket.onclose = function() {
                 handleError('ws-close');
-            };
+            };;
             self.socket.onerror = function() {
                 handleError('ws-error');
-            };
+            };;
             self.socket.onmessage = function( message ) {
                 if (message.data instanceof ArrayBuffer) {
                     var data = new Uint8Array(message.data);
@@ -223,6 +244,9 @@ var cotonic = cotonic || {};
                     }
                 }
             };
+            if (callOnOpen) {
+                onopen();
+            }
             return true;
         }
 
@@ -316,3 +340,4 @@ var cotonic = cotonic || {};
     cotonic.mqtt_transport.ws.newTransport = newTransport;
 
 }(cotonic));
+
