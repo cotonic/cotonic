@@ -24,7 +24,6 @@ cotonic.VERSION = "1.0.4";
 (function(cotonic) {
     cotonic.config = cotonic.config || {};
 
-
     /* Get the data-base-worker-src from the script tag that loads
      * cotonic on this page.
      */
@@ -204,6 +203,10 @@ cotonic.VERSION = "1.0.4";
             result += characters.charAt(Math.floor(Math.random() * len));
         }
         return result;
+    }
+
+    if (!cotonic.ready) {
+        cotonic.ready = new Promise(function(resolve) { cotonic.readyResolve = resolve; });
     }
 
     cleanupSessionStorage();

@@ -18,6 +18,9 @@
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+    // Resolve the cotonic.ready promise
+    cotonic.readyResolve();
+
     // Old fashioned way for IE as it can't handle: new Event('cotonic-ready');
     let event = document.createEvent('Event');
     event.initEvent('cotonic-ready', true, true);
