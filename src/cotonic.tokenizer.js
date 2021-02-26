@@ -59,12 +59,30 @@ var cotonic = cotonic || {};
          * Token builder functions, this allows one to customize the tokens being generated.
          * Or call incrementalDOM directly during tokenization
          */
+
+        function addKey(token, attributes) {
+            for(let i=0; i < attributes.length; i = i + 2) {
+                if(attributes[i] === "data-idom-id") {
+                    token.key = attributes[i+1];
+                    break;
+                }
+
+                if(attributes[i] === "id") {
+                    token.key = attributes[i+1];
+                }
+            }
+        }
+
         this.elementOpen = function (tag, attributes) {
-            acc.push({ type: "open", tag: tag, attributes: attributes });
+            const t = { type: "open", tag: tag, attributes: attributes };
+            addKey(t, attributes);
+            acc.push(t);
         }
 
         this.elementVoid = function (tag, attributes) {
-            acc.push({ type: "void", tag: tag, attributes: attributes });
+            const t = { type: "void", tag: tag, attributes: attributes };
+            addKey(t, attributes);
+            acc.push(t);
         }
 
         this.elementClose = function (tag) {
