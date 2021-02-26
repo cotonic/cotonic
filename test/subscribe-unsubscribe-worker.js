@@ -7,7 +7,7 @@
 importScripts("/src/polyfill_worker.js",
               "/src/cotonic.mqtt.js");
 
-self.on_connect = function() {
+function init() {
     console.log("connected");
 
     function ab() {
@@ -26,4 +26,4 @@ self.on_connect = function() {
 
 console.log("connecting subscribe-unsubscribe-worker");
 
-self.connect({name: "subscribe-unsubscribe-worker"});
+self.connect({name: "subscribe-unsubscribe-worker"}).then(init);
