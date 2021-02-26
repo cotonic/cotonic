@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2021 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ cotonic.VERSION = "1.0.4";
 
     let next_worker_id = 1;
     let workers = {};
+    let named_worker_ids = {};
     let receive_handler = null;
 
     /**
@@ -86,7 +87,6 @@ cotonic.VERSION = "1.0.4";
         if(!cotonic.config.base_worker_src){
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
-
         return spawn_named("", url, cotonic.config.base_worker_src, args);
     }
 
@@ -95,13 +95,14 @@ cotonic.VERSION = "1.0.4";
      * Use "" or 'undefined' for a nameless worker.
      */
     function spawn_named(name, url, base, args) {
-        // TODO: check if the name of the worker is unique (or empty).
         // Return the existing worker_id if already running.
+        if (name && named_worker_ids[name]) {
+            return named_worker_ids[name];
+        }
         base = base || cotonic.config.base_worker_src;
         if(!base) {
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
-
         const worker_id = next_worker_id++;
         const worker = new Worker(base);
 
@@ -126,7 +127,9 @@ cotonic.VERSION = "1.0.4";
         worker.onerror = error_from_worker.bind(this, worker_id);
 
         workers[worker_id] = worker;
-
+        if (name) {
+            named_worker_ids[name] = worker_id;
+        }
         return worker_id;
     }
 
@@ -164,8 +167,21 @@ cotonic.VERSION = "1.0.4";
         const worker = workers[wid];
         if(!worker) return;
 
+        if (worker.name) {
+            delete named_worker_ids[worker.name];
+        }
         worker.terminate();
         delete workers[wid];
+    }
+
+    /**
+     * Lookup the wid of a named worker
+     */
+    function whereis(name) {
+        if (name && named_worker_ids[name]) {
+            return named_worker_ids[name];
+        }
+        return undefined;
     }
 
     function receive(handler) {
@@ -215,6 +231,7 @@ cotonic.VERSION = "1.0.4";
 
     cotonic.spawn = spawn;
     cotonic.spawn_named = spawn_named;
+    cotonic.whereis = whereis;
     cotonic.exit = exit;
 
     cotonic.send = send;

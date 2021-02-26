@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016-2021 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-    if (!event.request.headers.get('range')) {
+    if (   !event.request.headers.get('range')
+        && !event.request.headers.get('x-no-cache')) {
         // fetch drops the 'range' header, which is used
         // with video and audio requests.
         event.respondWith( fetch( event.request ) );
