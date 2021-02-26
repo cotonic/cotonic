@@ -261,11 +261,11 @@ var cotonic = cotonic || {};
     }
 
     function send_promised(topics) {
-        for (k in topics) {
+        for (let k in topics) {
             const pattern = topics[k];
-            for (p in promised) {
+            for (let p in promised) {
                 if (cotonic.mqtt.matches(pattern, p)) {
-                    for (m in promised[p]) {
+                    for (let m in promised[p]) {
                         let msg = promised[p][m];
                         publish_mqtt_message(msg.message, msg.options);
                     }
