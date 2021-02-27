@@ -243,14 +243,18 @@ var cotonic = cotonic || {};
                 model.connect_accept = data.connect_accept;
                 model.connect_reject = data.connect_reject;
 
+                /*
                 for(let i = 0; i < data.depends.length; i++) {
                     model.depends[ data.depends[i] ] = false;
                 }
 
                 model.provides = data.provides;
+
                 if(model.name && model.provides.indexOf(model.name) == -1) {
                     model.provides.push(model.name);
                 }
+                */
+
                 self.postMessage({
                     type: "connect",
                     client_id: model.client_id,
@@ -417,6 +421,15 @@ var cotonic = cotonic || {};
         });
     }
 
+    actions.when_dependency_provided = function(name) {
+        return new Promise(function(resolve) {
+            model.present({
+                when_dependency_provided: name,
+                resolve: resolve
+            });
+        });
+    }
+
     /** External api */
     self.is_connected = function() {
         return state.connected(model);
@@ -430,31 +443,29 @@ var cotonic = cotonic || {};
         // Valid options:
         // - will_topic
         // - will_payload
+        //
         // - depends        list of states needed to be set before started
         // - provides       list of states provided after started
         
         options = options || {};
-        options.provides = options.provides || [];
-        options.depends = options.depends || [];
 
-        if(self.on_connect || self.on_error) {
-            if(self.on_connect) console.warn("Using self.on_connect is deprecated. Please use returned promise");
-            if(self.on_error) console.warn("Using on_error is deprecated. Please use returned promise");
+        // options.provides = options.provides || [];
+        // options.depends = options.depends || [];
 
-            options.connect_accept = self.on_connect;
-            options.connect_reject = self.on_error;
+        if(self.on_connect)
+            console.error("Using self.on_connect is no longer supported. Please use returned promise");
 
-            actions.connect(options);
-        } else {
-            return new Promise(
-                function(accept, reject) {
-                    options.connect_accept = accept;
-                    options.connect_reject = reject;
-                    actions.connect(options);
-                }
-            )
-        }
+        if(self.on_error)
+            console.error("Using on_error is no longer supported. Please use returned promise");
 
+        return new Promise(
+            function(accept, reject) {
+                options.connect_accept = accept;
+                options.connect_reject = reject;
+
+                actions.connect(options);
+            }
+        )
     }
 
     self.subscribe = function(topics, callback, ack_callback) {
@@ -558,6 +569,21 @@ var cotonic = cotonic || {};
 
     self.abs_url = function(path) {
         return model.location.origin + path;
+    }
+
+    self.whenDependenciesProvided = function(dependencies) {
+        const depPromises = [];
+
+        for(let i=0; i < dependencies.length; i++) {
+            const p =  new Promise(
+                function(resolve, reject) {
+                    actions.when_dependency_provided(name, resolve);
+                }
+            );
+            depPromises.push(p);
+        }
+
+        return Promise.all(depPromises);
     }
 
     function init(e) {

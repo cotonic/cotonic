@@ -73,7 +73,24 @@ QUnit.test("Subscribe and unsubscribe worker",
     }
 );
 
-QUnit.test("On connect before on_depends_provided",
+QUnit.test("Connect resolves",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+                assert.equal(msg.payload, true, "Received unexpected message.");
+                done();
+            }
+        }
+
+        cotonic.broker.subscribe("connect-resolve/+what", handler);
+        cotonic.spawn("/test/workers/connect-resolve.js");
+    }
+);
+
+QUnit.test("Connect deps provided with no dependencies.",
     function(assert) {
         assert.timeout(10000);
         var done = assert.async();
@@ -81,25 +98,19 @@ QUnit.test("On connect before on_depends_provided",
         const called = [];
 
         function handler(msg, bindings) {
-            console.log(msg, bindings);
-
-            if(bindings.what === "called") {
-                called.push(msg.payload.callback);
+            if(bindings.what === "init") {
+                called.push("init");
             }
 
             if(bindings.what === "done") {
-                console.log(called);
-                
-                assert.equal(called[0], "init", "Init should have been called before on_depends_provided");
-                assert.equal(called[1], "on_depends_provided", "on_depends_provided should have been called");
-                assert.equal(called.length, 2, "Too many callbacks triggered");
-
+                assert.equal(called[0], "init", "Init not called.");
                 done();
             }
-            
         }
 
-        cotonic.broker.subscribe("on_connect_on_depends_order/+what", handler);
-        cotonic.spawn("/test/on_connect_on_depends_order_worker.js");
+        cotonic.broker.subscribe("connect-deps/+what", handler);
+        cotonic.spawn("/test/workers/connect-deps.js");
     }
 );
+
+

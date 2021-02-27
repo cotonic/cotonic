@@ -8,10 +8,8 @@ importScripts("/src/polyfill_worker.js",
               "/src/cotonic.mqtt.js");
 
 function init() {
-    console.log("connected");
-
     function ab() {
-        console.log("ab called");
+        // console.log("ab called");
     }
 
     self.subscribe("test/a/b", ab);
@@ -23,7 +21,5 @@ function init() {
     // We are done
     self.publish("subscribe-unsubscribe-worker/done");
 }
-
-console.log("connecting subscribe-unsubscribe-worker");
 
 self.connect({name: "subscribe-unsubscribe-worker"}).then(init);
