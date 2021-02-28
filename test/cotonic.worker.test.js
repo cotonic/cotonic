@@ -113,4 +113,28 @@ QUnit.test("Connect deps provided with no dependencies.",
     }
 );
 
+QUnit.test("Connect provides after connect.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        const called = [];
+
+        function handler(msg, bindings) {
+            if(bindings.what === "init") {
+                called.push("init");
+            }
+
+            if(bindings.what === "done") {
+                assert.equal(called[0], "init", "Init not called.");
+
+                done();
+            }
+        }
+
+        cotonic.broker.subscribe("provides-after-connect/+what", handler);
+        cotonic.spawn("/test/workers/provides-after-connect.js");
+    }
+);
+
 

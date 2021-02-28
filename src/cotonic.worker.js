@@ -39,14 +39,12 @@ var cotonic = cotonic || {};
         subscriptions: {},      // topic -> [callback]
         pending_acks: {},       // sub-id -> callback
 
-        is_depends_provided: false,
-        depends: {},            // name -> boolean
-        provides: [],           // list of strings
-
         selfClose: self.close
     }
 
     model.present = function(data) {
+        console.log("present", data);
+
         /* State changes happen here */
         if(state.connected(model)) {
             // PUBLISH
@@ -227,13 +225,6 @@ var cotonic = cotonic || {};
                 delete model.response_handlers[data.topic];
             }
 
-            // Dependency tracking
-            if(typeof data.is_provided == "boolean") {
-                if(typeof model.depends[ data.provided ] == "boolean") {
-                    model.depends[data.provided] = data.is_provided;
-                }
-            }
-
         } else if(state.disconnected(model)) {
             if(data.type == "connect") {
                 // console.log("worker - connect");
@@ -242,18 +233,6 @@ var cotonic = cotonic || {};
                 model.connecting = true;
                 model.connect_accept = data.connect_accept;
                 model.connect_reject = data.connect_reject;
-
-                /*
-                for(let i = 0; i < data.depends.length; i++) {
-                    model.depends[ data.depends[i] ] = false;
-                }
-
-                model.provides = data.provides;
-
-                if(model.name && model.provides.indexOf(model.name) == -1) {
-                    model.provides.push(model.name);
-                }
-                */
 
                 self.postMessage({
                     type: "connect",
@@ -278,7 +257,7 @@ var cotonic = cotonic || {};
                 model.connecting = false;
                 model.connected = true;
 
-                setTimeout(self.connack_received.bind(null, accept), 0);
+                accept();
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
@@ -288,30 +267,6 @@ var cotonic = cotonic || {};
             }
         } else {
             // TODO
-        }
-
-        if (state.connected(model) && !model.is_depends_provided) {
-            let is_depends_provided = true;
-            for(const dep in model.depends) {
-                is_depends_provided = is_depends_provided && model.depends[dep];
-            }
-            model.is_depends_provided = is_depends_provided;
-            if(is_depends_provided) {
-                if (self.on_depends_provided) {
-                    self.on_depends_provided();
-                }
-                if(model.name) {
-                    self.publish("worker/" + model.name + "/event/ping", "pong", { retain: true });
-                }
-                for(let i=0; i<model.provides.length; i++) {
-                    let p = model.provides[i];
-                    if(p.match(/^model\//)) {
-                        self.publish(p + "/event/ping", "pong", { retain: true });
-                    } else {
-                        self.publish("worker/" + p + "/event/ping", "pong", { retain: true });
-                    }
-                }
-            }
         }
 
         state.render(model);
@@ -430,6 +385,12 @@ var cotonic = cotonic || {};
         });
     }
 
+    actions.provides = function(provides) {
+        model.present({
+            provides: provides
+        });
+    }
+
     /** External api */
     self.is_connected = function() {
         return state.connected(model);
@@ -444,13 +405,7 @@ var cotonic = cotonic || {};
         // - will_topic
         // - will_payload
         //
-        // - depends        list of states needed to be set before started
-        // - provides       list of states provided after started
-        
         options = options || {};
-
-        // options.provides = options.provides || [];
-        // options.depends = options.depends || [];
 
         if(self.on_connect)
             console.error("Using self.on_connect is no longer supported. Please use returned promise");
@@ -542,31 +497,6 @@ var cotonic = cotonic || {};
         return willRespond;
     }
 
-    self.connack_received = function(accept) {
-        if(Object.keys(model.depends).length > 0) {
-            self.subscribe(
-                "model/+model/event/ping",
-                function(msg, bindings) {
-                    actions.model_ping({ model: bindings.model, payload: msg.payload });
-                });
-            self.subscribe(
-                "worker/+worker/event/ping",
-                function(msg, bindings) {
-                    actions.worker_ping({ worker: bindings.worker, payload: msg.payload });
-                });
-
-            if(typeof model.depends["bridge/origin"] == "boolean") {
-                self.subscribe(
-                    "$bridge/origin/status",
-                    function(msg) {
-                        actions.bridge_origin_status(msg.payload);
-                    });
-            }
-        }
-
-        self.subscribe(model.response_topic_prefix + "+", self.response, accept);
-    };
-
     self.abs_url = function(path) {
         return model.location.origin + path;
     }
@@ -584,6 +514,10 @@ var cotonic = cotonic || {};
         }
 
         return Promise.all(depPromises);
+    }
+
+    self.provides = function(provides) {
+        actions.provides(provides);
     }
 
     function init(e) {
