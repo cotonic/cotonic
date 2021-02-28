@@ -39,14 +39,46 @@ var cotonic = cotonic || {};
         subscriptions: {},      // topic -> [callback]
         pending_acks: {},       // sub-id -> callback
 
+        published_provides: [],    // Already published provides.
+        unpublished_provides: [],  // Pending provides, will be published when the worker connects.
+
         selfClose: self.close
     }
 
+
+    model.handleProvides = function(provides) {
+        if(provides === undefined) return;
+
+        const is_connected = state.connected(model);
+
+        for(let i = 0; i < provides.length; i++) {
+            if(is_connected) {
+                model.publishProvide(provides[i]);
+            } else {
+                model.unpublished_provides.push(provides[i]);
+            }
+        }
+    }
+
+    model.publishProvide = function(provide) {
+        if(state.isProvidePublished(provides, model))
+            return;
+
+        if(provide.match(/^model\//)) {
+            self.publish(provide + "/event/ping", "pong", { retain: true });
+        } else {
+            self.publish("worker/" + provide + "/event/ping", "pong", { retain: true });
+        }
+
+        model.published_provides.push(provide);
+    }
+
     model.present = function(data) {
-        console.log("present", data);
+        model.handleProvides(data.provides);
 
         /* State changes happen here */
         if(state.connected(model)) {
+
             // PUBLISH
             if(data.type == "publish") {
                 if(data.from == "client") {
@@ -240,10 +272,7 @@ var cotonic = cotonic || {};
                     will_topic: data.will_topic,
                     will_payload: data.will_payload
                 });
-            } else {
-                // message before connect, queue?
-                console.error("Message during disconnect state", data);
-            }
+            } 
         } else if(state.connecting(model)) {
             const accept = model.connect_accept;
             const reject = model.connect_reject;
@@ -256,6 +285,10 @@ var cotonic = cotonic || {};
                 // register assigned client identifier?
                 model.connecting = false;
                 model.connected = true;
+
+                // Handle already received provides.
+                model.handleProvides(model.unpublished_provides);
+                model.unpublished_provides = [];
 
                 accept();
             } else if(data.connect_timeout) {
@@ -312,6 +345,10 @@ var cotonic = cotonic || {};
 
     state.connecting = function(model) {
         return (!model.connected && model.connecting);
+    }
+
+    state.isProvidePublished = function(provides, model) {
+        return model.published_provides.includes(provides); 
     }
 
     /** Actions */
@@ -385,6 +422,7 @@ var cotonic = cotonic || {};
         });
     }
 
+    /* Indicate to external code that this worker provides some functionality */
     actions.provides = function(provides) {
         model.present({
             provides: provides

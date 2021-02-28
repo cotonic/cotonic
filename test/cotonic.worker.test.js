@@ -113,22 +113,41 @@ QUnit.test("Connect deps provided with no dependencies.",
     }
 );
 
+QUnit.test("Connect provides before connect.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+                cotonic.broker.subscribe("model/provides-before-connect/event/ping",
+                    function(m, a) {
+                        assert.equal(m.payload, "pong", "We should have a pong");
+                        done();
+                    }
+                )
+            }
+        }
+
+        cotonic.broker.subscribe("provides-before-connect/+what", handler);
+        cotonic.spawn("/test/workers/provides-before-connect.js");
+    }
+);
+
 QUnit.test("Connect provides after connect.",
     function(assert) {
         assert.timeout(10000);
         var done = assert.async();
 
-        const called = [];
-
         function handler(msg, bindings) {
-            if(bindings.what === "init") {
-                called.push("init");
-            }
-
             if(bindings.what === "done") {
-                assert.equal(called[0], "init", "Init not called.");
-
-                done();
+                console.log("sub to model/provides-after");
+                cotonic.broker.subscribe("model/provides-after-connect/event/ping",
+                    function(m, a) {
+                        assert.equal(m.payload, "pong", "We should have a pong");
+                        done();
+                    }
+                )
             }
         }
 
