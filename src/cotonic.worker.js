@@ -130,25 +130,22 @@ var cotonic = cotonic || {};
             "model/+model/event/ping",
             function(msg, bindings) {
                 actions.model_ping({ model: bindings.model, payload: msg.payload });
-            });
+            }
+        );
 
         self.subscribe(
             "worker/+worker/event/ping",
             function(msg, bindings) {
                 actions.worker_ping({ worker: bindings.worker, payload: msg.payload });
-            });
+            }
+        );
 
-        /**
-         * [TODO] bridge status tracking
-         */
-
-        // if(typeof model.depends["bridge/origin"] == "boolean") {
-        //    self.subscribe(
-        //        "$bridge/origin/status",
-        //        function(msg) {
-        //            actions.bridge_origin_status(msg.payload);
-        //        });
-        //}
+        self.subscribe(
+            "$bridge/origin/status",
+            function(msg) {
+                actions.bridge_origin_status(msg.payload);
+            }
+        );
 
         model.is_tracking_dependencies = true;
     }
@@ -373,6 +370,11 @@ var cotonic = cotonic || {};
                 model.handleProvides(model.unpublished_provides);
                 model.unpublished_provides = [];
 
+                // Start tracking dependencies when needed
+                if(model.waiting_on_dependency_count > 0 && !model.is_tracking_dependencies) {
+                    model.startTrackingDependencies();
+                }
+
                 accept();
             } else if(data.connect_timeout) {
                 model.connected = false;
@@ -476,7 +478,6 @@ var cotonic = cotonic || {};
     }
 
     actions.model_ping = function(data) {
-        console.log("model is_provided", data);
         model.present({
             is_provided: data.payload === "pong",
             provided: "model/" + data.model
@@ -484,7 +485,6 @@ var cotonic = cotonic || {};
     }
 
     actions.worker_ping = function(data) {
-        console.log("worker is_provided", data);
         model.present({
             is_provided: data.payload === "pong",
             provided: "worker/" + data.worker
