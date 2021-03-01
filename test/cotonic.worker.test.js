@@ -113,6 +113,28 @@ QUnit.test("Connect deps provided with no dependencies.",
     }
 );
 
+QUnit.test("Connect deps provided with model/foo and model/bar deps.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "init") {
+                cotonic.broker.publish("model/foo/event/ping", "pong", { retain: true });
+                cotonic.broker.publish("model/bar/event/ping", "pong", { retain: true });
+            }
+
+            if(bindings.what === "done") {
+                assert.equal(msg.payload, "deps-are-resolved", "The deps are resolved.");
+                done();
+            }
+        }
+
+        cotonic.broker.subscribe("connect-deps-foo-bar/+what", handler);
+        cotonic.spawn("/test/workers/connect-deps-foo-bar.js");
+    }
+);
+
 QUnit.test("Connect provides before connect.",
     function(assert) {
         assert.timeout(10000);

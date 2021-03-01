@@ -39,12 +39,18 @@ var cotonic = cotonic || {};
         subscriptions: {},      // topic -> [callback]
         pending_acks: {},       // sub-id -> callback
 
+        // Tracking functionality provided by the worker
         published_provides: [],    // Already published provides.
         unpublished_provides: [],  // Pending provides, will be published when the worker connects.
 
+        // Tracking dependencies needed by the worker
+        is_tracking_dependencies: false, // Flag to indicate the worker is subscribed to the dep tracking topics.
+        resolved_dependencies: [],       // List with resolved dependencies. 
+        waiting_on_dependency: {},       // name -> list of waiting promises. 
+        waiting_on_dependency_count: 0,  // number of waiting promises. 
+
         selfClose: self.close
     }
-
 
     model.handleProvides = function(provides) {
         if(provides === undefined) return;
@@ -57,6 +63,52 @@ var cotonic = cotonic || {};
             } else {
                 model.unpublished_provides.push(provides[i]);
             }
+        }
+    }
+
+    model.handleWhenDependencyProvided = function(name, resolve) {
+        if(name === undefined)
+            return;
+
+        // Immediately resolve, when the dependency is already provided.
+        if(model.resolved_dependencies.includes(name)) {
+            resolve();
+            return;
+        }
+
+        if(state.connected(model)) {
+            // [TODO] must also be added when we go to the connected state.
+            if(model.waiting_on_dependency_count > 0 && !model.is_tracking_dependencies) {
+                model.startTrackingDependencies();
+            }
+        }
+
+        let waiters = model.waiting_on_dependency[name];
+        if(waiters === undefined) {
+            waiters = [];
+            model.waiting_on_dependency[name] = waiters;
+        }
+
+        waiters.push(resolve);
+        model.waiting_on_dependency_count += 1;
+    }
+    
+    model.handleDependencyProvided = function(name, is_provided) {
+        if(name === undefined || !is_provided)
+            return;
+
+        const waiters = model.waiting_on_dependency[name];
+        if(waiters !== undefined) {
+            for(let i = 0; i < waiters.length; i++) {
+                waiters[i]();
+                model.waiting_on_dependency_count -= 1;
+            }
+
+            delete model.waiting_on_dependency[name];
+        }
+
+        if(!model.resolved_dependencies.includes(name)) {
+            model.resolved_dependencies.push(name);
         }
     }
 
@@ -73,8 +125,39 @@ var cotonic = cotonic || {};
         model.published_provides.push(provide);
     }
 
+    model.startTrackingDependencies = function() {
+        self.subscribe(
+            "model/+model/event/ping",
+            function(msg, bindings) {
+                actions.model_ping({ model: bindings.model, payload: msg.payload });
+            });
+
+        self.subscribe(
+            "worker/+worker/event/ping",
+            function(msg, bindings) {
+                actions.worker_ping({ worker: bindings.worker, payload: msg.payload });
+            });
+
+        /**
+         * [TODO] bridge status tracking
+         */
+
+        // if(typeof model.depends["bridge/origin"] == "boolean") {
+        //    self.subscribe(
+        //        "$bridge/origin/status",
+        //        function(msg) {
+        //            actions.bridge_origin_status(msg.payload);
+        //        });
+        //}
+
+        model.is_tracking_dependencies = true;
+    }
+
     model.present = function(data) {
+
         model.handleProvides(data.provides);
+        model.handleWhenDependencyProvided(data.when_dependency_provided, data.resolve);
+        model.handleDependencyProvided(data.provided, data.is_provided);
 
         /* State changes happen here */
         if(state.connected(model)) {
@@ -393,6 +476,7 @@ var cotonic = cotonic || {};
     }
 
     actions.model_ping = function(data) {
+        console.log("model is_provided", data);
         model.present({
             is_provided: data.payload === "pong",
             provided: "model/" + data.model
@@ -400,6 +484,7 @@ var cotonic = cotonic || {};
     }
 
     actions.worker_ping = function(data) {
+        console.log("worker is_provided", data);
         model.present({
             is_provided: data.payload === "pong",
             provided: "worker/" + data.worker
@@ -539,19 +624,16 @@ var cotonic = cotonic || {};
         return model.location.origin + path;
     }
 
+    self.whenDependencyProvided = function(dependency) {
+        return actions.when_dependency_provided(dependency);
+    }
+
     self.whenDependenciesProvided = function(dependencies) {
-        const depPromises = [];
-
-        for(let i=0; i < dependencies.length; i++) {
-            const p =  new Promise(
-                function(resolve, reject) {
-                    actions.when_dependency_provided(name, resolve);
-                }
-            );
-            depPromises.push(p);
+        const promises = [];
+        for(let i = 0; i < dependencies.length; i++) {
+             promises.push(actions.when_dependency_provided(dependencies[i]));
         }
-
-        return Promise.all(depPromises);
+        return Promise.all(promises);
     }
 
     self.provides = function(provides) {
