@@ -4917,7 +4917,7 @@ var cotonic = cotonic || {};
                 var msg = self.sendQueue[k];
                 switch (msg.type) {
                     case 'publish':
-                        if (msg.qos == 0) {
+                        if (msg.qos > 0) {
                             q.push(msg);
                         }
                         break;
