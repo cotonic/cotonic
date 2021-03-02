@@ -71,4 +71,136 @@ QUnit.test("Subscribe and unsubscribe worker",
         cotonic.broker.subscribe("subscribe-unsubscribe-worker/+what", handler);
         cotonic.spawn("/test/subscribe-unsubscribe-worker.js");
     }
-)
+);
+
+QUnit.test("Connect resolves",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+                assert.equal(msg.payload, true, "Received unexpected message.");
+                done();
+            }
+        }
+
+        cotonic.broker.subscribe("connect-resolve/+what", handler);
+        cotonic.spawn("/test/workers/connect-resolve.js");
+    }
+);
+
+QUnit.test("Connect deps provided with no dependencies.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        const called = [];
+
+        function handler(msg, bindings) {
+            if(bindings.what === "init") {
+                called.push("init");
+            }
+
+            if(bindings.what === "done") {
+                assert.equal(called[0], "init", "Init not called.");
+                done();
+            }
+        }
+
+        cotonic.broker.subscribe("connect-deps/+what", handler);
+        cotonic.spawn("/test/workers/connect-deps.js");
+    }
+);
+
+QUnit.test("Connect deps provided with model/foo and model/bar deps.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "init") {
+                cotonic.broker.publish("model/foo/event/ping", "pong", { retain: true });
+                cotonic.broker.publish("model/bar/event/ping", "pong", { retain: true });
+            }
+
+            if(bindings.what === "done") {
+                assert.equal(msg.payload, "deps-are-resolved", "The deps are resolved.");
+                done();
+            }
+        }
+
+        cotonic.broker.subscribe("connect-deps-foo-bar/+what", handler);
+        cotonic.spawn("/test/workers/connect-deps-foo-bar.js");
+    }
+);
+
+QUnit.test("Connect provides before connect.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+                cotonic.broker.subscribe("model/provides-before-connect/event/ping",
+                    function(m, a) {
+                        assert.equal(m.payload, "pong", "We should have a pong");
+                        done();
+                    }
+                )
+            }
+        }
+
+        cotonic.broker.subscribe("provides-before-connect/+what", handler);
+        cotonic.spawn("/test/workers/provides-before-connect.js");
+    }
+);
+
+QUnit.test("Connect provides after connect.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+                cotonic.broker.subscribe("model/provides-after-connect/event/ping",
+                    function(m, a) {
+                        assert.equal(m.payload, "pong", "We should have a pong");
+                        done();
+                    }
+                )
+            }
+        }
+
+        cotonic.broker.subscribe("provides-after-connect/+what", handler);
+        cotonic.spawn("/test/workers/provides-after-connect.js");
+    }
+);
+
+
+QUnit.test("Connect with provides and deps.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+
+                cotonic.broker.subscribe("model/connect-wait-deps/event/ping",
+                    function(m, a) {
+                        assert.equal(m.payload, "pong", "Check if we got a provides pong.");
+                        done();
+                    }
+                )
+            }
+        }
+
+        cotonic.broker.publish("model/a/event/ping", "pong", { retain: true });
+        cotonic.broker.publish("model/b/event/ping", "pong", { retain: true });
+
+        cotonic.broker.subscribe("connect-wait-deps/+what", handler);
+        cotonic.spawn("/test/workers/connect-wait-deps.js");
+    }
+);
+
+

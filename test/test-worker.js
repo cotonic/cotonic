@@ -8,8 +8,7 @@ console.log("test worker here");
 
 importScripts("/src/cotonic.worker.js");
 
-self.on_connect = function() {
+self.connect({name: "test-worker"}).then(function() {
     console.log("connected");
-}
+})
 
-self.connect({name: "test-worker"});
