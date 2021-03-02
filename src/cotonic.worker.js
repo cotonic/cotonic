@@ -645,7 +645,6 @@ var cotonic = cotonic || {};
         for(let i = 0; i < dependencies.length; i++) {
             promises.push(actions.when_dependency_provided(dependencies[i]));
         }
-
         return Promise.all(promises);
     }
 

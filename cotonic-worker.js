@@ -702,6 +702,7 @@ var cotonic = cotonic || {};
                     });
             }
         }
+        // console.log(model.response_topic_prefix);
         self.subscribe(model.response_topic_prefix + "+", self.response, accept);
     };
 
