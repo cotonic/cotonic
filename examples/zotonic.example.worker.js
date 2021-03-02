@@ -23,7 +23,7 @@
 
 var model = {
     status: 'start',
-    is_depends_provided: false
+    is_connected: false
 };
 
 model.present = function(data) {
@@ -32,8 +32,8 @@ model.present = function(data) {
         model.status = "waiting";
     }
 
-    if (data.is_depends_provided) {
-        model.is_depends_provided = true;
+    if (data.is_connected) {
+        model.is_connected = true;
         if (state.waiting(model)) {
             model.status = 'active';
         }
@@ -122,14 +122,9 @@ state.render = function(model) {
 
 var actions = {} ;
 
-actions.start = function(data) {
-    data = data || {};
-    model.present(data);
-};
-
-actions.dependsProvided = function(_data) {
+actions.start = function() {
     let data = {};
-    data.is_depends_provided = true;
+    data.is_connected = true;
     model.present(data);
 };
 
@@ -138,15 +133,9 @@ actions.dependsProvided = function(_data) {
 // Worker Startup
 //
 
-self.on_connect = function() {
-    actions.start({});
-}
-
-self.on_depends_provided = function() {
-    actions.dependsProvided({});
-}
-
 self.connect({
     depends: [ "bridge/origin", "model/auth", "model/location" ],
     provides: [ ]
-});
+}).then(
+    function() { actions.start(); }
+);
