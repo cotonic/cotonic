@@ -163,7 +163,6 @@ QUnit.test("Connect provides after connect.",
 
         function handler(msg, bindings) {
             if(bindings.what === "done") {
-                console.log("sub to model/provides-after");
                 cotonic.broker.subscribe("model/provides-after-connect/event/ping",
                     function(m, a) {
                         assert.equal(m.payload, "pong", "We should have a pong");
@@ -175,6 +174,32 @@ QUnit.test("Connect provides after connect.",
 
         cotonic.broker.subscribe("provides-after-connect/+what", handler);
         cotonic.spawn("/test/workers/provides-after-connect.js");
+    }
+);
+
+
+QUnit.test("Connect with provides and deps.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+
+                cotonic.broker.subscribe("model/connect-wait-deps/event/ping",
+                    function(m, a) {
+                        assert.equal(m.payload, "pong", "Check if we got a provides pong.");
+                        done();
+                    }
+                )
+            }
+        }
+
+        cotonic.broker.publish("model/a/event/ping", "pong", { retain: true });
+        cotonic.broker.publish("model/b/event/ping", "pong", { retain: true });
+
+        cotonic.broker.subscribe("connect-wait-deps/+what", handler);
+        cotonic.spawn("/test/workers/connect-wait-deps.js");
     }
 );
 

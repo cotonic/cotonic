@@ -151,7 +151,6 @@ var cotonic = cotonic || {};
     }
 
     model.present = function(data) {
-
         model.handleProvides(data.provides);
         model.handleWhenDependencyProvided(data.when_dependency_provided, data.resolve);
         model.handleDependencyProvided(data.provided, data.is_provided);
@@ -527,16 +526,22 @@ var cotonic = cotonic || {};
         // Valid options:
         // - will_topic
         // - will_payload
+        // - provides 
         //
         options = options || {};
 
         if(self.on_connect)
-            console.error("Using self.on_connect is no longer supported. Please use returned promise");
+            console.error("Using self.on_connect is no longer supported. Please use the returned promise");
 
         if(self.on_error)
-            console.error("Using on_error is no longer supported. Please use returned promise");
+            console.error("Using on_error is no longer supported. Please use the returned promise");
 
-        return new Promise(
+        let depsPromise;
+        if(options.depends) {
+            depsPromise = self.whenDependenciesProvided(options.depends);
+        }
+
+        const connectPromise = new Promise(
             function(accept, reject) {
                 options.connect_accept = accept;
                 options.connect_reject = reject;
@@ -544,6 +549,12 @@ var cotonic = cotonic || {};
                 actions.connect(options);
             }
         )
+
+        if(depsPromise)
+            return Promise.all([connectPromise, depsPromise]);
+
+        return connectPromise;
+
     }
 
     self.subscribe = function(topics, callback, ack_callback) {
@@ -630,9 +641,11 @@ var cotonic = cotonic || {};
 
     self.whenDependenciesProvided = function(dependencies) {
         const promises = [];
+
         for(let i = 0; i < dependencies.length; i++) {
-             promises.push(actions.when_dependency_provided(dependencies[i]));
+            promises.push(actions.when_dependency_provided(dependencies[i]));
         }
+
         return Promise.all(promises);
     }
 
