@@ -189,16 +189,125 @@ var cotonic = cotonic || {};
         subscriptions: {},      // topic -> [callback]
         pending_acks: {},       // sub-id -> callback
 
-        is_depends_provided: false,
-        depends: {},            // name -> boolean
-        provides: [],           // list of strings
+        // Tracking functionality provided by the worker
+        published_provides: [],    // Already published provides.
+        unpublished_provides: [],  // Pending provides, will be published when the worker connects.
+
+        // Tracking dependencies needed by the worker
+        is_tracking_dependencies: false, // Flag to indicate the worker is subscribed to the dep tracking topics.
+        resolved_dependencies: [],       // List with resolved dependencies. 
+        waiting_on_dependency: {},       // name -> list of waiting promises. 
+        waiting_on_dependency_count: 0,  // number of waiting promises. 
 
         selfClose: self.close
     }
 
+    model.handleProvides = function(provides) {
+        if(provides === undefined) return;
+
+        const is_connected = state.connected(model);
+
+        for(let i = 0; i < provides.length; i++) {
+            if(is_connected) {
+                model.publishProvide(provides[i]);
+            } else {
+                model.unpublished_provides.push(provides[i]);
+            }
+        }
+    }
+
+    model.handleWhenDependencyProvided = function(name, resolve) {
+        if(name === undefined)
+            return;
+
+        // Immediately resolve, when the dependency is already provided.
+        if(model.resolved_dependencies.includes(name)) {
+            resolve();
+            return;
+        }
+
+        if(state.connected(model)) {
+            // [TODO] must also be added when we go to the connected state.
+            if(model.waiting_on_dependency_count > 0 && !model.is_tracking_dependencies) {
+                model.startTrackingDependencies();
+            }
+        }
+
+        let waiters = model.waiting_on_dependency[name];
+        if(waiters === undefined) {
+            waiters = [];
+            model.waiting_on_dependency[name] = waiters;
+        }
+
+        waiters.push(resolve);
+        model.waiting_on_dependency_count += 1;
+    }
+    
+    model.handleDependencyProvided = function(name, is_provided) {
+        if(name === undefined || !is_provided)
+            return;
+
+        const waiters = model.waiting_on_dependency[name];
+        if(waiters !== undefined) {
+            for(let i = 0; i < waiters.length; i++) {
+                waiters[i]();
+                model.waiting_on_dependency_count -= 1;
+            }
+
+            delete model.waiting_on_dependency[name];
+        }
+
+        if(!model.resolved_dependencies.includes(name)) {
+            model.resolved_dependencies.push(name);
+        }
+    }
+
+    model.publishProvide = function(provide) {
+        if(state.isProvidePublished(provides, model))
+            return;
+
+        if(provide.match(/^model\//)) {
+            self.publish(provide + "/event/ping", "pong", { retain: true });
+        } else {
+            self.publish("worker/" + provide + "/event/ping", "pong", { retain: true });
+        }
+
+        model.published_provides.push(provide);
+    }
+
+    model.startTrackingDependencies = function() {
+        self.subscribe(
+            "model/+model/event/ping",
+            function(msg, bindings) {
+                actions.model_ping({ model: bindings.model, payload: msg.payload });
+            }
+        );
+
+        self.subscribe(
+            "worker/+worker/event/ping",
+            function(msg, bindings) {
+                actions.worker_ping({ worker: bindings.worker, payload: msg.payload });
+            }
+        );
+
+        self.subscribe(
+            "$bridge/origin/status",
+            function(msg) {
+                actions.bridge_origin_status(msg.payload);
+            }
+        );
+
+        model.is_tracking_dependencies = true;
+    }
+
     model.present = function(data) {
+        model.handleProvides(data.provides);
+        model.handleWhenDependencyProvided(data.when_dependency_provided, data.resolve);
+        model.handleDependencyProvided(data.provided, data.is_provided);
+
         /* State changes happen here */
         if(state.connected(model)) {
+
             // PUBLISH
             if(data.type == "publish") {
                 if(data.from == "client") {
@@ -377,13 +486,6 @@ var cotonic = cotonic || {};
                 delete model.response_handlers[data.topic];
             }
 
-            // Dependency tracking
-            if(typeof data.is_provided == "boolean") {
-                if(typeof model.depends[ data.provided ] == "boolean") {
-                    model.depends[data.provided] = data.is_provided;
-                }
-            }
-
         } else if(state.disconnected(model)) {
             if(data.type == "connect") {
                 // console.log("worker - connect");
@@ -393,24 +495,13 @@ var cotonic = cotonic || {};
                 model.connect_accept = data.connect_accept;
                 model.connect_reject = data.connect_reject;
 
-                for(let i = 0; i < data.depends.length; i++) {
-                    model.depends[ data.depends[i] ] = false;
-                }
-
-                model.provides = data.provides;
-                if(model.name && model.provides.indexOf(model.name) == -1) {
-                    model.provides.push(model.name);
-                }
                 self.postMessage({
                     type: "connect",
                     client_id: model.client_id,
                     will_topic: data.will_topic,
                     will_payload: data.will_payload
                 });
-            } else {
-                // message before connect, queue?
-                console.error("Message during disconnect state", data);
-            }
+            } 
         } else if(state.connecting(model)) {
             const accept = model.connect_accept;
             const reject = model.connect_reject;
@@ -424,7 +515,15 @@ var cotonic = cotonic || {};
                 model.connecting = false;
                 model.connected = true;
 
-                setTimeout(self.connack_received.bind(null, accept), 0);
+                // Handle already received provides.
+                model.handleProvides(model.unpublished_provides);
+                model.unpublished_provides = [];
+
+                // Start tracking dependencies when needed
+                if(model.waiting_on_dependency_count > 0 && !model.is_tracking_dependencies) {
+                    model.startTrackingDependencies();
+                }
+                self.subscribe(model.response_topic_prefix + "+", self.response, accept);
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
@@ -434,30 +533,6 @@ var cotonic = cotonic || {};
             }
         } else {
             // TODO
-        }
-
-        if (state.connected(model) && !model.is_depends_provided) {
-            let is_depends_provided = true;
-            for(const dep in model.depends) {
-                is_depends_provided = is_depends_provided && model.depends[dep];
-            }
-            model.is_depends_provided = is_depends_provided;
-            if(is_depends_provided) {
-                if (self.on_depends_provided) {
-                    self.on_depends_provided();
-                }
-                if(model.name) {
-                    self.publish("worker/" + model.name + "/event/ping", "pong", { retain: true });
-                }
-                for(let i=0; i<model.provides.length; i++) {
-                    let p = model.provides[i];
-                    if(p.match(/^model\//)) {
-                        self.publish(p + "/event/ping", "pong", { retain: true });
-                    } else {
-                        self.publish("worker/" + p + "/event/ping", "pong", { retain: true });
-                    }
-                }
-            }
         }
 
         state.render(model);
@@ -503,6 +578,10 @@ var cotonic = cotonic || {};
 
     state.connecting = function(model) {
         return (!model.connected && model.connecting);
+    }
+
+    state.isProvidePublished = function(provides, model) {
+        return model.published_provides.includes(provides); 
     }
 
     /** Actions */
@@ -567,6 +646,22 @@ var cotonic = cotonic || {};
         });
     }
 
+    actions.when_dependency_provided = function(name) {
+        return new Promise(function(resolve) {
+            model.present({
+                when_dependency_provided: name,
+                resolve: resolve
+            });
+        });
+    }
+
+    /* Indicate to external code that this worker provides some functionality */
+    actions.provides = function(provides) {
+        model.present({
+            provides: provides
+        });
+    }
+
     /** External api */
     self.is_connected = function() {
         return state.connected(model);
@@ -580,30 +675,34 @@ var cotonic = cotonic || {};
         // Valid options:
         // - will_topic
         // - will_payload
-        // - depends        list of states needed to be set before started
-        // - provides       list of states provided after started
-        
+        // - provides 
+        //
         options = options || {};
-        options.provides = options.provides || [];
-        options.depends = options.depends || [];
 
-        if(self.on_connect || self.on_error) {
-            if(self.on_connect) console.warn("Using self.on_connect is deprecated. Please use returned promise");
-            if(self.on_error) console.warn("Using on_error is deprecated. Please use returned promise");
+        if(self.on_connect)
+            console.error("Using self.on_connect is no longer supported. Please use the returned promise");
 
-            options.connect_accept = self.on_connect;
-            options.connect_reject = self.on_error;
+        if(self.on_error)
+            console.error("Using on_error is no longer supported. Please use the returned promise");
 
-            actions.connect(options);
-        } else {
-            return new Promise(
-                function(accept, reject) {
-                    options.connect_accept = accept;
-                    options.connect_reject = reject;
-                    actions.connect(options);
-                }
-            )
+        let depsPromise;
+        if(options.depends) {
+            depsPromise = self.whenDependenciesProvided(options.depends);
         }
+
+        const connectPromise = new Promise(
+            function(accept, reject) {
+                options.connect_accept = accept;
+                options.connect_reject = reject;
+
+                actions.connect(options);
+            }
+        )
+
+        if(depsPromise)
+            return Promise.all([connectPromise, depsPromise]);
+
+        return connectPromise;
 
     }
 
@@ -659,7 +758,7 @@ var cotonic = cotonic || {};
                 let response_topic = model.response_topic_prefix + model.response_topic_nr;
                 let timer = setTimeout(function() {
                                 actions.remove_response_handler({ topic: response_topic });
-                                let reason = new Error("Timeout waiting for response on " + topic);
+                                let reason = new Error("Worker timeout waiting for response on " + topic);
                                 reject(reason);
                             }, timeout);
                 let handler = {
@@ -681,33 +780,25 @@ var cotonic = cotonic || {};
         return willRespond;
     }
 
-    self.connack_received = function(accept) {
-        if(Object.keys(model.depends).length > 0) {
-            self.subscribe(
-                "model/+model/event/ping",
-                function(msg, bindings) {
-                    actions.model_ping({ model: bindings.model, payload: msg.payload });
-                });
-            self.subscribe(
-                "worker/+worker/event/ping",
-                function(msg, bindings) {
-                    actions.worker_ping({ worker: bindings.worker, payload: msg.payload });
-                });
-
-            if(typeof model.depends["bridge/origin"] == "boolean") {
-                self.subscribe(
-                    "$bridge/origin/status",
-                    function(msg) {
-                        actions.bridge_origin_status(msg.payload);
-                    });
-            }
-        }
-        // console.log(model.response_topic_prefix);
-        self.subscribe(model.response_topic_prefix + "+", self.response, accept);
-    };
-
     self.abs_url = function(path) {
         return model.location.origin + path;
+    }
+
+    self.whenDependencyProvided = function(dependency) {
+        return actions.when_dependency_provided(dependency);
+    }
+
+    self.whenDependenciesProvided = function(dependencies) {
+        const promises = [];
+
+        for(let i = 0; i < dependencies.length; i++) {
+            promises.push(actions.when_dependency_provided(dependencies[i]));
+        }
+        return Promise.all(promises);
+    }
+
+    self.provides = function(provides) {
+        actions.provides(provides);
     }
 
     function init(e) {

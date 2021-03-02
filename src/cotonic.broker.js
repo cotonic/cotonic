@@ -552,7 +552,7 @@ var cotonic = cotonic || {};
         options = options || {};
         payload = payload || null;
         let timeout = options.timeout || 15000;
-        var willRespond = new Promise(
+        let willRespond = new Promise(
             function(resolve, reject) {
                 let resp_topic = response_topic();
                 let wid = "wid-" + Math.random();

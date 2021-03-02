@@ -152,7 +152,7 @@ cotonic.VERSION = "1.0.4";
             throw("Can't spawn worker, no data-base-worker-src attribute set.");
         }
         const worker_id = next_worker_id++;
-        const worker = new Worker(base);
+        const worker = new Worker(base, {name: name?name:worker_id.toString()});
 
         worker.postMessage(["init", {
             url: ensure_hostname(url),
@@ -2655,7 +2655,7 @@ var cotonic = cotonic || {};
         options = options || {};
         payload = payload || null;
         let timeout = options.timeout || 15000;
-        var willRespond = new Promise(
+        let willRespond = new Promise(
             function(resolve, reject) {
                 let resp_topic = response_topic();
                 let wid = "wid-" + Math.random();

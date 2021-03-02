@@ -373,8 +373,7 @@ var cotonic = cotonic || {};
                 if(model.waiting_on_dependency_count > 0 && !model.is_tracking_dependencies) {
                     model.startTrackingDependencies();
                 }
-
-                accept();
+                self.subscribe(model.response_topic_prefix + "+", self.response, accept);
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
@@ -609,7 +608,7 @@ var cotonic = cotonic || {};
                 let response_topic = model.response_topic_prefix + model.response_topic_nr;
                 let timer = setTimeout(function() {
                                 actions.remove_response_handler({ topic: response_topic });
-                                let reason = new Error("Timeout waiting for response on " + topic);
+                                let reason = new Error("Worker timeout waiting for response on " + topic);
                                 reject(reason);
                             }, timeout);
                 let handler = {
