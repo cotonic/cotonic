@@ -325,11 +325,11 @@ var cotonic = cotonic || {};
             }
 
             if(token.type == "void") {
-                return idom.elementVoid.apply(null,  [token.tag, null, null].concat(token.attributes))
+                return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes))
             }
 
             if(token.type == "open") {
-                return idom.elementOpen.apply(null,  [token.tag, null, null].concat(token.attributes))
+                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes))
             }
         }
 
@@ -354,7 +354,8 @@ var cotonic = cotonic || {};
 
     cotonic.idom.patchInner = patch.bind(this, idom.patch);
     cotonic.idom.patchOuter = patch.bind(this, idom.patchOuter);
-}(cotonic, IncrementalDOM));/**
+}(cotonic, IncrementalDOM));
+/**
  * Copyright 2016, 2017 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -415,12 +416,30 @@ var cotonic = cotonic || {};
          * Token builder functions, this allows one to customize the tokens being generated.
          * Or call incrementalDOM directly during tokenization
          */
+
+        function addKey(token, attributes) {
+            for(let i=0; i < attributes.length; i = i + 2) {
+                if(attributes[i] === "data-idom-id") {
+                    token.key = attributes[i+1];
+                    break;
+                }
+
+                if(attributes[i] === "id") {
+                    token.key = attributes[i+1];
+                }
+            }
+        }
+
         this.elementOpen = function (tag, attributes) {
-            acc.push({ type: "open", tag: tag, attributes: attributes });
+            const t = { type: "open", tag: tag, attributes: attributes };
+            addKey(t, attributes);
+            acc.push(t);
         }
 
         this.elementVoid = function (tag, attributes) {
-            acc.push({ type: "void", tag: tag, attributes: attributes });
+            const t = { type: "void", tag: tag, attributes: attributes };
+            addKey(t, attributes);
+            acc.push(t);
         }
 
         this.elementClose = function (tag) {
@@ -2345,11 +2364,11 @@ var cotonic = cotonic || {};
     }
 
     function send_promised(topics) {
-        for (k in topics) {
+        for (let k in topics) {
             const pattern = topics[k];
-            for (p in promised) {
+            for (let p in promised) {
                 if (cotonic.mqtt.matches(pattern, p)) {
-                    for (m in promised[p]) {
+                    for (let m in promised[p]) {
                         let msg = promised[p][m];
                         publish_mqtt_message(msg.message, msg.options);
                     }
