@@ -1521,9 +1521,9 @@ self.publish("model/ui/delete/root");
             </p>
             <pre>
 // worker example
-self.subscribe("model/ui/event/user-activity",
+self.subscribe("model/ui/event/recent-activity",
     function(m) {
-        const a = m.payload.is_active:"active":"not active";
+        const a = m.payload.is_active?"active":"not active";
         console.log("The user is: ", a);
     }
 ); 
