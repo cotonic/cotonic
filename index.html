@@ -238,7 +238,6 @@ pre {
                     <li> - <a href="#worker.worker_init">worker_init</a>
                 </ul>
 
-
                 <a class="toc_title" href="#models">
                     Models
                 </a>
@@ -275,15 +274,23 @@ pre {
                     <li> - <a href="#model.ui.insert.key">insert/+key</a>
                     <li> - <a href="#model.ui.update.key">update/+key</a>
                     <li> - <a href="#model.ui.delete.key">delete/+key</a>
+                    <li> - <a href="#model.ui.get.key">get/+key</a>
+
+                    <li> - <a href="#model.ui.render">render</a>
+                    <li> - <a href="#model.ui.render.key">render/+key</a>
+                    <li> - <a href="#model.ui.render-template.key">render-template/+key</a>
+
                     <li> - <a href="#model.ui.event.recent-activity">event/recent-activity</a>
                     <li> - <a href="#model.ui.event.dom-updated">event/dom-updated/+key</a>
                     <li> - <a href="#model.ui.event.ui-status">event/ui-status</a>
+                    <li> - <a href="#model.ui.event.new-shadow-root.key">event/new-shadow-root/+key</a>
                 </ul>
 
                 <a class="toc_title" href="#model.autofocus">
                     model/autofocus 
                 </a>
                 <ul class="toc_section">
+                    <li> - <a href="#model.autofocus.event.focus.key">event/focus/+key</a>
                 </ul>
 
                 <a class="toc_title" href="#model.serviceWorker">
@@ -1543,6 +1550,36 @@ self.publish("model/ui/delete/root");
 => The root element is removed from the composer, but
    stays in the DOM tree.</pre>
 
+            <p id="model.ui.render-template.key">
+            <strong class="header">render-template/+key</strong>
+            <br>
+            Request rendering a template with parameters. A rendering engine must be 
+            available to respond to the render requests. The render result will update 
+            <tt>key</tt> element. Note: The element must first be inserted with
+            <a href="#cotonic.ui.insert">cotonic.ui.insert</tt></a> or
+            <a href="#model.ui.insert.key"><tt>model/ui/insert/+key</tt></a>.
+            The payload of the render request should be:
+            <dl>
+                <dt><tt>topic</tt></dt>
+                <dd>[TODO]</dd>
+
+                <dt><tt>data</tt></dt>
+                <dd>[TODO]</dd>
+
+                <dt><tt>dedup</tt></dt>
+                <dd>[TODO]</dd>
+            </dl>
+            </p>
+            <pre>
+self.publish("model/ui/render-template/root",
+             {topic: "bridge/origin/model/template/get/render/hello.tpl",
+              dedup: true,
+              data: {name: "Bob"}
+             });
+==> The render engine listening at bridge/origin/model/template receives
+    a render request. The render result will be placed in element root.</pre>
+
+
             <p id="model.ui.event.recent-activity">
             <strong class="header">event/recent-activity</strong>
             <br>
@@ -1577,14 +1614,47 @@ cotonic.broker.subscribe("model/ui/event/dom-updated/message-container",
 => Scrolls the messages bubble container to the bottom.
             </pre>
 
-
+            <!-- ui status -->
 
             <p id="model.ui.event.ui-status">
-            <strong class="header">event/ui-status</strong>
+            <strong class="header">event/+model/ui-status</strong>
             <br>
+            Events send to this topic will result in class and data attributes set on
+            the <tt>html</tt> of the document. The <tt>model</tt> attribute is used in the
+            data and class attributes. This can be used to signal the state of a model to 
+            the document. This can be used to signal the state of cotonic workers or models to 
+            other ui libraries like <a href="https://elm-lang.org">Elm</a> or
+            <a href="https://reactjs.org">React</a>. The payload of the message:
+            <dl>
+                <dt><tt>status</tt></dt>
+                <dd>Object with model statuses. Will be set as data attributes.</dd>
+                <dt><tt>classes</tt></dt>
+                <dd>List with model statuses. Will be set as classes.</dd>
+            </dl>
+            </p>
+            <pre>
+self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
+                                             classes: ["anonymous"]});
+==> model.ui adds clas "ui-state-auth-anonymous" and
+    adds data-ui-state-auth-auth="anonymous" to the html element of the document.</pre>
+
+            <!-- autofocus model -->
+            <h3 id="model.autofocus">model/autofocus</h3>
+
+            <p>
+            The autofocus model looks for elements with the <tt>autofocus</tt> attribute
+            which are just added to the dom tree. When this happens, it auto focusus them.
+            The reason for this is is that the <tt>autofocus</tt> attribute only works
+            during document render stage, but it is very handy to have available all the
+            time.
+            </p>
+
+            <p id="model.autofocus.event.focus.key">
+            <strong class="header">event/focus/+key</strong>
+            <br>
+            The element with <tt>key</tt> has just been focussed.
             </p>
             <pre></pre>
-
 
 
             <!-- serviceWorker model -->
