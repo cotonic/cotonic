@@ -3,7 +3,7 @@
 
 let my_name;
 
-function worker_init(name) {
+function on_init(name) {
     my_name = name;
 }
 
