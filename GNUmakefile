@@ -48,21 +48,15 @@ endif
 
 ## Deps
 
-lib: lib/incremental-dom.js lib/incremental-dom.js.map lib/incremental-dom-min.js lib/incremental-dom-min.js.map
+lib: lib/incremental-dom.js lib/incremental-dom-min.js
 
 lib/incremental-dom.js:
 	$(call download, "$@", \
-		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom.js")
-lib/incremental-dom.js.map:
-	$(call download, "$@", \
-		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom.js.map")
+	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom.js")
 
 lib/incremental-dom-min.js:
 	$(call download, "$@", \
-		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom-min.js")
-lib/incremental-dom-min.js.map:
-	$(call download, "$@", \
-		"https://ajax.googleapis.com/ajax/libs/incrementaldom/0.5.1/incremental-dom-min.js.map")
+	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom-min.js")
 
 ## Things needed for testing.
 
