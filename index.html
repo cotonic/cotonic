@@ -225,14 +225,17 @@ pre {
                     <li> - <a href="#worker.disconnect">disconnect</a>
                     <li> - <a href="#worker.is_connected">is_connected</a>
 
+                    <li> - <a href="#worker.whenDependencyProvided">whenDependencyProvided</a>
+                    <li> - <a href="#worker.whenDependenciesProvided">whenDependenciesProvided</a>
+                    <li> - <a href="#worker.provides">provides</a>
+
                     <li> - <a href="#worker.subscribe">subscribe</a>
                     <li> - <a href="#worker.unsubscribe">unsubscribe</a>
                     <li> - <a href="#worker.publish">publish</a>
                     <li> - <a href="#worker.call">call</a>
 
+
                     <li> - <a href="#worker.worker_init">worker_init</a>
-                    <li> - <a href="#worker.on_connect">on_connect</a>
-                    <li> - <a href="#worker.on_error">on_error</a>
                 </ul>
 
 
@@ -275,6 +278,12 @@ pre {
                     <li> - <a href="#model.ui.event.recent-activity">event/recent-activity</a>
                     <li> - <a href="#model.ui.event.dom-updated">event/dom-updated/+key</a>
                     <li> - <a href="#model.ui.event.ui-status">event/ui-status</a>
+                </ul>
+
+                <a class="toc_title" href="#model.autofocus">
+                    model/autofocus 
+                </a>
+                <ul class="toc_section">
                 </ul>
 
                 <a class="toc_title" href="#model.serviceWorker">
@@ -1057,7 +1066,6 @@ cotonic.tokenizer.charref("amp");
 => "&"</pre>
 
 
-
             <h2 id="worker.functions">Worker Functions</h2>
             <p>
             Workers are stand alone processes. They have no shared data with the page, nor
@@ -1069,15 +1077,46 @@ cotonic.tokenizer.charref("amp");
 
             <!-- worker connect -->
             <p id="worker.connect">
-            <strong class="header">connect</strong> <code>self.connect()</code>
+            <strong class="header">connect</strong> <code>self.connect(connectOptions)</code>
             <br>
-            Connect the worker to the page. When this step succeeds the
-            <a href="#worker.on_connect"><tt>on_connect</tt></a> is called.
-            <a href="#worker.on_error"><tt>on_error</tt></a> when it fails.
+            Connect the worker to the page. Returns a promise. This promise is resolved when 
+            the worker is connected to the page. When is indicated in the <tt>connectOptions</tt> that
+            the worker depends on other services the promise is resolved after those dependencies 
+            have become available.
+
+            Parameter <tt>connectOptions</tt> supports the following options:
+
+            <dl>
+                <dt><tt>name</tt></dt>
+                <dd>The name of the worker.</dd>
+
+                <dt><tt>depends</tt></dt>
+                <dd>A list of dependencies on which the worker needs. The connect promise will be 
+                resolved, after the dependencies become available.</dd>
+
+                <dt><tt>provides</tt></dt>
+                <dd>A list of dependencies which is provided by this worker. The are published after
+                the worker is connected.</dd>
+            </dl>
+
             </p>
             <pre>
-self.connect();
+self.connect().then(
+    function() {
+        console.log("Connected");
+    }
+);
 => The worker is being connected to the page.</pre>
+            <pre>
+self.connect({depends: ["model/ui",
+                        "model/serviceWorker",
+                        "worker/abc"]}).then(
+    function() {
+        console.log("Connected, the requested dependencies are available, and worker abc is started.");
+    }
+);
+=> The worker is being connected to the page, and the requested dependencies are available.</pre>
+
 
             <!-- worker disconnect -->
             <p id="worker.disconnect">
@@ -1100,6 +1139,23 @@ self.disconnect();
             <pre>
 self.is_connected();
 => true</pre>
+
+            <!-- worker whenDependencyProvided -->
+            <p id="worker.whenDependencyProvided">
+            <strong class="header">whenDependencyProvided</strong> <code>self.whenDependencyProvided(dependency)</code>
+            <br>
+            Returns a Promise which is resolved when the external dependency is provided.
+            </p>
+            <pre>
+self.whenDependencyProvided("model/ui").then(
+    function() {
+        worker.publish("model/ui/insert/foo", {..});
+    });
+</pre>
+            <!-- worker whenDependenciesProvided -->
+
+            <!-- worker provides -->
+
 
             <!-- worker subscribe -->
             <p id="worker.subscribe">
@@ -1175,30 +1231,6 @@ let targetId = null;
 self.worker_init = function(n, id) {
     amount = n; 
     targetId = id;
-}</pre>
-
-            <!-- worker on_connect -->
-            <p id="worker.on_connect">
-            <strong class="header">on_connect</strong> <code>self.on_connect</code>
-            <br>
-            The <tt>on_connect</tt> callback will be called after a successfull
-            <a href="#worker.connect"><tt>connect</tt></a> call.
-            </p>
-            <pre>
-self.on_connect = function() {
-    // things to do after a connect
-}</pre>
-
-            <!-- worker on_error -->
-            <p id="worker.on_error">
-            <strong class="header">on_error</strong> <code>self.on_error</code>
-            <br>
-            The <tt>on_error</tt> callback will be called after an unsuccessfull
-            <a href="#worker.connect"><tt>connect</tt></a> call.
-            </p>
-            <pre>
-self.on_error = function() {
-    // things to do after an error
 }</pre>
 
             <h2 id="models">Models</h2>
