@@ -20,9 +20,9 @@ var cotonic = cotonic || {};
 
 (function(cotonic) {
 
-    var is_activity_event = false;
-    var render_cache = {};
-    var render_serial = 1;
+    let is_activity_event = false;
+    let render_serial = 1;
+    const render_cache = {};
 
     function maybeRespond(result, properties) {
         if(properties.response_topic) {
@@ -31,7 +31,7 @@ var cotonic = cotonic || {};
     }
 
     function hashCode( s ) {
-        var hash = 0, i = 0, len = s.length;
+        let hash = 0, i = 0, len = s.length;
         while ( i < len ) {
             hash  = ((hash << 5) - hash + s.charCodeAt(i++)) << 0;
         }
@@ -51,7 +51,7 @@ var cotonic = cotonic || {};
         initTopicEvents(document);
 
         if (cotonic.bufferedEvents) {
-            for (e in cotonic.bufferedEvents) {
+            for (const e in cotonic.bufferedEvents) {
                 topic_event(cotonic.bufferedEvents[e], true);
             }
             cotonic.bufferedEvents = [];
