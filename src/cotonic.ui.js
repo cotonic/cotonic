@@ -48,6 +48,8 @@ var cotonic = cotonic || {};
             function(a, b) {
                 return a.priority < b.priority
             });
+
+        publish("model/ui/event/insert/" + id, initialData);
     }
 
     function get(id) {
@@ -95,6 +97,8 @@ var cotonic = cotonic || {};
 
             delete order[i];
         }
+
+        publish("model/ui/event/delete/" + id, undefined);
     }
 
     /**
@@ -206,11 +210,9 @@ var cotonic = cotonic || {};
             qos: typeof(options.qos) == 'number' ? options.qos : 0
         };
 
-        // console.log("ui.on", topic, payload);
         if (options.response_topic) {
             cotonic.broker.call(topic, payload, pubopts)
                 .then( function(resp) {
-                    console.log(resp);
                     publish(options.response_topic, resp.payload, pubopts);
                 });
         } else {
@@ -474,6 +476,7 @@ var cotonic = cotonic || {};
     cotonic.ui.get = get;
     cotonic.ui.update = update;
     cotonic.ui.remove = remove;
+    cotonic.ui.delete = remove;
     cotonic.ui.render = render;
     cotonic.ui.renderId = renderId;
     cotonic.ui.updateStateData = updateStateData;

@@ -50,6 +50,20 @@ var cotonic = cotonic || {};
 
         initTopicEvents(document);
 
+        IncrementalDOM.notifications.nodesCreated = function(nodes) {
+            for(const n in nodes) {
+                if(!n.id) continue;
+                cotonic.broker.publish("model/ui/event/node-created/" + n.id, {id: n.id});
+            }
+        }
+
+        IncrementalDOM.notifications.nodesDeleted = function(nodes) {
+            for(const n in nodes) {
+                if(!n.id) continue;
+                cotonic.broker.publish("model/ui/event/node-deleted/" + n.id, {id: n.id});
+            }
+        }
+
         if (cotonic.bufferedEvents) {
             for (const e in cotonic.bufferedEvents) {
                 topic_event(cotonic.bufferedEvents[e], true);
@@ -169,7 +183,6 @@ var cotonic = cotonic || {};
             } else {
                 maybeRespond(cotonic.ui.insert(bindings.key, p.inner, p.initialData, p.priority), msg.properties);
             }
-            cotonic.broker.publish("model/ui/event/" + bindings.key, p.initialData);
         }
     );
 
@@ -183,7 +196,6 @@ var cotonic = cotonic || {};
                 html = p;
             }
             maybeRespond(cotonic.ui.update(bindings.key, html), msg.properties);
-            cotonic.broker.publish("model/ui/event/" + bindings.key, html);
         }
     );
 
@@ -217,7 +229,6 @@ var cotonic = cotonic || {};
                                 html = p;
                             }
                             maybeRespond(cotonic.ui.update(key, html), msg.properties);
-                            cotonic.broker.publish("model/ui/event/" + key, html);
                         } else {
                             maybeRespond({ is_changed: false }, msg.properties);
                         }
@@ -231,7 +242,6 @@ var cotonic = cotonic || {};
     cotonic.broker.subscribe("model/ui/delete/+key",
         function(msg, bindings) {
             maybeRespond(cotonic.ui.remove(bindings.key), msg.properties);
-            cotonic.broker.publish("model/ui/event/" + bindings.key, undefined);
         }
     );
 

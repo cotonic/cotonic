@@ -1527,6 +1527,8 @@ var cotonic = cotonic || {};
             function(a, b) {
                 return a.priority < b.priority
             });
+
+        publish("model/ui/event/insert/" + id, initialData);
     }
 
     function get(id) {
@@ -1574,6 +1576,8 @@ var cotonic = cotonic || {};
 
             delete order[i];
         }
+
+        publish("model/ui/event/delete/" + id, undefined);
     }
 
     /**
@@ -1685,11 +1689,9 @@ var cotonic = cotonic || {};
             qos: typeof(options.qos) == 'number' ? options.qos : 0
         };
 
-        // console.log("ui.on", topic, payload);
         if (options.response_topic) {
             cotonic.broker.call(topic, payload, pubopts)
                 .then( function(resp) {
-                    console.log(resp);
                     publish(options.response_topic, resp.payload, pubopts);
                 });
         } else {
@@ -1953,6 +1955,7 @@ var cotonic = cotonic || {};
     cotonic.ui.get = get;
     cotonic.ui.update = update;
     cotonic.ui.remove = remove;
+    cotonic.ui.delete = remove;
     cotonic.ui.render = render;
     cotonic.ui.renderId = renderId;
     cotonic.ui.updateStateData = updateStateData;
@@ -6319,9 +6322,9 @@ var cotonic = cotonic || {};
 
 (function(cotonic) {
 
-    var is_activity_event = false;
-    var render_cache = {};
-    var render_serial = 1;
+    let is_activity_event = false;
+    let render_serial = 1;
+    const render_cache = {};
 
     function maybeRespond(result, properties) {
         if(properties.response_topic) {
@@ -6330,7 +6333,7 @@ var cotonic = cotonic || {};
     }
 
     function hashCode( s ) {
-        var hash = 0, i = 0, len = s.length;
+        let hash = 0, i = 0, len = s.length;
         while ( i < len ) {
             hash  = ((hash << 5) - hash + s.charCodeAt(i++)) << 0;
         }
@@ -6349,8 +6352,22 @@ var cotonic = cotonic || {};
 
         initTopicEvents(document);
 
+        IncrementalDOM.notifications.nodesCreated = function(nodes) {
+            for(const n in nodes) {
+                if(!n.id) continue;
+                cotonic.broker.publish("model/ui/event/node-created/" + n.id, {id: n.id});
+            }
+        }
+
+        IncrementalDOM.notifications.nodesDeleted = function(nodes) {
+            for(const n in nodes) {
+                if(!n.id) continue;
+                cotonic.broker.publish("model/ui/event/node-deleted/" + n.id, {id: n.id});
+            }
+        }
+
         if (cotonic.bufferedEvents) {
-            for (e in cotonic.bufferedEvents) {
+            for (const e in cotonic.bufferedEvents) {
                 topic_event(cotonic.bufferedEvents[e], true);
             }
             cotonic.bufferedEvents = [];
@@ -6468,7 +6485,6 @@ var cotonic = cotonic || {};
             } else {
                 maybeRespond(cotonic.ui.insert(bindings.key, p.inner, p.initialData, p.priority), msg.properties);
             }
-            cotonic.broker.publish("model/ui/event/" + bindings.key, p.initialData);
         }
     );
 
@@ -6482,7 +6498,6 @@ var cotonic = cotonic || {};
                 html = p;
             }
             maybeRespond(cotonic.ui.update(bindings.key, html), msg.properties);
-            cotonic.broker.publish("model/ui/event/" + bindings.key, html);
         }
     );
 
@@ -6516,7 +6531,6 @@ var cotonic = cotonic || {};
                                 html = p;
                             }
                             maybeRespond(cotonic.ui.update(key, html), msg.properties);
-                            cotonic.broker.publish("model/ui/event/" + key, html);
                         } else {
                             maybeRespond({ is_changed: false }, msg.properties);
                         }
@@ -6530,7 +6544,6 @@ var cotonic = cotonic || {};
     cotonic.broker.subscribe("model/ui/delete/+key",
         function(msg, bindings) {
             maybeRespond(cotonic.ui.remove(bindings.key), msg.properties);
-            cotonic.broker.publish("model/ui/event/" + bindings.key, undefined);
         }
     );
 
