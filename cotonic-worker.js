@@ -589,7 +589,6 @@ var cotonic = cotonic || {};
     let actions = {};
 
     function client_cmd(type, data, present) {
-        console.log("client_cmd", type);
         present = present || model.present;
         data.from = "client";
         data.type = type;
