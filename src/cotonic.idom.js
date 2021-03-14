@@ -46,13 +46,13 @@ var cotonic = cotonic || {};
             }
         }
 
-        for(var i=0; i<tokens.length; i++) {
+        for(let i=0; i < tokens.length; i++) {
             renderToken(tokens[i]);
         }
     }
 
     function patch(patch, element, HTMLorTokens) {
-        var tokens;
+        let tokens;
 
         if(Array.isArray(HTMLorTokens)) {
             tokens = HTMLorTokens;

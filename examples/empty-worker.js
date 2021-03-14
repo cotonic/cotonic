@@ -10,7 +10,7 @@
 // The arguments passed by the page are stored here.
 let page_arguments = null;
 
-self.worker_init = function() {
+self.on_init = function() {
     page_arguments = arguments;
 }
 

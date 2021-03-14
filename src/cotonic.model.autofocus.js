@@ -44,6 +44,9 @@ var cotonic = cotonic || {};
 
                 if (element && window.getComputedStyle(element).display !== "none") {
                     element.focus();
+                    cotonic.broker.publish(
+                        cotonic.mqtt.fill("model/autofocus/event/focus/+key", bindings)
+                    );
                 }
             }
         }

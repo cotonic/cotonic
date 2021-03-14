@@ -209,6 +209,7 @@ pre {
                     <li> - <a href="#cotonic.ui.on">on</a>
                 </ul>
 
+                <!-- Tokenizer -->
                 <a class="toc_title" href="#cotonic.tokenizer">
                     tokenizer
                 </a>
@@ -217,35 +218,45 @@ pre {
                     <li> - <a href="#cotonic.tokenizer.charref">charref</a>
                 </ul>
 
+                <!-- Worker -->
                 <a class="toc_title" href="#worker.functions">
                     Worker Functions
                 </a>
                 <ul class="toc_section">
+                    <li> - <a href="#worker.on_init">on_init</a>
+
                     <li> - <a href="#worker.connect">connect</a>
                     <li> - <a href="#worker.disconnect">disconnect</a>
                     <li> - <a href="#worker.is_connected">is_connected</a>
+
+                    <li> - <a href="#worker.whenDependencyProvided">whenDependencyProvided</a>
+                    <li> - <a href="#worker.whenDependenciesProvided">whenDependenciesProvided</a>
+                    <li> - <a href="#worker.provides">provides</a>
 
                     <li> - <a href="#worker.subscribe">subscribe</a>
                     <li> - <a href="#worker.unsubscribe">unsubscribe</a>
                     <li> - <a href="#worker.publish">publish</a>
                     <li> - <a href="#worker.call">call</a>
-
-                    <li> - <a href="#worker.worker_init">worker_init</a>
-                    <li> - <a href="#worker.on_connect">on_connect</a>
-                    <li> - <a href="#worker.on_error">on_error</a>
                 </ul>
-
 
                 <a class="toc_title" href="#models">
                     Models
                 </a>
 
+                <a class="toc_title" href="#model.window">
+                    model/window
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.window.post.close">post/open</a>
+                    <li> - <a href="#model.window.post.close">post/close</a>
+                </ul>
+
                 <a class="toc_title" href="#model.document">
                     model/document
                 </a>
                 <ul class="toc_section">
-                    <li> - <a href="#model.document.get.all">get/all</a>
-                    <li> - <a href="#model.document.get.intl">get/intl</a>
+                    <li> - <a href="#model.window.get.all">get/all</a>
+                    <li> - <a href="#model.window.get.intl">get/intl</a>
                 </ul>
 
                 <a class="toc_title" href="#model.location">
@@ -272,9 +283,23 @@ pre {
                     <li> - <a href="#model.ui.insert.key">insert/+key</a>
                     <li> - <a href="#model.ui.update.key">update/+key</a>
                     <li> - <a href="#model.ui.delete.key">delete/+key</a>
+                    <li> - <a href="#model.ui.get.key">get/+key</a>
+
+                    <li> - <a href="#model.ui.render">render</a>
+                    <li> - <a href="#model.ui.render.key">render/+key</a>
+                    <li> - <a href="#model.ui.render-template.key">render-template/+key</a>
+
                     <li> - <a href="#model.ui.event.recent-activity">event/recent-activity</a>
                     <li> - <a href="#model.ui.event.dom-updated">event/dom-updated/+key</a>
                     <li> - <a href="#model.ui.event.ui-status">event/ui-status</a>
+                    <li> - <a href="#model.ui.event.new-shadow-root.key">event/new-shadow-root/+key</a>
+                </ul>
+
+                <a class="toc_title" href="#model.autofocus">
+                    model/autofocus 
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.autofocus.event.focus.key">event/focus/+key</a>
                 </ul>
 
                 <a class="toc_title" href="#model.serviceWorker">
@@ -431,7 +456,7 @@ cotonic.broker.publish("some/topic", "hello workers!");
             <br>
             Spawn a new worker. The code of the worker should be available at <tt>url</tt>. The optional
             <tt>args</tt> parameter list will be passed to the worker and can be used to pass information from
-            the page to the worker. It can be picked up with the <a href="#worker.worker_init"><tt>worker_init</tt></a>
+            the page to the worker. It can be picked up with the <a href="#worker.on_init"><tt>on_init</tt></a>
             callback. The structured clone algorithm will be used to send the <tt>args</tt> to the worker. See 
             <a href="#worker.functions">worker functions</a> for more information on implementing a worker.
             Returns the worker-id of the newly created worker process.
@@ -1057,7 +1082,6 @@ cotonic.tokenizer.charref("amp");
 => "&"</pre>
 
 
-
             <h2 id="worker.functions">Worker Functions</h2>
             <p>
             Workers are stand alone processes. They have no shared data with the page, nor
@@ -1067,17 +1091,72 @@ cotonic.tokenizer.charref("amp");
             ready for requests.
             </p>
 
-            <!-- worker connect -->
-            <p id="worker.connect">
-            <strong class="header">connect</strong> <code>self.connect()</code>
+            <!-- worker init-->
+            <p id="worker.on_init">
+            <strong class="header">on_init</strong> <code>self.on_init(arguments)</code>
             <br>
-            Connect the worker to the page. When this step succeeds the
-            <a href="#worker.on_connect"><tt>on_connect</tt></a> is called.
-            <a href="#worker.on_error"><tt>on_error</tt></a> when it fails.
+            The callback <tt>on_init</tt> is called when the worker receives the initialization
+            message by the page. It can take multiple arguments. The arguments are passed in via
+            the <a href="#cotonic.spawn"><tt>spawn</tt></a> <tt>args</tt> argument list. 
+            This function can be used to initialize the worker. The callback is optional.
             </p>
             <pre>
-self.connect();
+// Page code.
+cotonic.spawn("example_worker", [amount, target]);
+
+// Worker code
+
+let amount = null;
+let targetId = null;
+
+self.on_init = function(n, id) {
+    amount = n; 
+    targetId = id;
+}
+==> Worker receives the arguments which can be used for initialization.</pre>
+ 
+            <!-- worker connect -->
+            <p id="worker.connect">
+            <strong class="header">connect</strong> <code>self.connect(connectOptions)</code>
+            <br>
+            Connect the worker to the page. Returns a promise. This promise is resolved when 
+            the worker is connected to the page. When is indicated in the <tt>connectOptions</tt> that
+            the worker depends on other services the promise is resolved after those dependencies 
+            have become available.
+
+            Parameter <tt>connectOptions</tt> supports the following options:
+
+            <dl>
+                <dt><tt>name</tt></dt>
+                <dd>The name of the worker.</dd>
+
+                <dt><tt>depends</tt></dt>
+                <dd>A list of dependencies on which the worker needs. The connect promise will be 
+                resolved, after the dependencies become available.</dd>
+
+                <dt><tt>provides</tt></dt>
+                <dd>A list of dependencies which is provided by this worker. The are published after
+                the worker is connected.</dd>
+            </dl>
+
+            </p>
+            <pre>
+self.connect().then(
+    function() {
+        console.log("Connected");
+    }
+);
 => The worker is being connected to the page.</pre>
+            <pre>
+self.connect({depends: ["model/ui",
+                        "model/serviceWorker",
+                        "worker/abc"]}).then(
+    function() {
+        console.log("Connected, the requested dependencies are available, and worker abc is started.");
+    }
+);
+=> The worker is being connected to the page, and the requested dependencies are available.</pre>
+
 
             <!-- worker disconnect -->
             <p id="worker.disconnect">
@@ -1100,6 +1179,46 @@ self.disconnect();
             <pre>
 self.is_connected();
 => true</pre>
+
+            <!-- worker whenDependencyProvided -->
+            <p id="worker.whenDependencyProvided">
+            <strong class="header">whenDependencyProvided</strong> <code>self.whenDependencyProvided(dependency)</code>
+            <br>
+            Returns a Promise which is resolved when the external dependency is provided.
+            </p>
+            <pre>
+self.whenDependencyProvided("model/ui").then(
+    function() {
+        worker.publish("model/ui/insert/foo", {..});
+    });
+</pre>
+            <!-- worker whenDependenciesProvided -->
+            <p id="worker.whenDependenciesProvided">
+            <strong class="header">whenDependenciesProvided</strong> <code>self.whenDependenciesProvided(dependencies)</code>
+            <br>
+            Returns a Promise which is resolved when all external dependencies are provided.
+            </p>
+            <pre>
+self.whenDependenciesProvided(["model/ui", "model/x"]).then(
+    function() {
+        ...
+    });
+==> The promise will be resolved after the ui and x model are provided.</pre>
+
+            <!-- worker provides -->
+            <p id="worker.provides">
+            <strong class="header">provides</strong> <code>self.provides(modelsAndWorkers)</code>
+            <br />
+            Indicate to other workers and the page that this worker provides models or workers.
+            Other workers waiting on these dependencies will get notified when they become 
+            available. The parameter <tt>modelsAndWorkers</tt> should be a list with model or 
+            worker names this worker provides.
+            </p>
+            <pre>
+self.provides(["model/a", "model/b", "worker/x"])
+==> When the worker connects, it will notify other workers that new models
+    have become available.</pre>
+
 
             <!-- worker subscribe -->
             <p id="worker.subscribe">
@@ -1157,51 +1276,7 @@ self.call("model/document/get/all")
 .then(...)
 .reject(...);</pre>
 
-            <!-- worker worker_init-->
-            <p id="worker.worker_init">
-            <strong class="header">worker_init</strong> <code>self.worker_init</code>
-            <br>
-            The callback <tt>worker_init</tt> is called when the worker receives the initialization
-            message by the page. It can take multiple arguments. The arguments are passed in via
-            the <a href="#cotonic.spawn"><tt>spawn</tt></a> <tt>args</tt> argument list. 
-            This function can be used to initialize the worker, but it is optional.
-            </p>
-            <pre>
-// Worker code
-
-let amount = null;
-let targetId = null;
-
-self.worker_init = function(n, id) {
-    amount = n; 
-    targetId = id;
-}</pre>
-
-            <!-- worker on_connect -->
-            <p id="worker.on_connect">
-            <strong class="header">on_connect</strong> <code>self.on_connect</code>
-            <br>
-            The <tt>on_connect</tt> callback will be called after a successfull
-            <a href="#worker.connect"><tt>connect</tt></a> call.
-            </p>
-            <pre>
-self.on_connect = function() {
-    // things to do after a connect
-}</pre>
-
-            <!-- worker on_error -->
-            <p id="worker.on_error">
-            <strong class="header">on_error</strong> <code>self.on_error</code>
-            <br>
-            The <tt>on_error</tt> callback will be called after an unsuccessfull
-            <a href="#worker.connect"><tt>connect</tt></a> call.
-            </p>
-            <pre>
-self.on_error = function() {
-    // things to do after an error
-}</pre>
-
-            <h2 id="models">Models</h2>
+           <h2 id="models">Models</h2>
 
             <p>
             Because workers run as independent components it is not possible to directly
@@ -1230,6 +1305,91 @@ self.on_error = function() {
             </dl>
 
             </p>
+
+            <!-- model window -->
+            <h3 id="model.window">model/window</h3>
+            <p>
+            The window model can be used open and close windows.
+            </p>
+
+            <!-- post/open -->
+            <p id="model.window.post.open">
+            <strong class="header">post/open</strong>
+            <br>
+
+            Open a window. The payload of the message can be set t
+
+            <dl>
+                <dt><tt>href</tt></dt>
+                <dd>The url of the window. See below.</dd>
+                <dt><tt>data-window</tt></dt>
+                <dd>A JSON string containing properties described below.</dd>
+            </dl>
+
+            Or 
+
+            <dl>
+                <dt><tt>url</tt></dt>
+                <dd>The url of the page to open.</dd>
+                <dt><tt>name</tt></dt>
+                <dd>Specifies the target attribute of the window.
+                  <dl>
+                      <dt><tt>_blank</tt></dt><dd> opens a new window.</dd>
+                      <dt><tt>_parent</tt></dt><dd> loads the url in the parent window.</dd>
+                      <dt><tt>_self</tt></dt><dd> replaces the current page.</dd>
+                      <dt><tt>_top</tt></dt><dd> replaces any frameset that maybe loaded.</dd>
+                      <dt><tt>name</tt></dt><dd>the name of the window to load.</dd>
+                  </dl>
+                </dd>
+                <dt><tt>width</tt></dt>
+                <dd>The width of the window in pixels.</dd>
+                <dt><tt>height</tt></dt>
+                <dd>The height of the window in pixels.</dd>
+                <dt><tt>toolbar</tt></dt>
+                <dd>Wether or not to display the browsers toolbar.</dd>
+                <dt><tt>scrollbars</tt></dt>
+                <dd>Wether or not to display scrollbars.</dd>
+                <dt><tt>status</tt></dt>
+                <dd>Wether or not to add a status bar.</dd>
+                <dt><tt>resizable</tt></dt>
+                <dd>Wether or not the window is resizable.</dd>
+                <dt><tt>location</tt></dt>
+                <dd>Wether or not to display the address field.</dd>
+                <dt><tt>menubar</tt></dt>
+                <dd>Wether or not to display the menubar.</dd>
+                <dt><tt>centerBrowser</tt></dt>
+                <dd>Indicate wether or not to center the new window on top of the current active browser window.</dd>
+                <dt><tt>centerScreen</tt></dt>
+                <dd>Indicate wether or not to center the new window on the screen.</dd>
+                <dt><tt>top</tt></dt>
+                <dd>The top position of the window.</dd>
+                <dt><tt>left</tt></dt>
+                <dd>The left position of the window.</dd>
+            </dl>
+            </p>
+            <pre>
+&lt;a href="https://example.com/logon"
+   class="btn btn-social"
+   data-onclick-topic="model/window/post/open"&gt;Logon in with Example.com&lt;/a&gt;
+   data-window="{'centerBrowser': true}"
+==> The click on the link publishes is window open message which will open
+    a centered logon window.</pre>
+
+            <pre>
+self.publish("model/window/post/open", {url: "https://example.com/logon",
+                                        centerBrowser: true})
+==> A worker opens a logon window.</pre>
+
+            <p id="model.window.post.close">
+            <strong class="header">post/close</strong>
+            <br>
+            Open a window.
+            </p>
+            <pre>
+&lt;a href="#" class="btn btn-default" 
+      data-onclick-topic="model/window/post/close"&gt; Close Window &lt;a&gt;
+==> Closes the current window.
+</pre>
 
             <!-- model document -->
             <h3 id="model.document">model/document</h3>
@@ -1511,6 +1671,55 @@ self.publish("model/ui/delete/root");
 => The root element is removed from the composer, but
    stays in the DOM tree.</pre>
 
+            <p id="model.ui.render">
+            <strong class="header">render</strong>
+            <br>
+            Trigger a render of all registered elements.
+            </p>
+            <pre>
+self.publish("model/ui/render");</pre>
+
+            <p id="model.ui.render.key">
+            <strong class="header">render/+key</strong>
+            <br>
+            Trigger a render of the element <tt>key</tt>
+            </p>
+            <pre>
+self.publish("model/ui/render.root");</pre>
+            </pre>
+
+            <p id="model.ui.render-template.key">
+            <strong class="header">render-template/+key</strong>
+            <br>
+            Request rendering a template with parameters. A rendering engine must be 
+            available to respond to the render requests. The render result will update 
+            <tt>key</tt> element. Note: The element must first be inserted with
+            <a href="#cotonic.ui.insert">cotonic.ui.insert</tt></a> or
+            <a href="#model.ui.insert.key"><tt>model/ui/insert/+key</tt></a>.
+            The payload of the render request should be:
+            <dl>
+                <dt><tt>topic</tt></dt>
+                <dd>The topic on which the render engine is subscribed. Can be a local or a remote topic.
+                The response of the renderer will be updated on <tt>key</tt></dd>
+
+                <dt><tt>data</tt></dt>
+                <dd>The data which the render engine can use to render the template.</dd>
+
+                <dt><tt>dedup</tt></dt>
+                <dd>Send the render request via a MQTT QoS 1 message. This means that we can 
+                get multiple responses. Dedup makes sure the result will be rendered only once.</dd>
+            </dl>
+            </p>
+            <pre>
+self.publish("model/ui/render-template/root",
+             {topic: "bridge/origin/model/template/get/render/hello.tpl",
+              dedup: true,
+              data: {name: "Bob"}
+             });
+==> The render engine listening at bridge/origin/model/template receives
+    a render request. The render result will be placed in element root.</pre>
+
+
             <p id="model.ui.event.recent-activity">
             <strong class="header">event/recent-activity</strong>
             <br>
@@ -1545,14 +1754,47 @@ cotonic.broker.subscribe("model/ui/event/dom-updated/message-container",
 => Scrolls the messages bubble container to the bottom.
             </pre>
 
-
+            <!-- ui status -->
 
             <p id="model.ui.event.ui-status">
-            <strong class="header">event/ui-status</strong>
+            <strong class="header">event/+model/ui-status</strong>
             <br>
+            Events send to this topic will result in class and data attributes set on
+            the <tt>html</tt> of the document. The <tt>model</tt> attribute is used in the
+            data and class attributes. This can be used to signal the state of a model to 
+            the document. This can be used to signal the state of cotonic workers or models to 
+            other ui libraries like <a href="https://elm-lang.org">Elm</a> or
+            <a href="https://reactjs.org">React</a>. The payload of the message:
+            <dl>
+                <dt><tt>status</tt></dt>
+                <dd>Object with model statuses. Will be set as data attributes.</dd>
+                <dt><tt>classes</tt></dt>
+                <dd>List with model statuses. Will be set as classes.</dd>
+            </dl>
+            </p>
+            <pre>
+self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
+                                             classes: ["anonymous"]});
+==> model.ui adds clas "ui-state-auth-anonymous" and
+    adds data-ui-state-auth-auth="anonymous" to the html element of the document.</pre>
+
+            <!-- autofocus model -->
+            <h3 id="model.autofocus">model/autofocus</h3>
+
+            <p>
+            The autofocus model looks for elements with the <tt>autofocus</tt> attribute
+            which are just added to the dom tree. When this happens, it auto focusus them.
+            The reason for this is is that the <tt>autofocus</tt> attribute only works
+            during document render stage, but it is very handy to have available all the
+            time.
+            </p>
+
+            <p id="model.autofocus.event.focus.key">
+            <strong class="header">event/focus/+key</strong>
+            <br>
+            The element with <tt>key</tt> has just been focussed.
             </p>
             <pre></pre>
-
 
 
             <!-- serviceWorker model -->
