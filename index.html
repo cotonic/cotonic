@@ -1101,6 +1101,9 @@ cotonic.tokenizer.charref("amp");
             This function can be used to initialize the worker. The callback is optional.
             </p>
             <pre>
+// Page code.
+cotonic.spawn("example_worker", [amount, target]);
+
 // Worker code
 
 let amount = null;
@@ -1109,7 +1112,8 @@ let targetId = null;
 self.on_init = function(n, id) {
     amount = n; 
     targetId = id;
-}</pre>
+}
+==> Worker receives the arguments which can be used for initialization.</pre>
  
             <!-- worker connect -->
             <p id="worker.connect">
@@ -1667,6 +1671,23 @@ self.publish("model/ui/delete/root");
 => The root element is removed from the composer, but
    stays in the DOM tree.</pre>
 
+            <p id="model.ui.render">
+            <strong class="header">render</strong>
+            <br>
+            Trigger a render of all registered elements.
+            </p>
+            <pre>
+self.publish("model/ui/render");</pre>
+
+            <p id="model.ui.render.key">
+            <strong class="header">render/+key</strong>
+            <br>
+            Trigger a render of the element <tt>key</tt>
+            </p>
+            <pre>
+self.publish("model/ui/render.root");</pre>
+            </pre>
+
             <p id="model.ui.render-template.key">
             <strong class="header">render-template/+key</strong>
             <br>
@@ -1678,13 +1699,15 @@ self.publish("model/ui/delete/root");
             The payload of the render request should be:
             <dl>
                 <dt><tt>topic</tt></dt>
-                <dd>[TODO]</dd>
+                <dd>The topic on which the render engine is subscribed. Can be a local or a remote topic.
+                The response of the renderer will be updated on <tt>key</tt></dd>
 
                 <dt><tt>data</tt></dt>
-                <dd>[TODO]</dd>
+                <dd>The data which the render engine can use to render the template.</dd>
 
                 <dt><tt>dedup</tt></dt>
-                <dd>[TODO]</dd>
+                <dd>Send the render request via a MQTT QoS 1 message. This means that we can 
+                get multiple responses. Dedup makes sure the result will be rendered only once.</dd>
             </dl>
             </p>
             <pre>
