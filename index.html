@@ -243,12 +243,20 @@ pre {
                     Models
                 </a>
 
+                <a class="toc_title" href="#model.window">
+                    model/window
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.window.post.close">post/open</a>
+                    <li> - <a href="#model.window.post.close">post/close</a>
+                </ul>
+
                 <a class="toc_title" href="#model.document">
                     model/document
                 </a>
                 <ul class="toc_section">
-                    <li> - <a href="#model.document.get.all">get/all</a>
-                    <li> - <a href="#model.document.get.intl">get/intl</a>
+                    <li> - <a href="#model.window.get.all">get/all</a>
+                    <li> - <a href="#model.window.get.intl">get/intl</a>
                 </ul>
 
                 <a class="toc_title" href="#model.location">
@@ -1293,6 +1301,91 @@ self.call("model/document/get/all")
             </dl>
 
             </p>
+
+            <!-- model window -->
+            <h3 id="model.window">model/window</h3>
+            <p>
+            The window model can be used open and close windows.
+            </p>
+
+            <!-- post/open -->
+            <p id="model.window.post.open">
+            <strong class="header">post/open</strong>
+            <br>
+
+            Open a window. The payload of the message can be set t
+
+            <dl>
+                <dt><tt>href</tt></dt>
+                <dd>The url of the window. See below.</dd>
+                <dt><tt>data-window</tt></dt>
+                <dd>A JSON string containing properties described below.</dd>
+            </dl>
+
+            Or 
+
+            <dl>
+                <dt><tt>url</tt></dt>
+                <dd>The url of the page to open.</dd>
+                <dt><tt>name</tt></dt>
+                <dd>Specifies the target attribute of the window.
+                  <dl>
+                      <dt><tt>_blank</tt></dt><dd> opens a new window.</dd>
+                      <dt><tt>_parent</tt></dt><dd> loads the url in the parent window.</dd>
+                      <dt><tt>_self</tt></dt><dd> replaces the current page.</dd>
+                      <dt><tt>_top</tt></dt><dd> replaces any frameset that maybe loaded.</dd>
+                      <dt><tt>name</tt></dt><dd>the name of the window to load.</dd>
+                  </dl>
+                </dd>
+                <dt><tt>width</tt></dt>
+                <dd>The width of the window in pixels.</dd>
+                <dt><tt>height</tt></dt>
+                <dd>The height of the window in pixels.</dd>
+                <dt><tt>toolbar</tt></dt>
+                <dd>Wether or not to display the browsers toolbar.</dd>
+                <dt><tt>scrollbars</tt></dt>
+                <dd>Wether or not to display scrollbars.</dd>
+                <dt><tt>status</tt></dt>
+                <dd>Wether or not to add a status bar.</dd>
+                <dt><tt>resizable</tt></dt>
+                <dd>Wether or not the window is resizable.</dd>
+                <dt><tt>location</tt></dt>
+                <dd>Wether or not to display the address field.</dd>
+                <dt><tt>menubar</tt></dt>
+                <dd>Wether or not to display the menubar.</dd>
+                <dt><tt>centerBrowser</tt></dt>
+                <dd>Indicate wether or not to center the new window on top of the current active browser window.</dd>
+                <dt><tt>centerScreen</tt></dt>
+                <dd>Indicate wether or not to center the new window on the screen.</dd>
+                <dt><tt>top</tt></dt>
+                <dd>The top position of the window.</dd>
+                <dt><tt>left</tt></dt>
+                <dd>The left position of the window.</dd>
+            </dl>
+            </p>
+            <pre>
+&lt;a href="https://example.com/logon"
+   class="btn btn-social"
+   data-onclick-topic="model/window/post/open"&gt;Logon in with Example.com&lt;/a&gt;
+   data-window="{'centerBrowser': true}"
+==> The click on the link publishes is window open message which will open
+    a centered logon window.</pre>
+
+            <pre>
+self.publish("model/window/post/open", {url: "https://example.com/logon",
+                                        centerBrowser: true})
+==> A worker opens a logon window.</pre>
+
+            <p id="model.window.post.close">
+            <strong class="header">post/close</strong>
+            <br>
+            Open a window.
+            </p>
+            <pre>
+&lt;a href="#" class="btn btn-default" 
+      data-onclick-topic="model/window/post/close"&gt; Close Window &lt;a&gt;
+==> Closes the current window.
+</pre>
 
             <!-- model document -->
             <h3 id="model.document">model/document</h3>
