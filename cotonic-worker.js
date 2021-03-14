@@ -589,6 +589,7 @@ var cotonic = cotonic || {};
     let actions = {};
 
     function client_cmd(type, data, present) {
+        console.log("client_cmd", type);
         present = present || model.present;
         data.from = "client";
         data.type = type;
@@ -801,11 +802,11 @@ var cotonic = cotonic || {};
         actions.provides(provides);
     }
 
-    function init(e) {
+    function handle_init(e) {
         if(e.data[0] !== "init")
-            throw("Worker init error. Wrong init message.");
+            throw("Worker handle_init error. Wrong init message.");
 
-        self.removeEventListener("message", init);
+        self.removeEventListener("message", handle_init);
         self.addEventListener("message", actions.on_message);
         self.addEventListener("error", actions.on_error);
 
@@ -821,11 +822,11 @@ var cotonic = cotonic || {};
             importScripts(url);
         }
 
-        if(self.worker_init) {
-            worker_init.apply(null, args);
+        if(self.on_init) {
+            on_init.apply(null, args);
         }
     }
 
-    self.addEventListener("message", init);
+    self.addEventListener("message", handle_init);
 })(self);
 
