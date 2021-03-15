@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
@@ -23,10 +22,10 @@ var cotonic = cotonic || {};
     const BRIDGE_AUTH_TOPIC = "$bridge/+name/auth";
     const BRIDGE_CONTROL_TOPIC = "$bridge/+name/control";
 
-    const SESSION_IN_TOPIC = "session/+name/in"
-    const SESSION_OUT_TOPIC = "session/+name/out"
-    const SESSION_STATUS_TOPIC = "session/+name/status"
-    const SESSION_CONTROL_TOPIC = "session/+name/control"
+    const SESSION_IN_TOPIC = "session/+name/in";
+    const SESSION_OUT_TOPIC = "session/+name/out";
+    const SESSION_STATUS_TOPIC = "session/+name/status";
+    const SESSION_CONTROL_TOPIC = "session/+name/control";
 
     // Bridges to remote servers and clients
     var bridges = {};
@@ -123,7 +122,7 @@ var cotonic = cotonic || {};
             self.session = undefined;
             self.mqtt_session = undefined;
             publishStatus();
-        }
+        };
 
         // Relay a publish message to the remote
         function relayOut ( msg, props ) {
@@ -242,7 +241,7 @@ var cotonic = cotonic || {};
                 // Optional routing-id, assigned by the server
                 let props = msg.connack.properties;
                 if (props && props['cotonic-routing-id']) {
-                    self.routingId = props['cotonic-routing-id']
+                    self.routingId = props['cotonic-routing-id'];
                 } else {
                     self.routingId = msg.client_id;
                 }
@@ -260,8 +259,8 @@ var cotonic = cotonic || {};
                         topics: topics,
                     };
                     cotonic.broker.publish(self.local_topics.session_out, subscribe);
-                    resubscribeTopics()
-                    self.session_present = !!msg.connack.session_present
+                    resubscribeTopics();
+                    self.session_present = !!msg.connack.session_present;
                 } else {
                     self.session_present = true;
                 }
@@ -302,7 +301,7 @@ var cotonic = cotonic || {};
             let rhB = subB.retain_handling || 0;
             subA.retain_handling = Math.min(rhA, rhB);
 
-            subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false
+            subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false;
             subA.no_local = subA.no_local && subB.no_local;
         }
 
@@ -348,7 +347,7 @@ var cotonic = cotonic || {};
                         'remote': self.remote,
                         'name': self.name
                     }
-                }
+                };
                 if (self.is_connected) {
                     ui.classes.push('connected');
                 } else {

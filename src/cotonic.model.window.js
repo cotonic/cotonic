@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     function init() {
     }
 
     cotonic.broker.subscribe("model/window/post/close",
-        function(msg, bindings) {
+        function(msg) {
             let result;
 
             if (window.opener) {
@@ -39,7 +38,7 @@ var cotonic = cotonic || {};
         });
 
     cotonic.broker.subscribe("model/window/post/open",
-        function(msg, bindings) {
+        function(msg) {
             let options = {
                 full:0,             // set the height/width to the current window, show scrollbars etc.
                 centerBrowser:1,    // center window over browser window? {1 (YES) or 0 (NO)}. overrides top and left
@@ -53,10 +52,10 @@ var cotonic = cotonic || {};
                 status:0,           // whether a status line appears at the bottom of the window {1 (YES) or 0 (NO)}.
                 width:500,          // sets the width in pixels of the window.
                 name:null,          // name of window
-                location:null,      // url used for the popup
                 top:0,              // top position when the window appears.
                 toolbar:0           // determines whether a toolbar (includes the forward and back buttons) is displayed {1 (YES) or 0 (NO)}.
-            }
+            };
+
             if (typeof msg.payload.message == "object") {
                 let attrs = msg.payload.message;
                 if (attrs.href) {

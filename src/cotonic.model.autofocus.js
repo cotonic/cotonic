@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-"use strict";
 
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     function isInputElementActive() {
         if (!document.activeElement) {

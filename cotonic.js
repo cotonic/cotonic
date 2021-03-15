@@ -301,10 +301,11 @@ cotonic.VERSION = "1.0.4";
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function(cotonic, idom) {
+"use strict";
+
     function render(tokens) {
         function renderToken(token) {
             if(token.type == "text") {
@@ -325,11 +326,11 @@ var cotonic = cotonic || {};
             }
 
             if(token.type == "void") {
-                return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes))
+                return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
             }
 
             if(token.type == "open") {
-                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes))
+                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
             }
         }
 
@@ -373,10 +374,10 @@ var cotonic = cotonic || {};
 
 // Tokenizer based on the erlang html tokenizer in https://github.com/mochi/mochiweb
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
+"use strict";
     const TAB = 9,
           NEWLINE = 10,
           SPACE = 32,
@@ -395,9 +396,6 @@ var cotonic = cotonic || {};
 
           QUOTE = 34,
           SQUOTE = 39,
-
-          CHAR_0 = 48,
-          CHAR_9 = 57,
 
           CHAR_A = 65,
           CHAR_Z = 90,
@@ -434,33 +432,33 @@ var cotonic = cotonic || {};
             const t = { type: "open", tag: tag, attributes: attributes };
             addKey(t, attributes);
             acc.push(t);
-        }
+        };
 
         this.elementVoid = function (tag, attributes) {
             const t = { type: "void", tag: tag, attributes: attributes };
             addKey(t, attributes);
             acc.push(t);
-        }
+        };
 
         this.elementClose = function (tag) {
-            acc.push({ type: "close", tag: tag })
-        }
+            acc.push({ type: "close", tag: tag });
+        };
 
         this.processingInstruction = function (tag, attributes) {
             acc.push({ type: "pi", tag: tag, attributes: attributes });
-        }
+        };
 
         this.doctype = function (attributes) {
             acc.push({ type: "doctype", attributes: attributes });
-        }
+        };
 
         this.comment = function (data) {
             acc.push({ type: "comment", data: data });
-        }
+        };
 
         this.text = function (data) {
             acc.push({ type: "text", data: data });
-        }
+        };
 
         this.result = acc;
     }
@@ -514,7 +512,7 @@ var cotonic = cotonic || {};
         let decoder = new Decoder(tokenBuilder);
         tokens3(data, tokenBuilder, decoder);
         return tokenBuilder.result;
-    }
+    };
 
     function tokens3(data, builder, decoder) {
         let cont=true;
@@ -548,12 +546,18 @@ var cotonic = cotonic || {};
         if (c0 === undefined)
             return DONE;
 
-        c1 = data.charAt(d.offset + 1), c2 = data.charAt(d.offset + 2), c3 = data.charAt(d.offset + 3);
+        c1 = data.charAt(d.offset + 1);
+        c2 = data.charAt(d.offset + 2);
+        c3 = data.charAt(d.offset + 3);
+
         if (c0 === "<" && c1 === "!" && c2 === "-" && c3 === "-")
             return tokenize_comment(data, d.adv_col(4));
 
-        c4 = data.charAt(d.offset + 4), c5 = data.charAt(d.offset + 5), c6 = data.charAt(d.offset + 6),
-        c7 = data.charAt(d.offset + 7), c8 = data.charAt(d.offset + 8);
+        c4 = data.charAt(d.offset + 4);
+        c5 = data.charAt(d.offset + 5);
+        c6 = data.charAt(d.offset + 6);
+        c7 = data.charAt(d.offset + 7);
+        c8 = data.charAt(d.offset + 8);
 
         if (c0 === "<" && c1 === "!" && c2 === "D" && c3 === "O" && c4 === "C"
             && c5 === "T" && c6 === "Y" && c7 === "P" && c8 === "E")
@@ -730,8 +734,8 @@ var cotonic = cotonic || {};
                 continue;
             }
 
-            word = tokenize_word_or_literal(data, d)
-            acc.push(word.value)
+            word = tokenize_word_or_literal(data, d);
+            acc.push(word.value);
         }
     }
 
@@ -759,7 +763,7 @@ var cotonic = cotonic || {};
         }
     }
 
-    function tokenize_cdata(data, d) {
+    function tokenize_cdata() {
         throw "Not implemented";
     }
 
@@ -865,7 +869,7 @@ var cotonic = cotonic || {};
             }
 
             if (is_whitespace(c)) {
-                d.inc_char(c)
+                d.inc_char(c);
                 continue;
             }
 
@@ -1064,7 +1068,7 @@ var cotonic = cotonic || {};
                 u = charref(data.slice(offsetStart, d.offset));
                 if (u === null) {
                     // Not a charref, use as-is
-                    u = data.slice(offsetStart - 1, d.offset)
+                    u = data.slice(offsetStart - 1, d.offset);
                 }
 
                 return value(u, d);
@@ -1107,16 +1111,6 @@ var cotonic = cotonic || {};
         return (c === SPACE) || (c === NEWLINE) || (c === TAB) || (c === RETURN);
     }
 
-    function is_literal_safe(c) {
-        return (c >= CHAR_A && c <= CHAR_Z)
-            || (c >= CHAR_a && c <= CHAR_z)
-            || (c >= CHAR_0 && c <= CHAR_9);
-    }
-
-    function probable_close(c) {
-        return (c === GT) || is_literal_safe(c);
-    }
-
     function is_start_literal_safe(c) {
         return (c >= CHAR_A && c <= CHAR_Z)
             || (c >= CHAR_a && c <= CHAR_z)
@@ -1132,7 +1126,7 @@ var cotonic = cotonic || {};
     }
 
     function is_singleton(tag) {
-        let v = html_tags[tag]
+        let v = html_tags[tag];
 
         if (v === undefined)
             return false;
@@ -1431,7 +1425,7 @@ var cotonic = cotonic || {};
 
         width: true,
         wrap: true
-    }
+    };
 
     /**
      * Convert a decimal, hex, or html entity to a unicode char
@@ -1470,7 +1464,7 @@ var cotonic = cotonic || {};
 
             cache[raw] = d;
             return d;
-        }
+        };
     })();
 
     cotonic.tokenizer = cotonic.tokenizer || {};
@@ -1493,17 +1487,18 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+    "use strict";
+
     const state = {};
     const order = [];
 
     const stateData = {};
     const stateClass = {};
 
-    let animationFrameRequestId = undefined;
+    let animationFrameRequestId;
 
     /**
      * insert element to the prioritized patch list.
@@ -1512,7 +1507,7 @@ var cotonic = cotonic || {};
         if(mode === true) {
             mode = "inner";
         } else if(mode === false) {
-            mode = "outer"
+            mode = "outer";
         }
 
         state[id] = {
@@ -1525,7 +1520,7 @@ var cotonic = cotonic || {};
         insertSorted(order,
             {id: id, priority: priority},
             function(a, b) {
-                return a.priority < b.priority
+                return a.priority < b.priority;
             });
 
         publish("model/ui/event/insert/" + id, initialData);
@@ -1554,13 +1549,6 @@ var cotonic = cotonic || {};
         arr.splice(index, 0, item);
 
         requestRender();
-    };
-
-     /**
-     * Get the representation of an element. 
-     */
-    function retrieve(id) {
-        return state[id];
     }
 
     /**
@@ -1615,7 +1603,7 @@ var cotonic = cotonic || {};
         if(mode === "shadow-closed") {
             mode = "closed";
         } else {
-            mode = "open"
+            mode = "open";
         }
         
         return elt.attachShadow({mode: mode});
@@ -1797,7 +1785,7 @@ var cotonic = cotonic || {};
                         const l = elt.options.length;
                         const v = [];
                         for (let j=0; j<l; j++) {
-                            if(field.options[j].selected) {
+                            if(elt.options[j].selected) {
                                 v[v.length] = elt.options[j].value;
                             }
                         }
@@ -1808,9 +1796,8 @@ var cotonic = cotonic || {};
                         } else {
                             return false;
                         }
-                    } else {
-                        return elt.value;
-                    }
+                    } 
+                    return elt.value;
                 case 'TEXTAREA':
                     return elt.value;
                 default:
@@ -1828,7 +1815,7 @@ var cotonic = cotonic || {};
             const len = form.elements.length;
             for (let i=0; i<len; i++) {
                 field = form.elements[i];
-                if (   field.name
+                if ( field.name
                     && !field.disabled
                     && field.type != 'file'
                     && field.type != 'reset'
@@ -1838,7 +1825,7 @@ var cotonic = cotonic || {};
                     if (field.type == 'select-multiple') {
                         v = [];
                         l = form.elements[i].options.length;
-                        for (j=0; j<l; j++) {
+                        for (let j=0; j<l; j++) {
                             if(field.options[j].selected) {
                                 v[v.length] = field.options[j].value;
                             }
@@ -1937,6 +1924,7 @@ var cotonic = cotonic || {};
 
     function requestRender() {
         if(animationFrameRequestId) {
+            // A render is already requested.
             return;
         }
 
@@ -1980,11 +1968,10 @@ var cotonic = cotonic || {};
 
 /* Originial code from https://github.com/RangerMauve/mqtt-pattern */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
     
     const SEPARATOR = "/";
     const SINGLE = "+";
@@ -2120,11 +2107,11 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
+
     let clients;
     let root;
     let response_nr = 0;
@@ -2190,7 +2177,7 @@ var cotonic = cotonic || {};
 
         if(path.length === 0) {
             if(trie[VALUE] !== null) {
-                matches.push.apply(matches, trie[VALUE])
+                matches.push.apply(matches, trie[VALUE]);
                 return;
             }
         }
@@ -2286,7 +2273,7 @@ var cotonic = cotonic || {};
         if(trie === undefined) return;
 
         if(path.length === 0 && trie[VALUE] !== null) {
-            subs.push.apply(subs, trie[VALUE])
+            subs.push.apply(subs, trie[VALUE]);
         }
 
         let children = trie[CHILDREN];
@@ -2324,14 +2311,15 @@ var cotonic = cotonic || {};
             case "pingreq":
                 return handle_pingreq(wid, data);
             default:
-                console.error("Received unknown command", data);
-        };
+                if(window.console)
+                    window.console.error("Received unknown command", data);
+        }
     });
 
     function handle_connect(wid, data) {
         // TODO: Start keep-alive timer for will handling if pingreq missing
         if (data.client_id !== wid) {
-            console.error("Wrong client_id in connect from " + wid, data);
+            if(window.console) window.console.error("Wrong client_id in connect from " + wid, data);
         }
         clients[wid] = data;
         cotonic.send(wid, {type: "connack", reason_code: 0});
@@ -2361,7 +2349,7 @@ var cotonic = cotonic || {};
         publish_mqtt_message(data, { wid: wid });
     }
 
-    function handle_pingreq(wid, data) {
+    function handle_pingreq(wid) {
         // TODO: reset keep-alive timer
         cotonic.send(wid, {type: "pingresp"});
     }
@@ -2440,7 +2428,7 @@ var cotonic = cotonic || {};
                     retained.push({
                         subscription: subscription,
                         retained: rs
-                    })
+                    });
                 }
             }
 
@@ -2580,11 +2568,11 @@ var cotonic = cotonic || {};
         }
 
         if(sub.type === "worker") {
-            cotonic.send(sub.wid, mqttmsg)
+            cotonic.send(sub.wid, mqttmsg);
         } else if(sub.type === "page") {
             sub.callback(mqttmsg, cotonic.mqtt.extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
         } else {
-            console.error("Unkown subscription type", sub);
+            if(window.console) window.console.error("Unkown subscription type", sub);
         }
     }
 
@@ -2731,7 +2719,6 @@ var cotonic = cotonic || {};
  * @doc Encoder/decoder for MQTT v5, see also http://docs.oasis-open.org/mqtt/mqtt/v5.0/cs01/mqtt-v5.0-cs01.html
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
@@ -2897,7 +2884,7 @@ var cotonic = cotonic || {};
         var dup = msg.dup || false;
         var retain = msg.retain || false;
         first |= (dup ? 1 : 0) << 3;
-        first |= (qos & 0x03) << 1
+        first |= (qos & 0x03) << 1;
         first |= (retain ? 1 : 0);
         v.appendUTF8( msg.topic );
         if (qos != 0) {
@@ -2974,13 +2961,13 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encodePingReq( msg ) {
+    function encodePingReq( ) {
         var first = MESSAGE_TYPE.PINGREQ << 4;
         var v = new binary();
         return packet(first, v);
     }
 
-    function encodePingResp( msg ) {
+    function encodePingResp( ) {
         var first = MESSAGE_TYPE.PINGRESP << 4;
         var v = new binary();
         return packet(first, v);
@@ -3023,7 +3010,7 @@ var cotonic = cotonic || {};
     var decoder = function( binary ) {
         // At least a byte and 0 length varint.
         if (binary.length < 2) {
-            throw "incomplete_packet"
+            throw "incomplete_packet";
         }
         // The following might throw 'incomplete_packet'
         var b = new decodeStream(binary);
@@ -3081,15 +3068,16 @@ var cotonic = cotonic || {};
                     m = decodeAuth(first, vb);
                     break;
                 default:
-                    throw "invalid_packet"
+                    throw "invalid_packet";
             }
         }
         catch (E) {
+            let err = E;
             // incomplete data within a complete packet
-            if (E == 'incomplete_packet') {
-                E = 'invalid_packet';
+            if (err === 'incomplete_packet') {
+                err = 'invalid_packet';
             }
-            throw E
+            throw err; 
         }
         return [ m, b.remainingData() ];
     };
@@ -3163,7 +3151,7 @@ var cotonic = cotonic || {};
             session_present: sessionPresent,
             reason_code: connectReason,
             properties: props
-        }
+        };
     }
 
     function decodePublish( first, vb ) {
@@ -3187,7 +3175,7 @@ var cotonic = cotonic || {};
             packet_id: packetId,
             properties: props,
             payload: payload
-        }
+        };
     }
 
     function decodePubackEtAl( first, vb ) {
@@ -3278,7 +3266,7 @@ var cotonic = cotonic || {};
             packet_id: packetId,
             properties: props,
             topics: topics
-        }
+        };
     }
 
     function decodeUnsuback( first, vb ) {
@@ -3369,7 +3357,7 @@ var cotonic = cotonic || {};
 
         this.remainingLength = function() {
             return self.buf.length - self.offset;
-        }
+        };
 
         this.remainingData = function() {
             if (self.buf.length == self.offset) {
@@ -3383,18 +3371,19 @@ var cotonic = cotonic || {};
             if (self.offset + n > self.buf.length) {
                 throw "incomplete_packet";
             }
-        }
+        };
 
         this.decodeVarint = function() {
             var multiplier = 1;
             var n = 0;
             var digits = 0;
+            var digit;
             do {
                 self.ensure(1);
                 if (++digits > 4) {
                     throw "malformed";
                 }
-                var digit = self.buf[self.offset++];
+                digit = self.buf[self.offset++];
                 n += ((digit & 0x7F) * multiplier);
                 multiplier *= 128;
             } while ((digit & 0x80) !== 0);
@@ -3404,14 +3393,14 @@ var cotonic = cotonic || {};
         this.decode1 = function() {
             self.ensure(1);
             return self.buf[self.offset++];
-        }
+        };
 
         this.decodeUint16 = function() {
             self.ensure(2);
             var msb = self.buf[self.offset++];
             var lsb = self.buf[self.offset++];
             return (msb << 8) + lsb;
-        }
+        };
 
         this.decodeUint32 = function() {
             self.ensure(4);
@@ -3420,7 +3409,7 @@ var cotonic = cotonic || {};
             var b3 = self.buf[self.offset++];
             var b4 = self.buf[self.offset++];
             return (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
-        }
+        };
 
         this.decodeBin = function( length ) {
             if (length == 0) {
@@ -3431,7 +3420,7 @@ var cotonic = cotonic || {};
                 self.offset += length;
                 return self.buf.slice(offs, self.offset);
             }
-        }
+        };
 
         this.decodeUtf8 = function() {
             var length = self.decodeUint16();
@@ -3498,7 +3487,7 @@ var cotonic = cotonic || {};
                         props[k] = v;
                     }
                 } else {
-                    throw "Illegal property"
+                    throw "Illegal property";
                 }
             }
             return props;
@@ -3616,17 +3605,17 @@ var cotonic = cotonic || {};
 
         this.length = function() {
             return this.len;
-        }
+        };
 
         this.copyInto = function( buf, offset ) {
             for (var i = self.len-1; i >= 0; i--) {
                 buf[i+offset] = self.buf[i];
             }
-        }
+        };
 
         this.val = function() {
             return self.buf.slice( 0, self.len );
-        }
+        };
 
         this.append = function( bytes ) {
             self.reserve( bytes.length );
@@ -3702,7 +3691,7 @@ var cotonic = cotonic || {};
                     break;
                 case "string":
                     if (hasTextEncoder()) {
-                        var b = new TextEncoder("utf-8").encode(b);
+                        b = new TextEncoder("utf-8").encode(b);
                         if (addlen) {
                             self.appendUint16(b.length);
                         }
@@ -3739,7 +3728,7 @@ var cotonic = cotonic || {};
                         if (addlen) {
                             self.appendUint16(v.length);
                         }
-                        for (var i = 0; i < v.length; i++) {
+                        for (let i = 0; i < v.length; i++) {
                             self.buf[self.len++] = v[i];
                         }
                     } else {
@@ -3749,14 +3738,14 @@ var cotonic = cotonic || {};
                 default:
                     throw "Can't serialize unsupported type: "+(typeof b);
             }
-        }
+        };
 
         this.appendProperties = function ( props ) {
             var b = serializeProperties(props);
 
             self.appendVarint(b.length());
             self.appendBin(b);
-        }
+        };
 
         this.reserve = function( count ) {
             if (self.size < self.len + count ) {
@@ -3925,7 +3914,7 @@ var cotonic = cotonic || {};
                     } else if (n < input.length) {
                         var byte4 = input[n++] - 0x80;
                         if (byte4 < 0) {
-                            throw new "malformed_utf8";
+                            throw "malformed_utf8";
                         }
                         if (byte1 < 0xF8) {
                             // 4 byte character
@@ -4081,7 +4070,6 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
@@ -4102,17 +4090,17 @@ var cotonic = cotonic || {};
      * Websocket connection.
      */
     function ws ( remote, mqttSession, options ) {
-        this.remoteUrl;
-        this.remoteHost;
+        this.remoteUrl = undefined;
+        this.remoteHost = undefined;
         this.session = mqttSession;
-        this.socket;
-        this.randomPing;
+        this.socket = undefined;
+        this.randomPing = undefined;
         this.backoff = 0;
         this.errorsSinceLastData = 0;
         this.awaitPong = false;
         this.isConnected = false;
         this.isForceClosed = false;
-        this.data;
+        this.data = undefined;
 
         const controller_path = options.controller_path || WS_CONTROLLER_PATH;
         const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
@@ -4258,7 +4246,7 @@ var cotonic = cotonic || {};
                     // Send ping and await pong to check channel.
                     self.randomPing = new Uint8Array([
                         255, 254, 42, Math.floor(Math.random()*100), Math.floor(Math.random()*100)
-                    ]),
+                    ]);
                     self.socket.send( self.randomPing.buffer );
                     self.awaitPong = true;
                 } else {
@@ -4430,10 +4418,11 @@ var cotonic = cotonic || {};
 // TODO: Drop QoS 0 messages if sendQueue gets too large
 // TODO: add support for WebRTC and SSE+post
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
+//"use strict";
+    const console = window.console;
 
     /**
      * Possible transports for remotes.
@@ -4449,7 +4438,6 @@ var cotonic = cotonic || {};
     // Lookup list of all remotes with their connections
     // One of them is 'origin' (which is a special case)
     var sessions = {};
-    var bridgeTopics = {};
 
     const MQTT_KEEP_ALIVE = 300;                  // Default PINGREQ interval in seconds
     const MQTT_SESSION_EXPIRY = 1800;             // Expire the session if we couldn't reconnect in 30 minutes
@@ -4483,7 +4471,7 @@ var cotonic = cotonic || {};
         remote = remote || 'origin';
 
         delete sessions[remote];
-    }
+    };
 
     function init() {
         /**
@@ -4515,7 +4503,7 @@ var cotonic = cotonic || {};
                 }
             }
         });
-    };
+    }
 
 
     /*************************************************************************************************/
@@ -4528,7 +4516,7 @@ var cotonic = cotonic || {};
      * Keeps track of logged on user and authentication.
      * Tries to reconnect if needed.
      */
-    function mqttSession( mqttBridgeTopics, options ) {
+    function mqttSession( mqttBridgeTopics ) {
         this.bridgeTopics = mqttBridgeTopics;   // mqtt_bridge responsible for this session
         this.connections = {};                  // Websocket and other connections
         this.clientId = '';                     // Assigned by server
@@ -4621,7 +4609,7 @@ var cotonic = cotonic || {};
             self.clientId = '';
 
             if(reasonCode === MQTT_RC_SUCCESS) {
-                const transport = self.connections['ws']
+                const transport = self.connections['ws'];
                 if(transport) {
                     transport.closeConnection();
                     delete self.connections['ws'];
@@ -4672,7 +4660,7 @@ var cotonic = cotonic || {};
 
         function publish( pubmsg ) {
             const payload = pubmsg.payload;
-            let properties = pubmsg.properties || {}
+            let properties = pubmsg.properties || {};
             let encodedPayload;
 
             if (typeof payload == "undefined" || payload === null) {
@@ -4699,7 +4687,7 @@ var cotonic = cotonic || {};
                         type: 'puback',
                         nr: self.messageNr++,
                         msg: msg
-                    }
+                    };
                     break;
                 case 2:
                     msg.packet_id = nextPacketId();
@@ -4707,11 +4695,11 @@ var cotonic = cotonic || {};
                         type: 'pubrec',
                         nr: self.messageNr++,
                         msg: msg
-                    }
+                    };
                     break;
             }
             self.sendMessage(msg);
-        };
+        }
 
         function subscribe ( submsg ) {
             let topics = submsg.topics;
@@ -4723,14 +4711,14 @@ var cotonic = cotonic || {};
                 packet_id: nextPacketId(),
                 topics: topics,
                 properties: submsg.properties || {}
-            }
+            };
             self.awaitingAck[msg.packet_id] = {
                 type: 'suback',
                 nr: self.messageNr++,
                 msg: msg
-            }
+            };
             self.sendMessage(msg);
-        };
+        }
 
         function unsubscribe ( unsubmsg ) {
             let topics = unsubmsg.topics;
@@ -4742,12 +4730,12 @@ var cotonic = cotonic || {};
                 packet_id: nextPacketId(),
                 topics: topics,
                 properties: unsubmsg.properties || {}
-            }
+            };
             self.awaitingAck[msg.packet_id] = {
                 type: 'unsuback',
                 nr: self.messageNr++,
                 msg: msg
-            }
+            };
             self.sendMessage(msg);
         }
 
@@ -4758,7 +4746,7 @@ var cotonic = cotonic || {};
                 self.isWaitPingResp = true;
                 self.sendMessage({ type: 'pingreq' });
             }
-        }
+        };
 
         // Handle incoming message from another server or client
         this.receiveMessage = function ( msg ) {
@@ -4770,7 +4758,6 @@ var cotonic = cotonic || {};
 
         this.sendMessage = function ( msg, connecting ) {
             var isSent = false;
-            var packetId;
             if (isStateConnected() || (connecting && isStateNew())) {
                 isSent = self.sendTransport(msg);
             }
@@ -4801,7 +4788,7 @@ var cotonic = cotonic || {};
             }
         };
 
-        this.disconnected = function( channel, reason ) {
+        this.disconnected = function( ) {
             // Use timeout so that all incoming messages are handled
             setTimeout(function() {
                 if (isStateWaitingConnAck()) {
@@ -4989,7 +4976,7 @@ var cotonic = cotonic || {};
                         break;
                 }
             }
-            msgs.sort(function(a, b) { a.nr - b.nr });
+            msgs.sort(function(a, b) { return a.nr - b.nr; });
             for (var k in msgs) {
                 self.sendMessage(msgs[k].msg);
             }
@@ -5041,9 +5028,11 @@ var cotonic = cotonic || {};
                             // Bad credentials, retry anonymous
                             self.authUserPassword.username = undefined;
                             self.authUserPassword.password = undefined;
+                            /* falls through */
                         case MQTT_RC_CLIENT_ID_INVALID:
                             // On next retry let the server pick a client id.
                             self.clientId = '';
+                            /* falls through */
                         default:
                             publishStatus(false);
                             sessionToBridge({
@@ -5051,13 +5040,12 @@ var cotonic = cotonic || {};
                                 is_connected: false,
                                 connack: msg
                             });
-                            break;
                     }
                     break;
                 case 'puback':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'puback') {
-                            console.log("MQTT: Unexpected puback for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected puback for ", self.awaitingAck[msg.packet_id]);
                         } else {
                             // TODO: associate the original publish command
                             // sessionToBridge(msg);
@@ -5075,7 +5063,7 @@ var cotonic = cotonic || {};
                     if (msg.reason_code < 0x80) {
                         if (self.awaitingAck[msg.packet_id]) {
                             if (self.awaitingAck[msg.packet_id].type != 'pubrec') {
-                                console.log("MQTT: Unexpected pubrec for ", self.awaitingAck[msg.packet_id])
+                                console.log("MQTT: Unexpected pubrec for ", self.awaitingAck[msg.packet_id]);
                             }
                             self.awaitingAck[msg.packet_id].type = 'pubcomp';
                             self.awaitingAck[msg.packet_id].msg = undefined;
@@ -5092,7 +5080,7 @@ var cotonic = cotonic || {};
                 case 'pubcomp':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'pubcomp') {
-                            console.log("MQTT: Unexpected pubcomp for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected pubcomp for ", self.awaitingAck[msg.packet_id]);
                         }
                         delete self.awaitingAck[msg.packet_id];
                     }
@@ -5100,7 +5088,7 @@ var cotonic = cotonic || {};
                 case 'suback':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'suback') {
-                            console.log("MQTT: Unexpected suback for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected suback for ", self.awaitingAck[msg.packet_id]);
                         } else {
                             let ackMsg = {
                                 type: 'suback',
@@ -5115,14 +5103,14 @@ var cotonic = cotonic || {};
                 case 'unsuback':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'unsuback') {
-                            console.log("MQTT: Unexpected unsuback for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected unsuback for ", self.awaitingAck[msg.packet_id]);
                         } else {
                             let ackMsg = {
                                 type: 'unsuback',
                                 topics: self.awaitingAck[msg.packet_id].topics,
                                 acks: msg.acks
                             };
-                            sessionToBridge(msg);
+                            sessionToBridge(ackMsg);
                         }
                         delete self.awaitingAck[msg.packet_id];
                     }
@@ -5139,14 +5127,14 @@ var cotonic = cotonic || {};
                                 replyMsg = {
                                     type: 'puback',
                                     packet_id: msg.packet_id,
-                                    reason_code: MQTT_RC_PACKET_IN_USE
-                                }
+                                    reason_code: MQTT_RC_PACKET_ID_IN_USE
+                                };
                             } else {
                                 isPubOk = true;
                                 replyMsg = {
                                     type: 'puback',
                                     packet_id: msg.packet_id
-                                }
+                                };
                             }
                             break;
                         case 2:
@@ -5163,7 +5151,7 @@ var cotonic = cotonic || {};
                             self.awaitingRel[msg.packet_id] = {
                                 type: 'pubrel',
                                 nr: self.messageNr++
-                            }
+                            };
                     }
                     if (isPubOk) {
                         var ct = msg.properties.content_type;
@@ -5213,7 +5201,7 @@ var cotonic = cotonic || {};
             if (replyMsg) {
                 setTimeout(function() { self.sendMessage(replyMsg); }, 0);
             }
-        };
+        }
 
 
         /**
@@ -5222,7 +5210,7 @@ var cotonic = cotonic || {};
          * - keep-alive timeout
          */
         function closeConnections() {
-            for (k in self.connection) {
+            for (let k in self.connection) {
                 self.connection[k].closeConnection();
             }
             self.connection = {};
@@ -5308,7 +5296,6 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
@@ -5317,10 +5304,10 @@ var cotonic = cotonic || {};
     const BRIDGE_AUTH_TOPIC = "$bridge/+name/auth";
     const BRIDGE_CONTROL_TOPIC = "$bridge/+name/control";
 
-    const SESSION_IN_TOPIC = "session/+name/in"
-    const SESSION_OUT_TOPIC = "session/+name/out"
-    const SESSION_STATUS_TOPIC = "session/+name/status"
-    const SESSION_CONTROL_TOPIC = "session/+name/control"
+    const SESSION_IN_TOPIC = "session/+name/in";
+    const SESSION_OUT_TOPIC = "session/+name/out";
+    const SESSION_STATUS_TOPIC = "session/+name/status";
+    const SESSION_CONTROL_TOPIC = "session/+name/control";
 
     // Bridges to remote servers and clients
     var bridges = {};
@@ -5417,7 +5404,7 @@ var cotonic = cotonic || {};
             self.session = undefined;
             self.mqtt_session = undefined;
             publishStatus();
-        }
+        };
 
         // Relay a publish message to the remote
         function relayOut ( msg, props ) {
@@ -5536,7 +5523,7 @@ var cotonic = cotonic || {};
                 // Optional routing-id, assigned by the server
                 let props = msg.connack.properties;
                 if (props && props['cotonic-routing-id']) {
-                    self.routingId = props['cotonic-routing-id']
+                    self.routingId = props['cotonic-routing-id'];
                 } else {
                     self.routingId = msg.client_id;
                 }
@@ -5554,8 +5541,8 @@ var cotonic = cotonic || {};
                         topics: topics,
                     };
                     cotonic.broker.publish(self.local_topics.session_out, subscribe);
-                    resubscribeTopics()
-                    self.session_present = !!msg.connack.session_present
+                    resubscribeTopics();
+                    self.session_present = !!msg.connack.session_present;
                 } else {
                     self.session_present = true;
                 }
@@ -5596,7 +5583,7 @@ var cotonic = cotonic || {};
             let rhB = subB.retain_handling || 0;
             subA.retain_handling = Math.min(rhA, rhB);
 
-            subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false
+            subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false;
             subA.no_local = subA.no_local && subB.no_local;
         }
 
@@ -5642,7 +5629,7 @@ var cotonic = cotonic || {};
                         'remote': self.remote,
                         'name': self.name
                     }
-                }
+                };
                 if (self.is_connected) {
                     ui.classes.push('connected');
                 } else {
@@ -5681,11 +5668,11 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
 
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     function isInputElementActive() {
         if (!document.activeElement) {
@@ -5736,11 +5723,11 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
 
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     function init() {
     }
@@ -5758,13 +5745,13 @@ var cotonic = cotonic || {};
                         is_touch: is_touch_device(),
                         timezone: timezone_info(),
                         language: language_info()
-                    }
+                    };
                     break;
                 case "intl":
                     value = {
                         timezone: timezone_info(),
                         language: language_info()
-                    }
+                    };
                     break;
                 default:
                     value = null;
@@ -5777,6 +5764,23 @@ var cotonic = cotonic || {};
     );
 
     // Used to fetch z.tz and z.lang cookies
+
+    cotonic.broker.subscribe("model/document/get/cookie/+key",
+        function(msg, bindings) {
+            if(msg.properties.response_topic) {
+                cotonic.broker.publish(msg.properties.response_topic, getCookie(bindings.key));
+            }
+        }
+    );
+
+    cotonic.broker.subscribe("model/document/post/cookie/+key",
+        function(msg, bindings) {
+            setCookie(bindings.key, msg.payload.value, msg.payload.exdays);
+            if(msg.properties.response_topic) {
+                cotonic.broker.publish(msg.properties.response_topic, getCookie(bindings.key));
+            }
+        }
+    );
 
     function getCookie(cname) {
         var name = cname + "=";
@@ -5805,7 +5809,7 @@ var cotonic = cotonic || {};
         return {
             cookie: getCookie("z.tz"),
             user_agent: timezone()
-        }
+        };
     }
 
     function language_info() {
@@ -5813,7 +5817,7 @@ var cotonic = cotonic || {};
             cookie: getCookie("z.lang"),
             user_agent: navigator.language,
             document: document.body.parentElement.getAttribute("lang")
-        }
+        };
     }
 
     // Return the timezone of the browser, return null if none could be determined
@@ -5837,7 +5841,7 @@ var cotonic = cotonic || {};
         var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
         var mq = function(query) {
             return window.matchMedia(query).matches;
-        }
+        };
         if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
             return true;
         }
@@ -5864,11 +5868,11 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
 
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     cotonic.broker.subscribe("model/localStorage/get/+key", function(msg, bindings) {
         if (msg.properties.response_topic) {
@@ -5931,11 +5935,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     let location = {};
     let isNavigating = false;
@@ -5949,22 +5952,22 @@ var cotonic = cotonic || {};
     }
 
     // Publish all info about our current location
-    function publishLocation( isInit ) {
+    function publishLocation() {
         const oldhash = location.hash;
         const oldpathname = location.pathname;
         const oldsearch = location.search;
         const oldpathname_search = location.pathname_search;
         const pathname_search = cotonic.config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
 
-        location.protocol = window.location.protocol,
-        location.port = window.location.port,
-        location.host = window.location.host,
-        location.hostname = window.location.hostname,
-        location.href = window.location.href,
-        location.pathname = window.location.pathname,
-        location.origin = window.location.origin,
-        location.hash = window.location.hash,
-        location.search = window.location.search
+        location.protocol = window.location.protocol;
+        location.port = window.location.port;
+        location.host = window.location.host;
+        location.hostname = window.location.hostname;
+        location.href = window.location.href;
+        location.pathname = window.location.pathname;
+        location.origin = window.location.origin;
+        location.hash = window.location.hash;
+        location.search = window.location.search;
         location.pathname_search = pathname_search;
 
         if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
@@ -6025,6 +6028,8 @@ var cotonic = cotonic || {};
                 for (let i = 0; i < args.length; i++) {
                     if (args[i].length > 0) {
                         let kv = args[i].match(/^([^=]*)(=(.*))$/);
+                        let v;
+
                         if (kv[1].length > 0) {
                             if (typeof(kv[3]) === "string") {
                                 v = decodeURIComponent(kv[3]);
@@ -6032,6 +6037,7 @@ var cotonic = cotonic || {};
                                 v = "";
                             }
                         }
+
                         ps.push([ decodeURIComponent(kv[1]), v ]);
                     }
                 }
@@ -6060,7 +6066,7 @@ var cotonic = cotonic || {};
     // Bind to the authentication change events
 
     cotonic.broker.subscribe("model/auth/event/auth-changing",
-        function(msg, bindings) {
+        function(msg) {
             if (!isNavigating) {
                 // Authentication is changing, possible actions:
                 // - Reload page
@@ -6098,7 +6104,7 @@ var cotonic = cotonic || {};
         }
     });
 
-    cotonic.broker.subscribe("model/location/post/redirect/back", function(msg) {
+    cotonic.broker.subscribe("model/location/post/redirect/back", function() {
         if ('referrer' in document) {
             window.location = document.referrer;
         } else {
@@ -6133,11 +6139,12 @@ var cotonic = cotonic || {};
 
 /* Starts the service worker and adds message relay topics */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
+    const console = window.console;
+
     cotonic.load_config_defaults(
         {start_service_worker: true,
          service_worker_src: "/cotonic-service-worker.js"});
@@ -6205,11 +6212,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     // Direct key / value
     cotonic.broker.subscribe("model/sessionStorage/get/+key", function(msg, bindings) {
@@ -6316,11 +6322,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     let is_activity_event = false;
     let render_serial = 1;
@@ -6357,14 +6362,14 @@ var cotonic = cotonic || {};
                 if(!n.id) continue;
                 cotonic.broker.publish("model/ui/event/node-created/" + n.id, {id: n.id});
             }
-        }
+        };
 
         IncrementalDOM.notifications.nodesDeleted = function(nodes) {
             for(const n in nodes) {
                 if(!n.id) continue;
                 cotonic.broker.publish("model/ui/event/node-deleted/" + n.id, {id: n.id});
             }
-        }
+        };
 
         if (cotonic.bufferedEvents) {
             for (const e in cotonic.bufferedEvents) {
@@ -6441,10 +6446,10 @@ var cotonic = cotonic || {};
 
             let options = {
                 cancel: cancel
-            }
+            };
 
             if (event.target.hasAttribute( "data-on"+event.type+"-response-topic" )) {
-                options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" )
+                options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" );
             }
 
             cotonic.ui.on(topic, msg, event, options);
@@ -6458,7 +6463,7 @@ var cotonic = cotonic || {};
     // Bind the ui composer to the 'model/ui/#' topics
 
     cotonic.broker.subscribe("model/ui/render",
-        function(msg, bindings) {
+        function(msg) {
             maybeRespond(cotonic.ui.render(), msg.properties);
         }
     );
@@ -6472,7 +6477,7 @@ var cotonic = cotonic || {};
     cotonic.broker.subscribe("model/ui/get/+key",
         function(msg, bindings) {
             if(msg.properties.response_topic) {
-                cotonic.broker.publish(msg.properties.response_topic, ui.get(bindings.key));
+                cotonic.broker.publish(msg.properties.response_topic, cotonic.ui.get(bindings.key));
             }
         }
     );
@@ -6562,7 +6567,7 @@ var cotonic = cotonic || {};
 
     // Init the topic event listener when new shadow roots are added.
     cotonic.broker.subscribe("model/ui/event/new-shadow-root/+",
-        function(msg, bindings) {
+        function(msg) {
             initTopicEvents(msg.payload.shadow_root);
         }
     );
@@ -6586,17 +6591,16 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     function init() {
     }
 
     cotonic.broker.subscribe("model/window/post/close",
-        function(msg, bindings) {
+        function(msg) {
             let result;
 
             if (window.opener) {
@@ -6611,7 +6615,7 @@ var cotonic = cotonic || {};
         });
 
     cotonic.broker.subscribe("model/window/post/open",
-        function(msg, bindings) {
+        function(msg) {
             let options = {
                 full:0,             // set the height/width to the current window, show scrollbars etc.
                 centerBrowser:1,    // center window over browser window? {1 (YES) or 0 (NO)}. overrides top and left
@@ -6625,10 +6629,10 @@ var cotonic = cotonic || {};
                 status:0,           // whether a status line appears at the bottom of the window {1 (YES) or 0 (NO)}.
                 width:500,          // sets the width in pixels of the window.
                 name:null,          // name of window
-                location:null,      // url used for the popup
                 top:0,              // top position when the window appears.
                 toolbar:0           // determines whether a toolbar (includes the forward and back buttons) is displayed {1 (YES) or 0 (NO)}.
-            }
+            };
+
             if (typeof msg.payload.message == "object") {
                 let attrs = msg.payload.message;
                 if (attrs.href) {
@@ -6823,7 +6827,7 @@ var cotonic = cotonic || {};
         case DIRECT:
             return encodeDirect(request);
         default:
-            throw new Error("Unkown request")
+            throw new Error("Unknown request")
         }
     }
 
@@ -7028,10 +7032,11 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
+
     // Resolve the cotonic.ready promise
     cotonic.readyResolve();
 

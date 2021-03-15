@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     // Direct key / value
     cotonic.broker.subscribe("model/sessionStorage/get/+key", function(msg, bindings) {

@@ -78,13 +78,6 @@ var cotonic = cotonic || {};
         requestRender();
     }
 
-     /**
-     * Get the representation of an element. 
-     */
-    function retrieve(id) {
-        return state[id];
-    }
-
     /**
      * Remove element from the patch list.
      */
@@ -319,7 +312,7 @@ var cotonic = cotonic || {};
                         const l = elt.options.length;
                         const v = [];
                         for (let j=0; j<l; j++) {
-                            if(field.options[j].selected) {
+                            if(elt.options[j].selected) {
                                 v[v.length] = elt.options[j].value;
                             }
                         }
@@ -359,7 +352,7 @@ var cotonic = cotonic || {};
                     if (field.type == 'select-multiple') {
                         v = [];
                         l = form.elements[i].options.length;
-                        for (j=0; j<l; j++) {
+                        for (let j=0; j<l; j++) {
                             if(field.options[j].selected) {
                                 v[v.length] = field.options[j].value;
                             }

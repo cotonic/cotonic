@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     let location = {};
     let isNavigating = false;
@@ -32,22 +31,22 @@ var cotonic = cotonic || {};
     }
 
     // Publish all info about our current location
-    function publishLocation( isInit ) {
+    function publishLocation() {
         const oldhash = location.hash;
         const oldpathname = location.pathname;
         const oldsearch = location.search;
         const oldpathname_search = location.pathname_search;
         const pathname_search = cotonic.config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
 
-        location.protocol = window.location.protocol,
-        location.port = window.location.port,
-        location.host = window.location.host,
-        location.hostname = window.location.hostname,
-        location.href = window.location.href,
-        location.pathname = window.location.pathname,
-        location.origin = window.location.origin,
-        location.hash = window.location.hash,
-        location.search = window.location.search
+        location.protocol = window.location.protocol;
+        location.port = window.location.port;
+        location.host = window.location.host;
+        location.hostname = window.location.hostname;
+        location.href = window.location.href;
+        location.pathname = window.location.pathname;
+        location.origin = window.location.origin;
+        location.hash = window.location.hash;
+        location.search = window.location.search;
         location.pathname_search = pathname_search;
 
         if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
@@ -108,6 +107,8 @@ var cotonic = cotonic || {};
                 for (let i = 0; i < args.length; i++) {
                     if (args[i].length > 0) {
                         let kv = args[i].match(/^([^=]*)(=(.*))$/);
+                        let v;
+
                         if (kv[1].length > 0) {
                             if (typeof(kv[3]) === "string") {
                                 v = decodeURIComponent(kv[3]);
@@ -115,6 +116,7 @@ var cotonic = cotonic || {};
                                 v = "";
                             }
                         }
+
                         ps.push([ decodeURIComponent(kv[1]), v ]);
                     }
                 }
@@ -143,7 +145,7 @@ var cotonic = cotonic || {};
     // Bind to the authentication change events
 
     cotonic.broker.subscribe("model/auth/event/auth-changing",
-        function(msg, bindings) {
+        function(msg) {
             if (!isNavigating) {
                 // Authentication is changing, possible actions:
                 // - Reload page
@@ -181,7 +183,7 @@ var cotonic = cotonic || {};
         }
     });
 
-    cotonic.broker.subscribe("model/location/post/redirect/back", function(msg) {
+    cotonic.broker.subscribe("model/location/post/redirect/back", function() {
         if ('referrer' in document) {
             window.location = document.referrer;
         } else {

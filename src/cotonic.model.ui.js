@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     let is_activity_event = false;
     let render_serial = 1;
@@ -55,14 +54,14 @@ var cotonic = cotonic || {};
                 if(!n.id) continue;
                 cotonic.broker.publish("model/ui/event/node-created/" + n.id, {id: n.id});
             }
-        }
+        };
 
         IncrementalDOM.notifications.nodesDeleted = function(nodes) {
             for(const n in nodes) {
                 if(!n.id) continue;
                 cotonic.broker.publish("model/ui/event/node-deleted/" + n.id, {id: n.id});
             }
-        }
+        };
 
         if (cotonic.bufferedEvents) {
             for (const e in cotonic.bufferedEvents) {
@@ -139,10 +138,10 @@ var cotonic = cotonic || {};
 
             let options = {
                 cancel: cancel
-            }
+            };
 
             if (event.target.hasAttribute( "data-on"+event.type+"-response-topic" )) {
-                options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" )
+                options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" );
             }
 
             cotonic.ui.on(topic, msg, event, options);
@@ -156,7 +155,7 @@ var cotonic = cotonic || {};
     // Bind the ui composer to the 'model/ui/#' topics
 
     cotonic.broker.subscribe("model/ui/render",
-        function(msg, bindings) {
+        function(msg) {
             maybeRespond(cotonic.ui.render(), msg.properties);
         }
     );
@@ -170,7 +169,7 @@ var cotonic = cotonic || {};
     cotonic.broker.subscribe("model/ui/get/+key",
         function(msg, bindings) {
             if(msg.properties.response_topic) {
-                cotonic.broker.publish(msg.properties.response_topic, ui.get(bindings.key));
+                cotonic.broker.publish(msg.properties.response_topic, cotonic.ui.get(bindings.key));
             }
         }
     );
@@ -260,7 +259,7 @@ var cotonic = cotonic || {};
 
     // Init the topic event listener when new shadow roots are added.
     cotonic.broker.subscribe("model/ui/event/new-shadow-root/+",
-        function(msg, bindings) {
+        function(msg) {
             initTopicEvents(msg.payload.shadow_root);
         }
     );
