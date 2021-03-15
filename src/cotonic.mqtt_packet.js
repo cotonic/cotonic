@@ -18,7 +18,6 @@
  * @doc Encoder/decoder for MQTT v5, see also http://docs.oasis-open.org/mqtt/mqtt/v5.0/cs01/mqtt-v5.0-cs01.html
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
@@ -184,7 +183,7 @@ var cotonic = cotonic || {};
         var dup = msg.dup || false;
         var retain = msg.retain || false;
         first |= (dup ? 1 : 0) << 3;
-        first |= (qos & 0x03) << 1
+        first |= (qos & 0x03) << 1;
         first |= (retain ? 1 : 0);
         v.appendUTF8( msg.topic );
         if (qos != 0) {
@@ -261,13 +260,13 @@ var cotonic = cotonic || {};
         return packet(first, v);
     }
 
-    function encodePingReq( msg ) {
+    function encodePingReq( ) {
         var first = MESSAGE_TYPE.PINGREQ << 4;
         var v = new binary();
         return packet(first, v);
     }
 
-    function encodePingResp( msg ) {
+    function encodePingResp( ) {
         var first = MESSAGE_TYPE.PINGRESP << 4;
         var v = new binary();
         return packet(first, v);
@@ -310,7 +309,7 @@ var cotonic = cotonic || {};
     var decoder = function( binary ) {
         // At least a byte and 0 length varint.
         if (binary.length < 2) {
-            throw "incomplete_packet"
+            throw "incomplete_packet";
         }
         // The following might throw 'incomplete_packet'
         var b = new decodeStream(binary);
@@ -368,15 +367,16 @@ var cotonic = cotonic || {};
                     m = decodeAuth(first, vb);
                     break;
                 default:
-                    throw "invalid_packet"
+                    throw "invalid_packet";
             }
         }
         catch (E) {
+            let err = E;
             // incomplete data within a complete packet
-            if (E == 'incomplete_packet') {
-                E = 'invalid_packet';
+            if (err === 'incomplete_packet') {
+                err = 'invalid_packet';
             }
-            throw E
+            throw err; 
         }
         return [ m, b.remainingData() ];
     };
@@ -450,7 +450,7 @@ var cotonic = cotonic || {};
             session_present: sessionPresent,
             reason_code: connectReason,
             properties: props
-        }
+        };
     }
 
     function decodePublish( first, vb ) {
@@ -474,7 +474,7 @@ var cotonic = cotonic || {};
             packet_id: packetId,
             properties: props,
             payload: payload
-        }
+        };
     }
 
     function decodePubackEtAl( first, vb ) {
@@ -565,7 +565,7 @@ var cotonic = cotonic || {};
             packet_id: packetId,
             properties: props,
             topics: topics
-        }
+        };
     }
 
     function decodeUnsuback( first, vb ) {
@@ -656,7 +656,7 @@ var cotonic = cotonic || {};
 
         this.remainingLength = function() {
             return self.buf.length - self.offset;
-        }
+        };
 
         this.remainingData = function() {
             if (self.buf.length == self.offset) {
@@ -670,18 +670,19 @@ var cotonic = cotonic || {};
             if (self.offset + n > self.buf.length) {
                 throw "incomplete_packet";
             }
-        }
+        };
 
         this.decodeVarint = function() {
             var multiplier = 1;
             var n = 0;
             var digits = 0;
+            var digit;
             do {
                 self.ensure(1);
                 if (++digits > 4) {
                     throw "malformed";
                 }
-                var digit = self.buf[self.offset++];
+                digit = self.buf[self.offset++];
                 n += ((digit & 0x7F) * multiplier);
                 multiplier *= 128;
             } while ((digit & 0x80) !== 0);
@@ -691,14 +692,14 @@ var cotonic = cotonic || {};
         this.decode1 = function() {
             self.ensure(1);
             return self.buf[self.offset++];
-        }
+        };
 
         this.decodeUint16 = function() {
             self.ensure(2);
             var msb = self.buf[self.offset++];
             var lsb = self.buf[self.offset++];
             return (msb << 8) + lsb;
-        }
+        };
 
         this.decodeUint32 = function() {
             self.ensure(4);
@@ -707,7 +708,7 @@ var cotonic = cotonic || {};
             var b3 = self.buf[self.offset++];
             var b4 = self.buf[self.offset++];
             return (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
-        }
+        };
 
         this.decodeBin = function( length ) {
             if (length == 0) {
@@ -718,7 +719,7 @@ var cotonic = cotonic || {};
                 self.offset += length;
                 return self.buf.slice(offs, self.offset);
             }
-        }
+        };
 
         this.decodeUtf8 = function() {
             var length = self.decodeUint16();
@@ -785,7 +786,7 @@ var cotonic = cotonic || {};
                         props[k] = v;
                     }
                 } else {
-                    throw "Illegal property"
+                    throw "Illegal property";
                 }
             }
             return props;
@@ -903,17 +904,17 @@ var cotonic = cotonic || {};
 
         this.length = function() {
             return this.len;
-        }
+        };
 
         this.copyInto = function( buf, offset ) {
             for (var i = self.len-1; i >= 0; i--) {
                 buf[i+offset] = self.buf[i];
             }
-        }
+        };
 
         this.val = function() {
             return self.buf.slice( 0, self.len );
-        }
+        };
 
         this.append = function( bytes ) {
             self.reserve( bytes.length );
@@ -989,7 +990,7 @@ var cotonic = cotonic || {};
                     break;
                 case "string":
                     if (hasTextEncoder()) {
-                        var b = new TextEncoder("utf-8").encode(b);
+                        b = new TextEncoder("utf-8").encode(b);
                         if (addlen) {
                             self.appendUint16(b.length);
                         }
@@ -1026,7 +1027,7 @@ var cotonic = cotonic || {};
                         if (addlen) {
                             self.appendUint16(v.length);
                         }
-                        for (var i = 0; i < v.length; i++) {
+                        for (let i = 0; i < v.length; i++) {
                             self.buf[self.len++] = v[i];
                         }
                     } else {
@@ -1036,14 +1037,14 @@ var cotonic = cotonic || {};
                 default:
                     throw "Can't serialize unsupported type: "+(typeof b);
             }
-        }
+        };
 
         this.appendProperties = function ( props ) {
             var b = serializeProperties(props);
 
             self.appendVarint(b.length());
             self.appendBin(b);
-        }
+        };
 
         this.reserve = function( count ) {
             if (self.size < self.len + count ) {
@@ -1212,7 +1213,7 @@ var cotonic = cotonic || {};
                     } else if (n < input.length) {
                         var byte4 = input[n++] - 0x80;
                         if (byte4 < 0) {
-                            throw new "malformed_utf8";
+                            throw "malformed_utf8";
                         }
                         if (byte1 < 0xF8) {
                             // 4 byte character

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-"use strict";
 
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     function init() {
     }
@@ -36,13 +36,13 @@ var cotonic = cotonic || {};
                         is_touch: is_touch_device(),
                         timezone: timezone_info(),
                         language: language_info()
-                    }
+                    };
                     break;
                 case "intl":
                     value = {
                         timezone: timezone_info(),
                         language: language_info()
-                    }
+                    };
                     break;
                 default:
                     value = null;
@@ -55,6 +55,23 @@ var cotonic = cotonic || {};
     );
 
     // Used to fetch z.tz and z.lang cookies
+
+    cotonic.broker.subscribe("model/document/get/cookie/+key",
+        function(msg, bindings) {
+            if(msg.properties.response_topic) {
+                cotonic.broker.publish(msg.properties.response_topic, getCookie(bindings.key));
+            }
+        }
+    );
+
+    cotonic.broker.subscribe("model/document/post/cookie/+key",
+        function(msg, bindings) {
+            setCookie(bindings.key, msg.payload.value, msg.payload.exdays);
+            if(msg.properties.response_topic) {
+                cotonic.broker.publish(msg.properties.response_topic, getCookie(bindings.key));
+            }
+        }
+    );
 
     function getCookie(cname) {
         var name = cname + "=";
@@ -83,7 +100,7 @@ var cotonic = cotonic || {};
         return {
             cookie: getCookie("z.tz"),
             user_agent: timezone()
-        }
+        };
     }
 
     function language_info() {
@@ -91,7 +108,7 @@ var cotonic = cotonic || {};
             cookie: getCookie("z.lang"),
             user_agent: navigator.language,
             document: document.body.parentElement.getAttribute("lang")
-        }
+        };
     }
 
     // Return the timezone of the browser, return null if none could be determined
@@ -115,7 +132,7 @@ var cotonic = cotonic || {};
         var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
         var mq = function(query) {
             return window.matchMedia(query).matches;
-        }
+        };
         if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
             return true;
         }

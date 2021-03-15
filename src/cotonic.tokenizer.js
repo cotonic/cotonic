@@ -16,10 +16,10 @@
 
 // Tokenizer based on the erlang html tokenizer in https://github.com/mochi/mochiweb
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
+"use strict";
     const TAB = 9,
           NEWLINE = 10,
           SPACE = 32,
@@ -38,9 +38,6 @@ var cotonic = cotonic || {};
 
           QUOTE = 34,
           SQUOTE = 39,
-
-          CHAR_0 = 48,
-          CHAR_9 = 57,
 
           CHAR_A = 65,
           CHAR_Z = 90,
@@ -77,33 +74,33 @@ var cotonic = cotonic || {};
             const t = { type: "open", tag: tag, attributes: attributes };
             addKey(t, attributes);
             acc.push(t);
-        }
+        };
 
         this.elementVoid = function (tag, attributes) {
             const t = { type: "void", tag: tag, attributes: attributes };
             addKey(t, attributes);
             acc.push(t);
-        }
+        };
 
         this.elementClose = function (tag) {
-            acc.push({ type: "close", tag: tag })
-        }
+            acc.push({ type: "close", tag: tag });
+        };
 
         this.processingInstruction = function (tag, attributes) {
             acc.push({ type: "pi", tag: tag, attributes: attributes });
-        }
+        };
 
         this.doctype = function (attributes) {
             acc.push({ type: "doctype", attributes: attributes });
-        }
+        };
 
         this.comment = function (data) {
             acc.push({ type: "comment", data: data });
-        }
+        };
 
         this.text = function (data) {
             acc.push({ type: "text", data: data });
-        }
+        };
 
         this.result = acc;
     }
@@ -157,7 +154,7 @@ var cotonic = cotonic || {};
         let decoder = new Decoder(tokenBuilder);
         tokens3(data, tokenBuilder, decoder);
         return tokenBuilder.result;
-    }
+    };
 
     function tokens3(data, builder, decoder) {
         let cont=true;
@@ -191,12 +188,18 @@ var cotonic = cotonic || {};
         if (c0 === undefined)
             return DONE;
 
-        c1 = data.charAt(d.offset + 1), c2 = data.charAt(d.offset + 2), c3 = data.charAt(d.offset + 3);
+        c1 = data.charAt(d.offset + 1);
+        c2 = data.charAt(d.offset + 2);
+        c3 = data.charAt(d.offset + 3);
+
         if (c0 === "<" && c1 === "!" && c2 === "-" && c3 === "-")
             return tokenize_comment(data, d.adv_col(4));
 
-        c4 = data.charAt(d.offset + 4), c5 = data.charAt(d.offset + 5), c6 = data.charAt(d.offset + 6),
-        c7 = data.charAt(d.offset + 7), c8 = data.charAt(d.offset + 8);
+        c4 = data.charAt(d.offset + 4);
+        c5 = data.charAt(d.offset + 5);
+        c6 = data.charAt(d.offset + 6);
+        c7 = data.charAt(d.offset + 7);
+        c8 = data.charAt(d.offset + 8);
 
         if (c0 === "<" && c1 === "!" && c2 === "D" && c3 === "O" && c4 === "C"
             && c5 === "T" && c6 === "Y" && c7 === "P" && c8 === "E")
@@ -373,8 +376,8 @@ var cotonic = cotonic || {};
                 continue;
             }
 
-            word = tokenize_word_or_literal(data, d)
-            acc.push(word.value)
+            word = tokenize_word_or_literal(data, d);
+            acc.push(word.value);
         }
     }
 
@@ -402,7 +405,7 @@ var cotonic = cotonic || {};
         }
     }
 
-    function tokenize_cdata(data, d) {
+    function tokenize_cdata() {
         throw "Not implemented";
     }
 
@@ -508,7 +511,7 @@ var cotonic = cotonic || {};
             }
 
             if (is_whitespace(c)) {
-                d.inc_char(c)
+                d.inc_char(c);
                 continue;
             }
 
@@ -707,7 +710,7 @@ var cotonic = cotonic || {};
                 u = charref(data.slice(offsetStart, d.offset));
                 if (u === null) {
                     // Not a charref, use as-is
-                    u = data.slice(offsetStart - 1, d.offset)
+                    u = data.slice(offsetStart - 1, d.offset);
                 }
 
                 return value(u, d);
@@ -750,16 +753,6 @@ var cotonic = cotonic || {};
         return (c === SPACE) || (c === NEWLINE) || (c === TAB) || (c === RETURN);
     }
 
-    function is_literal_safe(c) {
-        return (c >= CHAR_A && c <= CHAR_Z)
-            || (c >= CHAR_a && c <= CHAR_z)
-            || (c >= CHAR_0 && c <= CHAR_9);
-    }
-
-    function probable_close(c) {
-        return (c === GT) || is_literal_safe(c);
-    }
-
     function is_start_literal_safe(c) {
         return (c >= CHAR_A && c <= CHAR_Z)
             || (c >= CHAR_a && c <= CHAR_z)
@@ -775,7 +768,7 @@ var cotonic = cotonic || {};
     }
 
     function is_singleton(tag) {
-        let v = html_tags[tag]
+        let v = html_tags[tag];
 
         if (v === undefined)
             return false;
@@ -1074,7 +1067,7 @@ var cotonic = cotonic || {};
 
         width: true,
         wrap: true
-    }
+    };
 
     /**
      * Convert a decimal, hex, or html entity to a unicode char
@@ -1113,7 +1106,7 @@ var cotonic = cotonic || {};
 
             cache[raw] = d;
             return d;
-        }
+        };
     })();
 
     cotonic.tokenizer = cotonic.tokenizer || {};

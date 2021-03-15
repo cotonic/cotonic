@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+    "use strict";
+
     const state = {};
     const order = [];
 
     const stateData = {};
     const stateClass = {};
 
-    let animationFrameRequestId = undefined;
+    let animationFrameRequestId;
 
     /**
      * insert element to the prioritized patch list.
@@ -33,7 +34,7 @@ var cotonic = cotonic || {};
         if(mode === true) {
             mode = "inner";
         } else if(mode === false) {
-            mode = "outer"
+            mode = "outer";
         }
 
         state[id] = {
@@ -46,8 +47,10 @@ var cotonic = cotonic || {};
         insertSorted(order,
             {id: id, priority: priority},
             function(a, b) {
-                return a.priority < b.priority
+                return a.priority < b.priority;
             });
+
+        publish("model/ui/event/insert/" + id, initialData);
     }
 
     function get(id) {
@@ -73,13 +76,6 @@ var cotonic = cotonic || {};
         arr.splice(index, 0, item);
 
         requestRender();
-    };
-
-     /**
-     * Get the representation of an element. 
-     */
-    function retrieve(id) {
-        return state[id];
     }
 
     /**
@@ -95,6 +91,8 @@ var cotonic = cotonic || {};
 
             delete order[i];
         }
+
+        publish("model/ui/event/delete/" + id, undefined);
     }
 
     /**
@@ -132,7 +130,7 @@ var cotonic = cotonic || {};
         if(mode === "shadow-closed") {
             mode = "closed";
         } else {
-            mode = "open"
+            mode = "open";
         }
         
         return elt.attachShadow({mode: mode});
@@ -206,11 +204,9 @@ var cotonic = cotonic || {};
             qos: typeof(options.qos) == 'number' ? options.qos : 0
         };
 
-        // console.log("ui.on", topic, payload);
         if (options.response_topic) {
             cotonic.broker.call(topic, payload, pubopts)
                 .then( function(resp) {
-                    console.log(resp);
                     publish(options.response_topic, resp.payload, pubopts);
                 });
         } else {
@@ -316,7 +312,7 @@ var cotonic = cotonic || {};
                         const l = elt.options.length;
                         const v = [];
                         for (let j=0; j<l; j++) {
-                            if(field.options[j].selected) {
+                            if(elt.options[j].selected) {
                                 v[v.length] = elt.options[j].value;
                             }
                         }
@@ -327,9 +323,8 @@ var cotonic = cotonic || {};
                         } else {
                             return false;
                         }
-                    } else {
-                        return elt.value;
-                    }
+                    } 
+                    return elt.value;
                 case 'TEXTAREA':
                     return elt.value;
                 default:
@@ -347,7 +342,7 @@ var cotonic = cotonic || {};
             const len = form.elements.length;
             for (let i=0; i<len; i++) {
                 field = form.elements[i];
-                if (   field.name
+                if ( field.name
                     && !field.disabled
                     && field.type != 'file'
                     && field.type != 'reset'
@@ -357,7 +352,7 @@ var cotonic = cotonic || {};
                     if (field.type == 'select-multiple') {
                         v = [];
                         l = form.elements[i].options.length;
-                        for (j=0; j<l; j++) {
+                        for (let j=0; j<l; j++) {
                             if(field.options[j].selected) {
                                 v[v.length] = field.options[j].value;
                             }
@@ -456,6 +451,7 @@ var cotonic = cotonic || {};
 
     function requestRender() {
         if(animationFrameRequestId) {
+            // A render is already requested.
             return;
         }
 
@@ -474,6 +470,7 @@ var cotonic = cotonic || {};
     cotonic.ui.get = get;
     cotonic.ui.update = update;
     cotonic.ui.remove = remove;
+    cotonic.ui.delete = remove;
     cotonic.ui.render = render;
     cotonic.ui.renderId = renderId;
     cotonic.ui.updateStateData = updateStateData;

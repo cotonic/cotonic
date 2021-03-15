@@ -16,11 +16,12 @@
 
 /* Starts the service worker and adds message relay topics */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
+    const console = window.console;
+
     cotonic.load_config_defaults(
         {start_service_worker: true,
          service_worker_src: "/cotonic-service-worker.js"});

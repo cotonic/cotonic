@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
@@ -35,17 +34,17 @@ var cotonic = cotonic || {};
      * Websocket connection.
      */
     function ws ( remote, mqttSession, options ) {
-        this.remoteUrl;
-        this.remoteHost;
+        this.remoteUrl = undefined;
+        this.remoteHost = undefined;
         this.session = mqttSession;
-        this.socket;
-        this.randomPing;
+        this.socket = undefined;
+        this.randomPing = undefined;
         this.backoff = 0;
         this.errorsSinceLastData = 0;
         this.awaitPong = false;
         this.isConnected = false;
         this.isForceClosed = false;
-        this.data;
+        this.data = undefined;
 
         const controller_path = options.controller_path || WS_CONTROLLER_PATH;
         const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
@@ -191,7 +190,7 @@ var cotonic = cotonic || {};
                     // Send ping and await pong to check channel.
                     self.randomPing = new Uint8Array([
                         255, 254, 42, Math.floor(Math.random()*100), Math.floor(Math.random()*100)
-                    ]),
+                    ]);
                     self.socket.send( self.randomPing.buffer );
                     self.awaitPong = true;
                 } else {

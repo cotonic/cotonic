@@ -137,7 +137,7 @@ var cotonic = cotonic || {};
         case DIRECT:
             return encodeDirect(request);
         default:
-            throw new Error("Unkown request")
+            throw new Error("Unknown request")
         }
     }
 

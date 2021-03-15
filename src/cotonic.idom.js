@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function(cotonic, idom) {
+"use strict";
+
     function render(tokens) {
         function renderToken(token) {
             if(token.type == "text") {
@@ -38,11 +39,11 @@ var cotonic = cotonic || {};
             }
 
             if(token.type == "void") {
-                return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes))
+                return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
             }
 
             if(token.type == "open") {
-                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes))
+                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
             }
         }
 

@@ -20,10 +20,10 @@
 // TODO: Drop QoS 0 messages if sendQueue gets too large
 // TODO: add support for WebRTC and SSE+post
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function (cotonic) {
+    const console = window.console;
 
     /**
      * Possible transports for remotes.
@@ -39,7 +39,6 @@ var cotonic = cotonic || {};
     // Lookup list of all remotes with their connections
     // One of them is 'origin' (which is a special case)
     var sessions = {};
-    var bridgeTopics = {};
 
     const MQTT_KEEP_ALIVE = 300;                  // Default PINGREQ interval in seconds
     const MQTT_SESSION_EXPIRY = 1800;             // Expire the session if we couldn't reconnect in 30 minutes
@@ -73,7 +72,7 @@ var cotonic = cotonic || {};
         remote = remote || 'origin';
 
         delete sessions[remote];
-    }
+    };
 
     function init() {
         /**
@@ -105,7 +104,7 @@ var cotonic = cotonic || {};
                 }
             }
         });
-    };
+    }
 
 
     /*************************************************************************************************/
@@ -118,7 +117,7 @@ var cotonic = cotonic || {};
      * Keeps track of logged on user and authentication.
      * Tries to reconnect if needed.
      */
-    function mqttSession( mqttBridgeTopics, options ) {
+    function mqttSession( mqttBridgeTopics ) {
         this.bridgeTopics = mqttBridgeTopics;   // mqtt_bridge responsible for this session
         this.connections = {};                  // Websocket and other connections
         this.clientId = '';                     // Assigned by server
@@ -211,7 +210,7 @@ var cotonic = cotonic || {};
             self.clientId = '';
 
             if(reasonCode === MQTT_RC_SUCCESS) {
-                const transport = self.connections['ws']
+                const transport = self.connections['ws'];
                 if(transport) {
                     transport.closeConnection();
                     delete self.connections['ws'];
@@ -262,7 +261,7 @@ var cotonic = cotonic || {};
 
         function publish( pubmsg ) {
             const payload = pubmsg.payload;
-            let properties = pubmsg.properties || {}
+            let properties = pubmsg.properties || {};
             let encodedPayload;
 
             if (typeof payload == "undefined" || payload === null) {
@@ -289,7 +288,7 @@ var cotonic = cotonic || {};
                         type: 'puback',
                         nr: self.messageNr++,
                         msg: msg
-                    }
+                    };
                     break;
                 case 2:
                     msg.packet_id = nextPacketId();
@@ -297,11 +296,11 @@ var cotonic = cotonic || {};
                         type: 'pubrec',
                         nr: self.messageNr++,
                         msg: msg
-                    }
+                    };
                     break;
             }
             self.sendMessage(msg);
-        };
+        }
 
         function subscribe ( submsg ) {
             let topics = submsg.topics;
@@ -313,14 +312,14 @@ var cotonic = cotonic || {};
                 packet_id: nextPacketId(),
                 topics: topics,
                 properties: submsg.properties || {}
-            }
+            };
             self.awaitingAck[msg.packet_id] = {
                 type: 'suback',
                 nr: self.messageNr++,
                 msg: msg
-            }
+            };
             self.sendMessage(msg);
-        };
+        }
 
         function unsubscribe ( unsubmsg ) {
             let topics = unsubmsg.topics;
@@ -332,12 +331,12 @@ var cotonic = cotonic || {};
                 packet_id: nextPacketId(),
                 topics: topics,
                 properties: unsubmsg.properties || {}
-            }
+            };
             self.awaitingAck[msg.packet_id] = {
                 type: 'unsuback',
                 nr: self.messageNr++,
                 msg: msg
-            }
+            };
             self.sendMessage(msg);
         }
 
@@ -348,7 +347,7 @@ var cotonic = cotonic || {};
                 self.isWaitPingResp = true;
                 self.sendMessage({ type: 'pingreq' });
             }
-        }
+        };
 
         // Handle incoming message from another server or client
         this.receiveMessage = function ( msg ) {
@@ -360,7 +359,6 @@ var cotonic = cotonic || {};
 
         this.sendMessage = function ( msg, connecting ) {
             var isSent = false;
-            var packetId;
             if (isStateConnected() || (connecting && isStateNew())) {
                 isSent = self.sendTransport(msg);
             }
@@ -391,7 +389,7 @@ var cotonic = cotonic || {};
             }
         };
 
-        this.disconnected = function( channel, reason ) {
+        this.disconnected = function( ) {
             // Use timeout so that all incoming messages are handled
             setTimeout(function() {
                 if (isStateWaitingConnAck()) {
@@ -579,7 +577,7 @@ var cotonic = cotonic || {};
                         break;
                 }
             }
-            msgs.sort(function(a, b) { a.nr - b.nr });
+            msgs.sort(function(a, b) { return a.nr - b.nr; });
             for (var k in msgs) {
                 self.sendMessage(msgs[k].msg);
             }
@@ -631,9 +629,11 @@ var cotonic = cotonic || {};
                             // Bad credentials, retry anonymous
                             self.authUserPassword.username = undefined;
                             self.authUserPassword.password = undefined;
+                            /* falls through */
                         case MQTT_RC_CLIENT_ID_INVALID:
                             // On next retry let the server pick a client id.
                             self.clientId = '';
+                            /* falls through */
                         default:
                             publishStatus(false);
                             sessionToBridge({
@@ -641,13 +641,12 @@ var cotonic = cotonic || {};
                                 is_connected: false,
                                 connack: msg
                             });
-                            break;
                     }
                     break;
                 case 'puback':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'puback') {
-                            console.log("MQTT: Unexpected puback for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected puback for ", self.awaitingAck[msg.packet_id]);
                         } else {
                             // TODO: associate the original publish command
                             // sessionToBridge(msg);
@@ -665,7 +664,7 @@ var cotonic = cotonic || {};
                     if (msg.reason_code < 0x80) {
                         if (self.awaitingAck[msg.packet_id]) {
                             if (self.awaitingAck[msg.packet_id].type != 'pubrec') {
-                                console.log("MQTT: Unexpected pubrec for ", self.awaitingAck[msg.packet_id])
+                                console.log("MQTT: Unexpected pubrec for ", self.awaitingAck[msg.packet_id]);
                             }
                             self.awaitingAck[msg.packet_id].type = 'pubcomp';
                             self.awaitingAck[msg.packet_id].msg = undefined;
@@ -682,7 +681,7 @@ var cotonic = cotonic || {};
                 case 'pubcomp':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'pubcomp') {
-                            console.log("MQTT: Unexpected pubcomp for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected pubcomp for ", self.awaitingAck[msg.packet_id]);
                         }
                         delete self.awaitingAck[msg.packet_id];
                     }
@@ -690,7 +689,7 @@ var cotonic = cotonic || {};
                 case 'suback':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'suback') {
-                            console.log("MQTT: Unexpected suback for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected suback for ", self.awaitingAck[msg.packet_id]);
                         } else {
                             let ackMsg = {
                                 type: 'suback',
@@ -705,14 +704,14 @@ var cotonic = cotonic || {};
                 case 'unsuback':
                     if (self.awaitingAck[msg.packet_id]) {
                         if (self.awaitingAck[msg.packet_id].type != 'unsuback') {
-                            console.log("MQTT: Unexpected unsuback for ", self.awaitingAck[msg.packet_id])
+                            console.log("MQTT: Unexpected unsuback for ", self.awaitingAck[msg.packet_id]);
                         } else {
                             let ackMsg = {
                                 type: 'unsuback',
                                 topics: self.awaitingAck[msg.packet_id].topics,
                                 acks: msg.acks
                             };
-                            sessionToBridge(msg);
+                            sessionToBridge(ackMsg);
                         }
                         delete self.awaitingAck[msg.packet_id];
                     }
@@ -729,14 +728,14 @@ var cotonic = cotonic || {};
                                 replyMsg = {
                                     type: 'puback',
                                     packet_id: msg.packet_id,
-                                    reason_code: MQTT_RC_PACKET_IN_USE
-                                }
+                                    reason_code: MQTT_RC_PACKET_ID_IN_USE
+                                };
                             } else {
                                 isPubOk = true;
                                 replyMsg = {
                                     type: 'puback',
                                     packet_id: msg.packet_id
-                                }
+                                };
                             }
                             break;
                         case 2:
@@ -753,7 +752,7 @@ var cotonic = cotonic || {};
                             self.awaitingRel[msg.packet_id] = {
                                 type: 'pubrel',
                                 nr: self.messageNr++
-                            }
+                            };
                     }
                     if (isPubOk) {
                         var ct = msg.properties.content_type;
@@ -803,7 +802,7 @@ var cotonic = cotonic || {};
             if (replyMsg) {
                 setTimeout(function() { self.sendMessage(replyMsg); }, 0);
             }
-        };
+        }
 
 
         /**
@@ -812,7 +811,7 @@ var cotonic = cotonic || {};
          * - keep-alive timeout
          */
         function closeConnections() {
-            for (k in self.connection) {
+            for (let k in self.connection) {
                 self.connection[k].closeConnection();
             }
             self.connection = {};

@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
 
     function init() {
     }
 
     cotonic.broker.subscribe("model/window/post/close",
-        function(msg, bindings) {
+        function(msg) {
             let result;
 
             if (window.opener) {
@@ -39,7 +38,7 @@ var cotonic = cotonic || {};
         });
 
     cotonic.broker.subscribe("model/window/post/open",
-        function(msg, bindings) {
+        function(msg) {
             let options = {
                 full:0,             // set the height/width to the current window, show scrollbars etc.
                 centerBrowser:1,    // center window over browser window? {1 (YES) or 0 (NO)}. overrides top and left
@@ -53,14 +52,14 @@ var cotonic = cotonic || {};
                 status:0,           // whether a status line appears at the bottom of the window {1 (YES) or 0 (NO)}.
                 width:500,          // sets the width in pixels of the window.
                 name:null,          // name of window
-                location:null,      // url used for the popup
                 top:0,              // top position when the window appears.
                 toolbar:0           // determines whether a toolbar (includes the forward and back buttons) is displayed {1 (YES) or 0 (NO)}.
-            }
+            };
+
             if (typeof msg.payload.message == "object") {
                 let attrs = msg.payload.message;
                 if (attrs.href) {
-                    options.location = msg.payload.message.href;
+                    options.url = msg.payload.message.href;
                     if (msg.payload.message['data-window']) {
                         if (typeof msg.payload.message['data-window'] == "string") {
                             attrs = JSON.parse(msg.payload.message['data-window']);
@@ -97,7 +96,7 @@ var cotonic = cotonic || {};
                 if (options.name) {
                     options.name = options.name.replace(/[^a-zA-Z0-9]/g,'_');
                 }
-                let w = window.open(options.location, options.name, features+',left='+Math.ceil(left)+',top='+Math.ceil(top));
+                let w = window.open(options.url, options.name, features+',left='+Math.ceil(left)+',top='+Math.ceil(top));
                 // setTimeout(
                 //     function() {
                 //         if (w.innerWidth != undefined && w.innerWidth > 0) {

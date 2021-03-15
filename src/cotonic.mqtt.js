@@ -16,11 +16,10 @@
 
 /* Originial code from https://github.com/RangerMauve/mqtt-pattern */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
     
     const SEPARATOR = "/";
     const SINGLE = "+";

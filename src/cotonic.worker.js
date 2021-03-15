@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 /* Cotonic worker code */
 
 (function(self) {
+"use strict";
 
     const model = {
         client_id: undefined,   // Set to the wid
@@ -50,7 +49,7 @@ var cotonic = cotonic || {};
         waiting_on_dependency_count: 0,  // number of waiting promises. 
 
         selfClose: self.close
-    }
+    };
 
     model.handleProvides = function(provides) {
         if(provides === undefined) return;
@@ -64,7 +63,7 @@ var cotonic = cotonic || {};
                 model.unpublished_provides.push(provides[i]);
             }
         }
-    }
+    };
 
     model.handleWhenDependencyProvided = function(name, resolve) {
         if(name === undefined)
@@ -91,7 +90,7 @@ var cotonic = cotonic || {};
 
         waiters.push(resolve);
         model.waiting_on_dependency_count += 1;
-    }
+    };
     
     model.handleDependencyProvided = function(name, is_provided) {
         if(name === undefined || !is_provided)
@@ -110,10 +109,10 @@ var cotonic = cotonic || {};
         if(!model.resolved_dependencies.includes(name)) {
             model.resolved_dependencies.push(name);
         }
-    }
+    };
 
     model.publishProvide = function(provide) {
-        if(state.isProvidePublished(provides, model))
+        if(state.isProvidePublished(provide, model))
             return;
 
         if(provide.match(/^model\//)) {
@@ -123,7 +122,7 @@ var cotonic = cotonic || {};
         }
 
         model.published_provides.push(provide);
-    }
+    };
 
     model.startTrackingDependencies = function() {
         self.subscribe(
@@ -148,7 +147,7 @@ var cotonic = cotonic || {};
         );
 
         model.is_tracking_dependencies = true;
-    }
+    };
 
     model.present = function(data) {
         model.handleProvides(data.provides);
@@ -170,7 +169,7 @@ var cotonic = cotonic || {};
                         qos: options.qos || 0,
                         retain: options.retain || false,
                         properties: options.properties || {}
-                    }
+                    };
                     self.postMessage(msg);
                 } else {
                     if (typeof model.response_handlers[data.topic] === 'object') {
@@ -218,7 +217,7 @@ var cotonic = cotonic || {};
                         // TODO: check qos / retain_handling
                         //       if qos > or retain_handling < then resubscribe
                         let subs = model.subscriptions[mqtt_topic];
-                        subs.push({topic: t.topic, callback: data.callback})
+                        subs.push({topic: t.topic, callback: data.callback});
                         if(data.ack_callback) {
                             setTimeout(data.ack_callback, 0);
                         }
@@ -307,7 +306,7 @@ var cotonic = cotonic || {};
                         }
 
                         if(pending.ack_callback) {
-                            setTimeout(pending.ack_callback, 0, mqtt_topic, data.acks[k]);
+                            setTimeout(pending.ack_callback, 0, mqtt_topic, data.acks[i]);
                         }
                     }
                     if(pending.ack_callback) {
@@ -386,53 +385,53 @@ var cotonic = cotonic || {};
         }
 
         state.render(model);
-    }
+    };
 
     /** View */
     let view = {};
 
-    view.display = function(representation) {
+    view.display = function() {
         // TODO. Could be used to represent debug information.
-    }
+    };
 
     /** State */
     let state = {view: view};
 
-    state.representation = function(model) {
+    state.representation = function() {
         // TODO, could be debug information.
         let representation;
         state.view.display(representation);
-    }
+    };
 
     state.nextAction = function(model) {
         if(state.connecting(model)) {
             // We are connecting, trigger a connect timeout
             actions.connect_timeout({}, model.present);
         }
-    }
+    };
 
     state.render = function(model) {
         state.representation(model);
         state.nextAction(model);
-    }
+    };
 
     model.state = state;
 
     state.disconnected = function(model) {
         return (!model.connected && !model.connecting);
-    }
+    };
 
     state.connected = function(model) {
         return (model.connected && !model.connecting);
-    }
+    };
 
     state.connecting = function(model) {
         return (!model.connected && model.connecting);
-    }
+    };
 
     state.isProvidePublished = function(provides, model) {
         return model.published_provides.includes(provides); 
-    }
+    };
 
     /** Actions */
 
@@ -451,10 +450,10 @@ var cotonic = cotonic || {};
             data.from = "broker";
             model.present(e.data);
         }
-    }
+    };
 
-    actions.on_error = function(e) {
-    }
+    actions.on_error = function() {
+    };
 
     actions.disconnect = client_cmd.bind(null, "disconnect");
     actions.connect = client_cmd.bind(null, "connect");
@@ -473,28 +472,28 @@ var cotonic = cotonic || {};
             d.connect_timeout = true;
             p(d);
         }, 1000);
-    }
+    };
 
     actions.model_ping = function(data) {
         model.present({
             is_provided: data.payload === "pong",
             provided: "model/" + data.model
         });
-    }
+    };
 
     actions.worker_ping = function(data) {
         model.present({
             is_provided: data.payload === "pong",
             provided: "worker/" + data.worker
         });
-    }
+    };
 
     actions.bridge_origin_status = function(data) {
         model.present({
             is_provided: data.is_connected || false,
             provided: "bridge/origin"
         });
-    }
+    };
 
     actions.when_dependency_provided = function(name) {
         return new Promise(function(resolve) {
@@ -503,23 +502,23 @@ var cotonic = cotonic || {};
                 resolve: resolve
             });
         });
-    }
+    };
 
     /* Indicate to external code that this worker provides some functionality */
     actions.provides = function(provides) {
         model.present({
             provides: provides
         });
-    }
+    };
 
     /** External api */
     self.is_connected = function() {
         return state.connected(model);
-    }
+    };
 
     self.close = function() {
         actions.close();
-    }
+    };
 
     self.connect = function(options) {
         // Valid options:
@@ -547,14 +546,14 @@ var cotonic = cotonic || {};
 
                 actions.connect(options);
             }
-        )
+        );
 
         if(depsPromise)
             return Promise.all([connectPromise, depsPromise]);
 
         return connectPromise;
 
-    }
+    };
 
     self.subscribe = function(topics, callback, ack_callback) {
         let ts;
@@ -574,7 +573,7 @@ var cotonic = cotonic || {};
             ts = topics;
         }
         actions.subscribe({topics: ts, callback: callback, ack_callback: ack_callback});
-    }
+    };
 
     self.unsubscribe = function(topics, callback, ack_callback) {
         let ts;
@@ -585,19 +584,19 @@ var cotonic = cotonic || {};
             ts = topics;
         }
         actions.unsubscribe({topics: ts, callback: callback, ack_callback: ack_callback});
-    }
+    };
 
     self.publish = function(topic, payload, options) {
         actions.publish({topic: topic, payload: payload, options: options});
-    }
+    };
 
     self.pingreq = function() {
         actions.pingreq();
-    }
+    };
 
     self.disconnect = function() {
         actions.disconnect();
-    }
+    };
 
     // Publish to a topic, return a promise for the response_topic publication
     self.call = function(topic, payload, options) {
@@ -628,15 +627,15 @@ var cotonic = cotonic || {};
                 actions.publish(pubdata);
             });
         return willRespond;
-    }
+    };
 
     self.abs_url = function(path) {
         return model.location.origin + path;
-    }
+    };
 
     self.whenDependencyProvided = function(dependency) {
         return actions.when_dependency_provided(dependency);
-    }
+    };
 
     self.whenDependenciesProvided = function(dependencies) {
         const promises = [];
@@ -645,11 +644,11 @@ var cotonic = cotonic || {};
             promises.push(actions.when_dependency_provided(dependencies[i]));
         }
         return Promise.all(promises);
-    }
+    };
 
     self.provides = function(provides) {
         actions.provides(provides);
-    }
+    };
 
     function handle_init(e) {
         if(e.data[0] !== "init")
@@ -672,7 +671,7 @@ var cotonic = cotonic || {};
         }
 
         if(self.on_init) {
-            on_init.apply(null, args);
+            self.on_init.apply(null, args);
         }
     }
 
