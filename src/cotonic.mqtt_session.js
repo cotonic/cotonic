@@ -23,7 +23,6 @@
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-//"use strict";
     const console = window.console;
 
     /**
