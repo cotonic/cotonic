@@ -4421,7 +4421,6 @@ var cotonic = cotonic || {};
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-//"use strict";
     const console = window.console;
 
     /**
@@ -6636,7 +6635,7 @@ var cotonic = cotonic || {};
             if (typeof msg.payload.message == "object") {
                 let attrs = msg.payload.message;
                 if (attrs.href) {
-                    options.location = msg.payload.message.href;
+                    options.url = msg.payload.message.href;
                     if (msg.payload.message['data-window']) {
                         if (typeof msg.payload.message['data-window'] == "string") {
                             attrs = JSON.parse(msg.payload.message['data-window']);
@@ -6673,7 +6672,7 @@ var cotonic = cotonic || {};
                 if (options.name) {
                     options.name = options.name.replace(/[^a-zA-Z0-9]/g,'_');
                 }
-                let w = window.open(options.location, options.name, features+',left='+Math.ceil(left)+',top='+Math.ceil(top));
+                let w = window.open(options.url, options.name, features+',left='+Math.ceil(left)+',top='+Math.ceil(top));
                 // setTimeout(
                 //     function() {
                 //         if (w.innerWidth != undefined && w.innerWidth > 0) {
