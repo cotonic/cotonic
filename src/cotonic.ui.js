@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-"use strict";
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+    "use strict";
+
     const state = {};
     const order = [];
 
     const stateData = {};
     const stateClass = {};
 
-    let animationFrameRequestId = undefined;
+    let animationFrameRequestId;
 
     /**
      * insert element to the prioritized patch list.
@@ -33,7 +34,7 @@ var cotonic = cotonic || {};
         if(mode === true) {
             mode = "inner";
         } else if(mode === false) {
-            mode = "outer"
+            mode = "outer";
         }
 
         state[id] = {
@@ -46,7 +47,7 @@ var cotonic = cotonic || {};
         insertSorted(order,
             {id: id, priority: priority},
             function(a, b) {
-                return a.priority < b.priority
+                return a.priority < b.priority;
             });
 
         publish("model/ui/event/insert/" + id, initialData);
@@ -75,7 +76,7 @@ var cotonic = cotonic || {};
         arr.splice(index, 0, item);
 
         requestRender();
-    };
+    }
 
      /**
      * Get the representation of an element. 
@@ -136,7 +137,7 @@ var cotonic = cotonic || {};
         if(mode === "shadow-closed") {
             mode = "closed";
         } else {
-            mode = "open"
+            mode = "open";
         }
         
         return elt.attachShadow({mode: mode});
@@ -329,9 +330,8 @@ var cotonic = cotonic || {};
                         } else {
                             return false;
                         }
-                    } else {
-                        return elt.value;
-                    }
+                    } 
+                    return elt.value;
                 case 'TEXTAREA':
                     return elt.value;
                 default:
@@ -349,7 +349,7 @@ var cotonic = cotonic || {};
             const len = form.elements.length;
             for (let i=0; i<len; i++) {
                 field = form.elements[i];
-                if (   field.name
+                if ( field.name
                     && !field.disabled
                     && field.type != 'file'
                     && field.type != 'reset'
@@ -458,6 +458,7 @@ var cotonic = cotonic || {};
 
     function requestRender() {
         if(animationFrameRequestId) {
+            // A render is already requested.
             return;
         }
 

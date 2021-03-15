@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-"use strict";
-
 var cotonic = cotonic || {};
 
 (function(cotonic) {
+"use strict";
+
     let clients;
     let root;
     let response_nr = 0;
@@ -84,7 +84,7 @@ var cotonic = cotonic || {};
 
         if(path.length === 0) {
             if(trie[VALUE] !== null) {
-                matches.push.apply(matches, trie[VALUE])
+                matches.push.apply(matches, trie[VALUE]);
                 return;
             }
         }
@@ -180,7 +180,7 @@ var cotonic = cotonic || {};
         if(trie === undefined) return;
 
         if(path.length === 0 && trie[VALUE] !== null) {
-            subs.push.apply(subs, trie[VALUE])
+            subs.push.apply(subs, trie[VALUE]);
         }
 
         let children = trie[CHILDREN];
@@ -218,14 +218,15 @@ var cotonic = cotonic || {};
             case "pingreq":
                 return handle_pingreq(wid, data);
             default:
-                console.error("Received unknown command", data);
-        };
+                if(window.console)
+                    window.console.error("Received unknown command", data);
+        }
     });
 
     function handle_connect(wid, data) {
         // TODO: Start keep-alive timer for will handling if pingreq missing
         if (data.client_id !== wid) {
-            console.error("Wrong client_id in connect from " + wid, data);
+            if(window.console) window.console.error("Wrong client_id in connect from " + wid, data);
         }
         clients[wid] = data;
         cotonic.send(wid, {type: "connack", reason_code: 0});
@@ -255,7 +256,7 @@ var cotonic = cotonic || {};
         publish_mqtt_message(data, { wid: wid });
     }
 
-    function handle_pingreq(wid, data) {
+    function handle_pingreq(wid) {
         // TODO: reset keep-alive timer
         cotonic.send(wid, {type: "pingresp"});
     }
@@ -334,7 +335,7 @@ var cotonic = cotonic || {};
                     retained.push({
                         subscription: subscription,
                         retained: rs
-                    })
+                    });
                 }
             }
 
@@ -474,11 +475,11 @@ var cotonic = cotonic || {};
         }
 
         if(sub.type === "worker") {
-            cotonic.send(sub.wid, mqttmsg)
+            cotonic.send(sub.wid, mqttmsg);
         } else if(sub.type === "page") {
             sub.callback(mqttmsg, cotonic.mqtt.extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
         } else {
-            console.error("Unkown subscription type", sub);
+            if(window.console) window.console.error("Unkown subscription type", sub);
         }
     }
 
