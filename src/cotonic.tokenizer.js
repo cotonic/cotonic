@@ -260,8 +260,8 @@ var cotonic = cotonic || {};
                 builder.elementOpen(tag.value, attributes.value);
             }
 
-            if (tag.value == "textarea") return TEXTAREA;
-            if (tag.value == "script") return SCRIPT;
+            if (tag.value === "textarea") return TEXTAREA;
+            if (tag.value === "script") return SCRIPT;
 
             return NORMAL;
         }
@@ -279,34 +279,34 @@ var cotonic = cotonic || {};
         while (cont) {
             lt = data.codePointAt(d.offset);
             if (lt === undefined) {
-                if (offsetStart != d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+                if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
                 return;
             }
 
             lookahead: {
-                if (lt != LT) break lookahead;
+                if (lt !== LT) break lookahead;
                 slash = data.codePointAt(d.offset + 1);
-                if (slash != SLASH) break lookahead;
+                if (slash !== SLASH) break lookahead;
                 n = data[d.offset + 2];
-                if (!(n == "t" || n == "T")) break lookahead;
+                if (!(n === "t" || n === "T")) break lookahead;
                 n = data[d.offset + 3];
-                if (!(n == "e" || n == "E")) break lookahead;
+                if (!(n === "e" || n === "E")) break lookahead;
                 n = data[d.offset + 4];
-                if (!(n == "x" || n == "X")) break lookahead;
+                if (!(n === "x" || n === "X")) break lookahead;
                 n = data[d.offset + 5];
-                if (!(n == "t" || n == "T")) break lookahead;
+                if (!(n === "t" || n === "T")) break lookahead;
                 n = data[d.offset + 6];
-                if (!(n == "a" || n == "A")) break lookahead;
+                if (!(n === "a" || n === "A")) break lookahead;
                 n = data[d.offset + 7];
-                if (!(n == "r" || n == "R")) break lookahead;
+                if (!(n === "r" || n === "R")) break lookahead;
                 n = data[d.offset + 8];
-                if (!(n == "e" || n == "E")) break lookahead;
+                if (!(n === "e" || n === "E")) break lookahead;
                 n = data[d.offset + 9];
-                if (!(n == "a" || n == "A")) break lookahead;
+                if (!(n === "a" || n === "A")) break lookahead;
 
                 n = data.codePointAt(d.offset + 10);
                 if (is_probable_close(n)) {
-                    if (offsetStart != d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+                    if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
                     return;
                 }
             }
@@ -322,30 +322,30 @@ var cotonic = cotonic || {};
         while (cont) {
             lt = data.codePointAt(d.offset);
             if (lt === undefined) {
-                if (offsetStart != d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+                if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
                 return;
             }
 
             lookahead: {
-                if (lt != LT) break lookahead;
+                if (lt !== LT) break lookahead;
                 slash = data.codePointAt(d.offset + 1);
-                if (slash != SLASH) break lookahead;
+                if (slash !== SLASH) break lookahead;
                 n = data[d.offset + 2];
-                if (!(n == "s" || n == "S")) break lookahead;
+                if (!(n === "s" || n === "S")) break lookahead;
                 n = data[d.offset + 3];
-                if (!(n == "c" || n == "C")) break lookahead;
+                if (!(n === "c" || n === "C")) break lookahead;
                 n = data[d.offset + 4];
-                if (!(n == "r" || n == "R")) break lookahead;
+                if (!(n === "r" || n === "R")) break lookahead;
                 n = data[d.offset + 5];
-                if (!(n == "i" || n == "I")) break lookahead;
+                if (!(n === "i" || n === "I")) break lookahead;
                 n = data[d.offset + 6];
-                if (!(n == "p" || n == "P")) break lookahead;
+                if (!(n === "p" || n === "P")) break lookahead;
                 n = data[d.offset + 7];
-                if (!(n == "t" || n == "T")) break lookahead;
+                if (!(n === "t" || n === "T")) break lookahead;
 
                 n = data.codePointAt(d.offset + 8);
                 if (is_probable_close(n)) {
-                    if (offsetStart != d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+                    if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
                     return;
                 }
             }
@@ -365,7 +365,7 @@ var cotonic = cotonic || {};
             c = data.codePointAt(d.offset);
 
             if (c === undefined || c === GT) {
-                if (c == GT) d.inc_col();
+                if (c === GT) d.inc_col();
 
                 d.builder.doctype(acc);
                 return NORMAL;
@@ -484,9 +484,9 @@ var cotonic = cotonic || {};
             }
 
             literal = literal.join("");
-            if (type == "tag") {
+            if (type === "tag") {
                 literal = tokenize_tag(literal);
-            } else if (type == "attribute") {
+            } else if (type === "attribute") {
                 literal = tokenize_attribute_name(literal);
             }
 
@@ -684,7 +684,7 @@ var cotonic = cotonic || {};
         try {
             return tokenize_charref1(data, d);
         } catch (err) {
-            if (err != "invalid_charref") throw err;
+            if (err !== "invalid_charref") throw err;
 
             // Reset the offset;
             d.offset = offset;
@@ -1084,7 +1084,7 @@ var cotonic = cotonic || {};
             let d = cache[raw];
             if(d !== undefined) return d;
 
-            if (raw.slice(-1) == ";") {
+            if (raw.slice(-1) === ";") {
                 element.innerHTML = "&" + raw;
             } else {
                 element.innerHTML = "&" + raw + ";";
@@ -1095,11 +1095,11 @@ var cotonic = cotonic || {};
 
             /* Array.from not available on IE when it is in Quirks mode */
             if (Array.from) {
-                if (Array.from(d).length != 1) {
+                if (Array.from(d).length !== 1) {
                     d = null; // This was not a charref;
                 }
             } else {
-                if (d.split(/(?=(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/).length != 1) {
+                if (d.split(/(?=(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/).length !== 1) {
                     d = null; // This was not a charref
                 }
             }
