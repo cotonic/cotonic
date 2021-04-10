@@ -4495,10 +4495,15 @@ var cotonic = cotonic || {};
          * Called if there are new language / timezone preferences
          */
         cotonic.broker.subscribe("model/auth/event/auth", function(msg) {
-            if (typeof msg.payload == 'object' && typeof msg.payload.preferences == 'object') {
+            if (typeof msg.payload == 'object') {
                 if (sessions['origin'] && sessions['origin'].isConnected()) {
-                    let topic = 'bridge/origin/client/' + sessions['origin'].clientId + "/config";
-                    cotonic.broker.publish(topic, msg.payload.preferences, { qos: 0 });
+                    let data = {
+                        user_id: msg.payload.user_id,
+                        options: msg.payload.options || {},
+                        preferences: msg.payload.preferences || {}
+                    }
+                    let topic = 'bridge/origin/$client/' + sessions['origin'].clientId + "/auth";
+                    cotonic.broker.publish(topic, data, { qos: 0 });
                 }
             }
         });
