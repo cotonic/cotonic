@@ -109,6 +109,22 @@ var cotonic = cotonic || {};
                 }
             }
         });
+
+
+        /**
+         * Called if the cotonic-sid changes.
+         */
+        cotonic.broker.subscribe("model/sessionId/event", function(msg) {
+            if (typeof msg.payload == 'string') {
+                if (sessions['origin'] && sessions['origin'].isConnected()) {
+                    let data = {
+                        options: { sid: msg.payload }
+                    }
+                    let topic = 'bridge/origin/$client/' + sessions['origin'].clientId + "/sid";
+                    cotonic.broker.publish(topic, data, { qos: 0 });
+                }
+            }
+        });
     }
 
 
@@ -245,21 +261,26 @@ var cotonic = cotonic || {};
             // Connection established - try to send out 'connect'
             if (transportName == 'ws') {
                 if (isStateNew()) {
-                    let connectMessage = {
-                        type: 'connect',
-                        client_id: self.clientId,
-                        clean_start: self.cleanStart,
-                        keep_alive: MQTT_KEEP_ALIVE,
-                        username: self.authUserPassword.username,
-                        password: self.authUserPassword.password,
-                        properties: {
-                            session_expiry_interval: MQTT_SESSION_EXPIRY
-                        }
-                    };
-                    self.isSentConnect = self.sendMessage(connectMessage, true);
-                    if (self.isSentConnect) {
-                        self.isWaitConnack = true;
-                    }
+                    cotonic.broker
+                        .call("model/sessionId/get")
+                        .then(function(msg) {
+                            let connectMessage = {
+                                type: 'connect',
+                                client_id: self.clientId,
+                                clean_start: self.cleanStart,
+                                keep_alive: MQTT_KEEP_ALIVE,
+                                username: self.authUserPassword.username,
+                                password: self.authUserPassword.password,
+                                properties: {
+                                    session_expiry_interval: MQTT_SESSION_EXPIRY,
+                                    cotonic_sid: msg.payload
+                                }
+                            };
+                            self.isSentConnect = self.sendMessage(connectMessage, true);
+                            if (self.isSentConnect) {
+                                self.isWaitConnack = true;
+                            }
+                        });
                 }
             }
         };
