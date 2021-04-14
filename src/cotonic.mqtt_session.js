@@ -264,7 +264,6 @@ var cotonic = cotonic || {};
                     cotonic.broker
                         .call("model/sessionId/get")
                         .then(function(msg) {
-                            console.log("connect", msg.payload);
                             let connectMessage = {
                                 type: 'connect',
                                 client_id: self.clientId,
