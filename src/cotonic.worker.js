@@ -655,8 +655,6 @@ var cotonic = cotonic || {};
             throw("Worker handle_init error. Wrong init message.");
 
         self.removeEventListener("message", handle_init);
-        self.addEventListener("message", actions.on_message);
-        self.addEventListener("error", actions.on_error);
 
         model.client_id = e.data[1].wid;
         model.name = e.data[1].name || undefined;
@@ -673,6 +671,9 @@ var cotonic = cotonic || {};
         if(self.on_init) {
             self.on_init.apply(null, args);
         }
+
+        self.addEventListener("message", actions.on_message);
+        self.addEventListener("error", actions.on_error);
     }
 
     self.addEventListener("message", handle_init);

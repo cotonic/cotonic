@@ -203,4 +203,22 @@ QUnit.test("Connect with provides and deps.",
     }
 );
 
+QUnit.test("on_init is called before connect.",
+    function(assert) {
+        assert.timeout(10000);
+        var done = assert.async();
+
+        function handler(msg, bindings) {
+            if(bindings.what === "done") {
+                assert.equal(msg.payload[0], "on_init", "On init is called first");
+                assert.equal(msg.payload[1], "connect-resolved", "And connect resolved later");
+                done();
+            }
+        }
+
+        cotonic.broker.subscribe("on-init-before-connect/+what", handler);
+        cotonic.spawn("/test/workers/on-init-before-connect.js");
+    }
+);
+
 
