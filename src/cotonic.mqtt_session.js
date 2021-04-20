@@ -305,26 +305,6 @@ var cotonic = cotonic || {};
                 retain: pubmsg.retain || 0,
                 properties: properties
             };
-            switch (msg.qos) {
-                case 0:
-                    break;
-                case 1:
-                    msg.packet_id = nextPacketId();
-                    self.awaitingAck[msg.packet_id] = {
-                        type: 'puback',
-                        nr: self.messageNr++,
-                        msg: msg
-                    };
-                    break;
-                case 2:
-                    msg.packet_id = nextPacketId();
-                    self.awaitingAck[msg.packet_id] = {
-                        type: 'pubrec',
-                        nr: self.messageNr++,
-                        msg: msg
-                    };
-                    break;
-            }
             self.sendMessage(msg);
         }
 
@@ -386,6 +366,40 @@ var cotonic = cotonic || {};
         this.sendMessage = function ( msg, connecting ) {
             var isSent = false;
             if (isStateConnected() || (connecting && isStateNew())) {
+                switch (msg.type) {
+                    case 'subscribe':
+                        msg.packet_id = nextPacketId(),
+                        self.awaitingAck[msg.packet_id] = {
+                            type: 'suback',
+                            nr: self.messageNr++,
+                            msg: msg
+                        };
+                        break;
+                    case 'publish':
+                        switch (msg.qos) {
+                            case 0:
+                                break;
+                            case 1:
+                                msg.packet_id = nextPacketId();
+                                self.awaitingAck[msg.packet_id] = {
+                                    type: 'puback',
+                                    nr: self.messageNr++,
+                                    msg: msg
+                                };
+                                break;
+                            case 2:
+                                msg.packet_id = nextPacketId();
+                                self.awaitingAck[msg.packet_id] = {
+                                    type: 'pubrec',
+                                    nr: self.messageNr++,
+                                    msg: msg
+                                };
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
                 isSent = self.sendTransport(msg);
             }
             if (!isSent) {
@@ -640,7 +654,6 @@ var cotonic = cotonic || {};
                                 self.keepAliveInterval = MQTT_KEEP_ALIVE;
                             }
                             resetKeepAliveTimer();
-                            sendQueuedMessages();
 
                             // Relay the connack to the bridge (might need to resubscribe)
                             publishStatus(true);
@@ -650,6 +663,9 @@ var cotonic = cotonic || {};
                                 client_id: self.clientId,
                                 connack: msg
                             });
+
+                            // Now that the bridge resubscribed we can send the queued messages.
+                            sendQueuedMessages();
                             break;
                         case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
                             // Bad credentials, retry anonymous
