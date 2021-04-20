@@ -25,6 +25,8 @@ var cotonic = cotonic || {};
         client_id: undefined,   // Set to the wid
         name: undefined,        // Name if named spawn
 
+        init_args: undefined,   // Arguments provided on init
+
         response_topic_prefix: undefined,
         response_topic_nr: 1,
         response_handlers: {},  // response_topic -> { timeout, handler }
@@ -71,7 +73,7 @@ var cotonic = cotonic || {};
 
         // Immediately resolve, when the dependency is already provided.
         if(model.resolved_dependencies.includes(name)) {
-            resolve();
+            resolve(model.init_args);
             return;
         }
 
@@ -372,7 +374,10 @@ var cotonic = cotonic || {};
                 if(model.waiting_on_dependency_count > 0 && !model.is_tracking_dependencies) {
                     model.startTrackingDependencies();
                 }
-                self.subscribe(model.response_topic_prefix + "+", self.response, accept);
+                self.subscribe(
+                    model.response_topic_prefix + "+",
+                    self.response,
+                    function() { accept(model.init_args); });
             } else if(data.connect_timeout) {
                 model.connected = false;
                 model.connecting = false;
@@ -524,7 +529,7 @@ var cotonic = cotonic || {};
         // Valid options:
         // - will_topic
         // - will_payload
-        // - provides 
+        // - provides
         //
         options = options || {};
 
@@ -551,7 +556,7 @@ var cotonic = cotonic || {};
         if(depsPromise)
             return Promise.all([connectPromise, depsPromise]);
 
-        return connectPromise;
+        return Promise.all([connectPromise]);
 
     };
 
@@ -661,15 +666,15 @@ var cotonic = cotonic || {};
         model.location = e.data[1].location;
         model.response_topic_prefix = "worker/" + model.client_id + "/response/";
 
+        model.init_args = e.data[1].args;
         const url = e.data[1].url;
-        const args = e.data[1].args;
 
         if(url) {
             importScripts(url);
         }
 
         if(self.on_init) {
-            self.on_init.apply(null, args);
+            self.on_init.apply(null, [ model.init_args ]);
         }
 
         self.addEventListener("message", actions.on_message);

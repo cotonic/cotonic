@@ -28,11 +28,23 @@
 }(this));
 
 /**
- * @preserve
+ * @license
  * Copyright 2015 The Incremental DOM Authors. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-(function(t,e){typeof exports==="object"&&typeof module!=="undefined"?e(exports):typeof define==="function"&&define.amd?define(["exports"],e):(t=t||self,e(t.IncrementalDOM={}))})(this,function(t){"use strict";var e="key";function o(){return e}function n(t){e=t}function i(t){return t}var r=Object.prototype.hasOwnProperty;function a(){}a.prototype=Object.create(null);function u(t,e){return r.call(t,e)}function l(){return new a}function v(t,e){while(t.length>e){t.pop()}}function f(t){var e=new Array(t);v(e,0);return e}var c={default:"__default"};function s(t){if(t.lastIndexOf("xml:",0)===0){return"http://www.w3.org/XML/1998/namespace"}if(t.lastIndexOf("xlink:",0)===0){return"http://www.w3.org/1999/xlink"}return null}function d(t,e,n){if(n==null){t.removeAttribute(e)}else{var r=s(e);if(r){t.setAttributeNS(r,e,String(n))}else{t.setAttribute(e,String(n))}}}function p(t,e,n){t[e]=n}function h(t,e,n){if(e.indexOf("-")>=0){t.setProperty(e,n)}else{t[e]=n}}function g(t,e,n){var r=t.style;if(typeof n==="string"){r.cssText=n}else{r.cssText="";for(var a in n){if(u(n,a)){h(r,a,n[a])}}}}function y(t,e,n){var r=typeof n;if(r==="object"||r==="function"){p(t,e,n)}else{d(t,e,n)}}var m=l();m[c.default]=y;m["style"]=g;function w(t,e,n){var r=m[e]||m[c.default];r(t,e,n)}var x={nodesCreated:null,nodesDeleted:null};var A=function(){function t(){this.created=[];this.deleted=[]}t.prototype.markCreated=function(t){this.created.push(t)};t.prototype.markDeleted=function(t){this.deleted.push(t)};t.prototype.notifyChanges=function(){if(x.nodesCreated&&this.created.length>0){x.nodesCreated(this.created)}if(x.nodesDeleted&&this.deleted.length>0){x.nodesDeleted(this.deleted)}};return t}();function O(t){return t.nodeType===11||t.nodeType===9}function b(t){return t.nodeType===1}function D(t,e){var n=[];var r=t;while(r!==e){var a=i(r);n.push(a);r=a.parentNode}return n}var _=typeof Node!=="undefined"&&Node.prototype.getRootNode||function(){var t=this;var e=t;while(t){e=t;t=t.parentNode}return e};function C(t){var e=_.call(t);return O(e)?e.activeElement:null}function N(t,e){var n=C(t);if(!n||!t.contains(n)){return[]}return D(n,e)}function S(t,e,n){var r=e.nextSibling;var a=n;while(a!==null&&a!==e){var i=a.nextSibling;t.insertBefore(a,r);a=i}}var k=function(){function t(t,e,n){this._attrsArr=null;this.staticsApplied=false;this.nameOrCtor=t;this.key=e;this.text=n}t.prototype.hasEmptyAttrsArr=function(){var t=this._attrsArr;return!t||!t.length};t.prototype.getAttrsArr=function(t){return this._attrsArr||(this._attrsArr=f(t))};return t}();function M(t,e,n,r){var a=new k(e,n,r);t["__incrementalDOMData"]=a;return a}function E(t){return Boolean(t["__incrementalDOMData"])}function I(t,e){var n=t.attributes;var r=n.length;if(!r){return}var a=e.getAttrsArr(r);for(var i=0,u=0;i<r;i+=1,u+=2){var o=n[i];var l=o.name;var f=o.value;a[u]=l;a[u+1]=f}}function P(t,e){if(t["__incrementalDOMData"]){return t["__incrementalDOMData"]}var n=b(t)?t.localName:t.nodeName;var r=o();var a=b(t)&&r!=null?t.getAttribute(r):null;var i=b(t)?a||e:null;var u=M(t,n,i);if(b(t)){I(t,u)}return u}function j(t){P(t);for(var e=t.firstChild;e;e=e.nextSibling){j(e)}}function T(t,e){return P(t,e)}function B(t){i(t["__incrementalDOMData"]);return T(t).key}function K(t){t["__incrementalDOMData"]=null;for(var e=t.firstChild;e;e=e.nextSibling){K(e)}}function L(t,e){if(t==="svg"){return"http://www.w3.org/2000/svg"}if(t==="math"){return"http://www.w3.org/1998/Math/MathML"}if(e==null){return null}if(T(e).nameOrCtor==="foreignObject"){return null}return e.namespaceURI}function R(t,e,n,r){var a;if(typeof n==="function"){a=new n}else{var i=L(n,e);if(i){a=t.createElementNS(i,n)}else{a=t.createElement(n)}}M(a,n,r);return a}function z(t){var e=t.createTextNode("");M(e,"#text",null);return e}function U(t,e,n,r,a){return e==n&&r==a}var V=null;var W=null;var X=null;var q=null;var F=[];var G=U;var H=[];var J=[];function Q(){return H}function Y(){return J}function Z(t,e,n){var r=T(t,n);return G(t,e,r.nameOrCtor,n,r.key)}function $(t,e,n){if(!t){return null}var r=t;do{if(Z(r,e,n)){return r}}while(n&&(r=r.nextSibling));return null}function tt(t,e,n){var r=t;var a=e;while(a!==n){var i=a.nextSibling;r.removeChild(a);V.markDeleted(a);a=i}}function et(){if(W){return W.nextSibling}else{return X.firstChild}}function nt(){X=W;W=null}function rt(){tt(X,et(),null);W=X;X=X.parentNode}function at(){W=et()}function it(t,e){var n;if(t==="#text"){n=z(q)}else{n=R(q,X,t,e)}V.markCreated(n);return n}function ut(t,e){at();var n=$(W,t,e);var r=n||it(t,e);if(r===W){return}if(F.indexOf(r)>=0){S(X,r,W)}else{X.insertBefore(r,W)}W=r}function ot(t,e){ut(t,e);nt();return X}function lt(){rt();return W}function ft(){ut("#text",null);return W}function ct(){return X}function vt(){return et()}function st(){W=X.lastChild}function dt(s,t){if(t===void 0){t={}}var e=t.matches,d=e===void 0?U:e;var n=function(t,e,n){var r=V;var a=q;var i=F;var u=H;var o=J;var l=W;var f=X;var c=G;q=t.ownerDocument;V=new A;G=d;H=[];J=[];W=null;X=t.parentNode;F=N(t,X);try{var v=s(t,e,n);return v}finally{V.notifyChanges();q=a;V=r;G=c;H=u;J=o;W=l;X=f;F=i}};return n}function pt(t){return dt(function(t,e,n){W=t;nt();e(n);rt();return t},t)}function ht(t){return dt(function(t,e,n){var r={nextSibling:t};W=r;e(n);if(X){tt(X,et(),t.nextSibling)}return r===W?null:W},t)}var gt=pt();var yt=ht();var mt=[];var wt=0;function xt(t,e,n,r){mt.push(t);mt.push(e);mt.push(n);mt.push(r)}function At(){var t=wt;var e=mt.length;wt=e;for(var n=t;n<e;n+=4){var r=mt[n];r(mt[n+1],mt[n+2],mt[n+3])}wt=t;v(mt,t)}var Ot=l();function bt(t,e,n,r){var a=!t.length;var i=0;for(;i<e.length;i+=2){var u=e[i];if(a){t[i]=u}else if(t[i]!==u){break}var o=e[i+1];if(a||t[i+1]!==o){t[i+1]=o;xt(r,n,u,o)}}if(i<e.length||i<t.length){var l=i;for(i=l;i<t.length;i+=2){Ot[t[i]]=t[i+1]}for(i=l;i<e.length;i+=2){var f=e[i];var o=e[i+1];if(Ot[f]!==o){xt(r,n,f,o)}t[i]=f;t[i+1]=o;delete Ot[f]}v(t,e.length);for(var c in Ot){xt(r,n,c,undefined);delete Ot[c]}}At()}var Dt=3;var _t=l();function Ct(t,e){var n=Y();var r=e.getAttrsArr(n.length);bt(r,n,t,w);v(n,0)}function Nt(t,e,n){if(e.staticsApplied){return}e.staticsApplied=true;if(!n||!n.length){return}if(e.hasEmptyAttrsArr()){for(var r=0;r<n.length;r+=2){w(t,n[r],n[r+1])}return}for(var r=0;r<n.length;r+=2){_t[n[r]]=r+1}var a=e.getAttrsArr(0);var i=0;for(var r=0;r<a.length;r+=2){var u=a[r];var o=a[r+1];var l=_t[u];if(l){if(n[l]===o){delete _t[u]}continue}a[i]=u;a[i+1]=o;i+=2}v(a,i);for(var f in _t){w(t,f,n[_t[f]]);delete _t[f]}}function St(t,e,n){var r=Q();r[0]=t;r[1]=e;r[2]=n}function kt(t){var e=Q();e[1]=t}function Mt(t,e){var n=Y();n.push(t);n.push(e)}function Et(){var t=Q();var e=ot(t[0],t[1]);var n=T(e);Nt(e,n,t[2]);Ct(e,n);v(t,0);return e}function It(t,e,n){var r=[];for(var a=3;a<arguments.length;a++){r[a-3]=arguments[a]}St(t,e,n);for(var i=Dt;i<arguments.length;i+=2){Mt(arguments[i],arguments[i+1])}return Et()}function Pt(){var t=ct();var e=T(t);Ct(t,e)}function jt(t){var e=ct();var n=T(e);Nt(e,n,t)}function Tt(t){var e=lt();return e}function Bt(t,e,n){var r=[];for(var a=3;a<arguments.length;a++){r[a-3]=arguments[a]}It.apply(null,arguments);return Tt(t)}function Kt(t){var e=[];for(var n=1;n<arguments.length;n++){e[n-1]=arguments[n]}var r=ft();var a=T(r);if(a.text!==t){a.text=t;var i=t;for(var u=1;u<arguments.length;u+=1){var o=arguments[u];i=o(i)}if(r.data!==i){r.data=i}}return r}t.applyAttr=d;t.applyProp=p;t.attributes=m;t.alignWithDOM=ut;t.close=lt;t.createPatchInner=pt;t.createPatchOuter=ht;t.currentElement=ct;t.currentPointer=vt;t.open=ot;t.patch=gt;t.patchInner=gt;t.patchOuter=yt;t.skip=st;t.skipNode=at;t.setKeyAttributeName=n;t.clearCache=K;t.getKey=B;t.importNode=j;t.isDataInitialized=E;t.notifications=x;t.symbols=c;t.applyAttrs=Pt;t.applyStatics=jt;t.attr=Mt;t.elementClose=Tt;t.elementOpen=It;t.elementOpenEnd=Et;t.elementOpenStart=St;t.elementVoid=Bt;t.key=kt;t.text=Kt;Object.defineProperty(t,"__esModule",{value:true})});
+!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e(t.IncrementalDOM={})}(this,function(t){"use strict";function e(){}function n(t,e){this.attrs=a(),this.attrsArr=[],this.newAttrs=a(),this.staticsApplied=!1,this.key=e,this.keyMap=a(),this.keyMapValid=!0,this.focused=!1,this.nodeName=t,this.text=null}function r(){this.created=h.nodesCreated&&[],this.deleted=h.nodesDeleted&&[]}var i=Object.prototype.hasOwnProperty;e.prototype=Object.create(null);var o=function(t,e){return i.call(t,e)},a=function(){return new e},u="__incrementalDOMData",l=function(t,e,r){var i=new n(e,r);return t[u]=i,i},f=function(t){return c(t),t[u]},c=function(t){if(!t[u]){var e=t instanceof Element,n=e?t.localName:t.nodeName,r=e?t.getAttribute("key"):null,i=l(t,n,r);if(r&&(f(t.parentNode).keyMap[r]=t),e)for(var o=t.attributes,a=i.attrs,s=i.newAttrs,d=i.attrsArr,p=0;p<o.length;p+=1){var h=o[p],v=h.name,m=h.value;a[v]=m,s[v]=void 0,d.push(v),d.push(m)}for(var y=t.firstChild;y;y=y.nextSibling)c(y)}},s=function(t,e){return"svg"===t?"http://www.w3.org/2000/svg":"foreignObject"===f(e).nodeName?null:e.namespaceURI},d=function(t,e,n,r){var i=s(n,e),o=void 0;return o=i?t.createElementNS(i,n):t.createElement(n),l(o,n,r),o},p=function(t){var e=t.createTextNode("");return l(e,"#text",null),e},h={nodesCreated:null,nodesDeleted:null};r.prototype.markCreated=function(t){this.created&&this.created.push(t)},r.prototype.markDeleted=function(t){this.deleted&&this.deleted.push(t)},r.prototype.notifyChanges=function(){this.created&&this.created.length>0&&h.nodesCreated(this.created),this.deleted&&this.deleted.length>0&&h.nodesDeleted(this.deleted)};var v=function(t){return t instanceof Document||t instanceof DocumentFragment},m=function(t,e){for(var n=[],r=t;r!==e;)n.push(r),r=r.parentNode;return n},y=function(t){for(var e=t,n=e;e;)n=e,e=e.parentNode;return n},g=function(t){var e=y(t);return v(e)?e.activeElement:null},k=function(t,e){var n=g(t);return n&&t.contains(n)?m(n,e):[]},x=function(t,e,n){for(var r=e.nextSibling,i=n;i!==e;){var o=i.nextSibling;t.insertBefore(i,r),i=o}},w=null,b=null,N=null,C=null,A=function(t,e){for(var n=0;n<t.length;n+=1)f(t[n]).focused=e},D=function(t){var e=function(e,n,i){var o=w,a=C,u=b,l=N;w=new r,C=e.ownerDocument,N=e.parentNode;var f=k(e,N);A(f,!0);var c=t(e,n,i);return A(f,!1),w.notifyChanges(),w=o,C=a,b=u,N=l,c};return e},O=D(function(t,e,n){return b=t,V(),e(n),T(),t}),M=D(function(t,e,n){var r={nextSibling:t};return b=r,e(n),t!==b&&t.parentNode&&j(N,t,f(N).keyMap),r===b?null:b}),S=function(t,e,n){var r=f(t);return e===r.nodeName&&n==r.key},E=function(t,e){if(!b||!S(b,t,e)){var n=f(N),r=b&&f(b),i=n.keyMap,o=void 0;if(e){var a=i[e];a&&(S(a,t,e)?o=a:a===b?w.markDeleted(a):j(N,a,i))}o||(o="#text"===t?p(C):d(C,N,t,e),e&&(i[e]=o),w.markCreated(o)),f(o).focused?x(N,o,b):r&&r.key&&!r.focused?(N.replaceChild(o,b),n.keyMapValid=!1):N.insertBefore(o,b),b=o}},j=function(t,e,n){t.removeChild(e),w.markDeleted(e);var r=f(e).key;r&&delete n[r]},I=function(){var t=N,e=f(t),n=e.keyMap,r=e.keyMapValid,i=t.lastChild,o=void 0;if(i!==b||!r){for(;i!==b;)j(t,i,n),i=t.lastChild;if(!r){for(o in n)i=n[o],i.parentNode!==t&&(w.markDeleted(i),delete n[o]);e.keyMapValid=!0}}},V=function(){N=b,b=null},P=function(){return b?b.nextSibling:N.firstChild},_=function(){b=P()},T=function(){I(),b=N,N=N.parentNode},B=function(t,e){return _(),E(t,e),V(),N},F=function(){return T(),b},L=function(){return _(),E("#text",null),b},R=function(){return N},U=function(){return P()},X=function(){b=N.lastChild},q=_,z={"default":"__default"},G=function(t){return 0===t.lastIndexOf("xml:",0)?"http://www.w3.org/XML/1998/namespace":0===t.lastIndexOf("xlink:",0)?"http://www.w3.org/1999/xlink":void 0},H=function(t,e,n){if(null==n)t.removeAttribute(e);else{var r=G(e);r?t.setAttributeNS(r,e,n):t.setAttribute(e,n)}},J=function(t,e,n){t[e]=n},K=function(t,e,n){e.indexOf("-")>=0?t.setProperty(e,n):t[e]=n},Q=function(t,e,n){if("string"==typeof n)t.style.cssText=n;else{t.style.cssText="";var r=t.style,i=n;for(var a in i)o(i,a)&&K(r,a,i[a])}},W=function(t,e,n){var r=typeof n;"object"===r||"function"===r?J(t,e,n):H(t,e,n)},Y=function(t,e,n){var r=f(t),i=r.attrs;if(i[e]!==n){var o=Z[e]||Z[z["default"]];o(t,e,n),i[e]=n}},Z=a();Z[z["default"]]=W,Z.style=Q;var $=3,tt=[],et=function(t,e,n){var r=B(t,e),i=f(r);if(!i.staticsApplied){if(n)for(var o=0;o<n.length;o+=2){var a=n[o],u=n[o+1];Y(r,a,u)}i.staticsApplied=!0}for(var l=i.attrsArr,c=i.newAttrs,s=!l.length,d=$,p=0;d<arguments.length;d+=2,p+=2){var h=arguments[d];if(s)l[p]=h,c[h]=void 0;else if(l[p]!==h)break;var u=arguments[d+1];(s||l[p+1]!==u)&&(l[p+1]=u,Y(r,h,u))}if(d<arguments.length||p<l.length){for(;d<arguments.length;d+=1,p+=1)l[p]=arguments[d];for(p<l.length&&(l.length=p),d=0;d<l.length;d+=2){var a=l[d],u=l[d+1];c[a]=u}for(var v in c)Y(r,v,c[v]),c[v]=void 0}return r},nt=function(t,e,n){tt[0]=t,tt[1]=e,tt[2]=n},rt=function(t,e){tt.push(t),tt.push(e)},it=function(){var t=et.apply(null,tt);return tt.length=0,t},ot=function(){var t=F();return t},at=function(t){return et.apply(null,arguments),ot(t)},ut=function(t){var e=L(),n=f(e);if(n.text!==t){n.text=t;for(var r=t,i=1;i<arguments.length;i+=1){var o=arguments[i];r=o(r)}e.data=r}return e};t.patch=O,t.patchInner=O,t.patchOuter=M,t.currentElement=R,t.currentPointer=U,t.skip=X,t.skipNode=q,t.elementVoid=at,t.elementOpenStart=nt,t.elementOpenEnd=it,t.elementOpen=et,t.elementClose=ot,t.text=ut,t.attr=rt,t.symbols=z,t.attributes=Z,t.applyAttr=H,t.applyProp=J,t.notifications=h,t.importNode=c});
+
 /* just a separator file */
 /**
  * Copyright 2018-2021 The Cotonic Authors. All Rights Reserved.
@@ -4691,26 +4703,6 @@ var cotonic = cotonic || {};
                 retain: pubmsg.retain || 0,
                 properties: properties
             };
-            switch (msg.qos) {
-                case 0:
-                    break;
-                case 1:
-                    msg.packet_id = nextPacketId();
-                    self.awaitingAck[msg.packet_id] = {
-                        type: 'puback',
-                        nr: self.messageNr++,
-                        msg: msg
-                    };
-                    break;
-                case 2:
-                    msg.packet_id = nextPacketId();
-                    self.awaitingAck[msg.packet_id] = {
-                        type: 'pubrec',
-                        nr: self.messageNr++,
-                        msg: msg
-                    };
-                    break;
-            }
             self.sendMessage(msg);
         }
 
@@ -4772,6 +4764,40 @@ var cotonic = cotonic || {};
         this.sendMessage = function ( msg, connecting ) {
             var isSent = false;
             if (isStateConnected() || (connecting && isStateNew())) {
+                switch (msg.type) {
+                    case 'subscribe':
+                        msg.packet_id = nextPacketId(),
+                        self.awaitingAck[msg.packet_id] = {
+                            type: 'suback',
+                            nr: self.messageNr++,
+                            msg: msg
+                        };
+                        break;
+                    case 'publish':
+                        switch (msg.qos) {
+                            case 0:
+                                break;
+                            case 1:
+                                msg.packet_id = nextPacketId();
+                                self.awaitingAck[msg.packet_id] = {
+                                    type: 'puback',
+                                    nr: self.messageNr++,
+                                    msg: msg
+                                };
+                                break;
+                            case 2:
+                                msg.packet_id = nextPacketId();
+                                self.awaitingAck[msg.packet_id] = {
+                                    type: 'pubrec',
+                                    nr: self.messageNr++,
+                                    msg: msg
+                                };
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
                 isSent = self.sendTransport(msg);
             }
             if (!isSent) {
@@ -5026,7 +5052,6 @@ var cotonic = cotonic || {};
                                 self.keepAliveInterval = MQTT_KEEP_ALIVE;
                             }
                             resetKeepAliveTimer();
-                            sendQueuedMessages();
 
                             // Relay the connack to the bridge (might need to resubscribe)
                             publishStatus(true);
@@ -5036,6 +5061,9 @@ var cotonic = cotonic || {};
                                 client_id: self.clientId,
                                 connack: msg
                             });
+
+                            // Now that the bridge resubscribed we can send the queued messages.
+                            sendQueuedMessages();
                             break;
                         case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
                             // Bad credentials, retry anonymous
