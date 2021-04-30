@@ -25,12 +25,16 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-    if (   !event.request.headers.get('range')
-        && !event.request.headers.get('x-no-cache')) {
-        // fetch drops the 'range' header, which is used
-        // with video and audio requests.
-        event.respondWith( fetch( event.request ) );
-    }
+    // Firefox 88 is failing downloads for large requests over slower
+    // connections if the service worker handles the fetch event.
+    // Temporarily disabled the code below to fix this issue.
+    //
+    // if (   !event.request.headers.get('range')
+    //     && !event.request.headers.get('x-no-cache')) {
+    //     // fetch drops the 'range' header, which is used
+    //     // with video and audio requests.
+    //     event.respondWith( fetch( event.request ) );
+    // }
 });
 
 self.addEventListener('message', function(event) {
