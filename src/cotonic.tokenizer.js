@@ -477,10 +477,12 @@ var cotonic = cotonic || {};
                 continue;
             }
 
-            if (!((is_whitespace(c) || (c === GT) || (c === SLASH) || (c === EQUALS)))) {
-                literal.push(data[d.offset]);
-                d.inc_col();
-                continue;
+            if(c !== undefined)  {
+                if (!((is_whitespace(c) || (c === GT) || (c === SLASH) || (c === EQUALS)))) {
+                    literal.push(data[d.offset]);
+                    d.inc_col();
+                    continue;
+                }
             }
 
             literal = literal.join("");

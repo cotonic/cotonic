@@ -181,3 +181,14 @@ QUnit.test("Comments", function(assert) {
     assert.deepEqual(tokenizer.tokens("<!-- \n\ncomment\n\n -->"), 
             [{type: "comment", data: " \n\ncomment\n\n "}], "Comment with newlines");
 });
+
+
+QUnit.test("Missing closing '>' at the end of input", function(assert) {
+    assert.deepEqual(tokenizer.tokens('</foo'), 
+            [{type: "close", tag: "foo" }], "Close tag with a missing '>'");
+    assert.deepEqual(tokenizer.tokens('<foo'), 
+            [{type: "open", tag: "foo", attributes: []}], "Start tag with a missing '>'");
+    assert.deepEqual(tokenizer.tokens('<foo /'), 
+            [{type: "void", tag: "foo", attributes: []}], "Void tag with a missing '>'");
+});
+
