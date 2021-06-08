@@ -59,13 +59,9 @@ var cotonic = cotonic || {};
 
         function addKey(token, attributes) {
             for(let i=0; i < attributes.length; i = i + 2) {
-                if(attributes[i] === "data-idom-id") {
+                if(attributes[i] === "key") {
                     token.key = attributes[i+1];
                     break;
-                }
-
-                if(attributes[i] === "id") {
-                    token.key = attributes[i+1];
                 }
             }
         }
