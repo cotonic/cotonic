@@ -5,11 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" href="https://unpkg.com/turretcss@5.2.1/dist/turretcss.min.css">
-        <link rel="stylesheet" href="style.css">
     </head>
 
     <body id="main">
-
         <nav class="nav-inline background-light-100 box-shadow-xxl">
             <ul>
                 <li><a href="/" class="brand">
@@ -26,11 +24,14 @@
         <main style="padding: 30px;">
 
         <div class="container">
+            <p><button id="clear">Clear state history</button></p>
+            <table>
+                <thead></thead>
+                <tbody id="output"></tbody>
+            </table>
         </div>
 
         <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
-
-    <script type="text/javascript">
-    </script>
+        <script type="text/javascript" src="./main.js"></script>
     </body>
 </html>

@@ -4188,8 +4188,6 @@ var cotonic = cotonic || {};
          * Periodic state check. Checks if needs an action like connect.
          */
         function periodic() {
-            console.log("periodic", isStateClosed(), isStateForceClosed(), self.backoff );
-
             if (isStateClosed() && !isStateForceClosed()) {
                 if (self.backoff > 0) {
                     self.backoff--;
@@ -4201,7 +4199,6 @@ var cotonic = cotonic || {};
 
         function handleError( reason ) {
             console.log("Closing websocket connection to "+self.remoteUrl+" due to "+reason);
-
             self.errorsSinceLastData++;
             if (isStateConnected()) {
                 self.socket.close();
@@ -4210,9 +4207,6 @@ var cotonic = cotonic || {};
                 self.isConnected = (self.socket.readyState == 1);
             }
             setBackoff();
-
-            console.log("setting session disconnected", self.session);
-            
             self.session.disconnected('ws', reason);
         }
 
@@ -4265,9 +4259,6 @@ var cotonic = cotonic || {};
                 // EMQ is erronously accepting any protocol starting with `mqtt`, so it accepts
                 // 'mqtt.cotonic.org', which starts the extra handshake.
                 // self.socket = new WebSocket( self.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
-
-                console.log("connecting websocket"),
-
                 self.socket = new WebSocket( self.remoteUrl, [ "mqtt" ] );
             }
             self.socket.binaryType = 'arraybuffer';
@@ -5289,7 +5280,6 @@ var cotonic = cotonic || {};
          * Publish the current connection status
          */
         function publishStatus( isConnected ) {
-            console.log( "publishStatus", isConnected);
             localPublish(
                 self.bridgeTopics.session_status,
                 { is_connected: isConnected, client_id: self.clientId  },
@@ -5954,21 +5944,16 @@ var cotonic = cotonic || {};
             cotonic.broker.publish("model/lifecycle/event/ping", "pong", { retain: true });
             cotonic.broker.publish("model/lifecycle/event/state", model.state, { retain: true });
         } else {
-            // Get the possible transitions for the current state 
-            const transitions = validTransitions[model.state];
-
-            // Get the transition path
-            if(transitions !== undefined) {
-                const transitionPath = transitions[proposal.newState]
-
-                if(transitionPath) {
-                    for(let i=0; i < transitionPath.length; i++) {
-                        cotonic.broker.publish("model/lifecycle/event/state", transitionPath[i], { retain: true });
-                    }
-                    cotonic.broker.publish("model/lifecycle/event/state", proposal.newState, { retain: true });
-
-                    model.state = proposal.newState;
-                } 
+            if(proposal.type === "blur") {
+                if(model.state === "active") {
+                    doStateChange(model, proposal.newState);
+                }
+            } else if(proposal.type === "visibilitychange") {
+                if(model.state !== "frozen" && model.state !== "terminated") {
+                    doStateChange(model, proposal.newState); 
+                }
+            } else {
+                doStateChange(model, proposal.newState); 
             }
         }
 
@@ -6016,16 +6001,16 @@ var cotonic = cotonic || {};
     
     function listenToLifecycleEvents() {
         // Track activity, for refreshing active sessions
-        window.addEventListener("focus", actions.focus, { passive: true });
-        window.addEventListener("freeze", actions.freeze, { passive: true });
+        window.addEventListener("focus", actions.focus, { capture: true, passive: true });
+        window.addEventListener("freeze", actions.freeze, { capture: true, passive: true });
 
-        window.addEventListener("blur", actions.handleEvent, { passive: true });
-        window.addEventListener("visibilitychange", actions.handleEvent, { passive: true });
-        window.addEventListener("resume", actions.handleEvent, { passive: true });
-        window.addEventListener("pageshow", actions.handleEvent, { passive: true });
+        window.addEventListener("blur", actions.handleEvent, { capture: true, passive: true });
+        window.addEventListener("visibilitychange", actions.handleEvent, { capture: true, passive: true });
+        window.addEventListener("resume", actions.handleEvent, { capture: true, passive: true });
+        window.addEventListener("pageshow", actions.handleEvent, { capture: true, passive: true });
 
-        window.addEventListener("pagehide", actions.terminatedOrFrozen, { passive: true });
-        window.addEventListener("unload", actions.terminatedOrFrozen, { passive: true });
+        window.addEventListener("pagehide", actions.terminatedOrFrozen, { capture: true, passive: true });
+        window.addEventListener("unload", actions.terminatedOrFrozen, { capture: true, passive: true });
     }
 
     function getCurrentState() {
@@ -6039,6 +6024,24 @@ var cotonic = cotonic || {};
 
         return "passive";
     };
+
+
+    function doStateChange(model, newState) {
+        // Get the transition path
+        const transitions = validTransitions[model.state];
+        if(transitions === undefined) return;
+
+        const transitionPath = transitions[newState]
+        if(transitionPath === undefined) return;
+
+        for(let i=0; i < transitionPath.length; i++) {
+            cotonic.broker.publish("model/lifecycle/event/state", transitionPath[i], { retain: true });
+        }
+        cotonic.broker.publish("model/lifecycle/event/state", newState, { retain: true });
+
+        model.state = newState;
+    }
+
 
     //
     // Start
