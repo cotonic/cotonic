@@ -5946,14 +5946,14 @@ var cotonic = cotonic || {};
         } else {
             if(proposal.type === "blur") {
                 if(model.state === "active") {
-                    doStateChange(model, proposal.newState);
+                    doPossibleStateChange(model, proposal.newState);
                 }
             } else if(proposal.type === "visibilitychange") {
                 if(model.state !== "frozen" && model.state !== "terminated") {
-                    doStateChange(model, proposal.newState); 
+                    doPossibleStateChange(model, proposal.newState); 
                 }
             } else {
-                doStateChange(model, proposal.newState); 
+                doPossibleStateChange(model, proposal.newState); 
             }
         }
 
@@ -6000,17 +6000,18 @@ var cotonic = cotonic || {};
     //
     
     function listenToLifecycleEvents() {
-        // Track activity, for refreshing active sessions
-        window.addEventListener("focus", actions.focus, { capture: true, passive: true });
-        window.addEventListener("freeze", actions.freeze, { capture: true, passive: true });
+        const opts = { capture: true, passive: true };
 
-        window.addEventListener("blur", actions.handleEvent, { capture: true, passive: true });
-        window.addEventListener("visibilitychange", actions.handleEvent, { capture: true, passive: true });
-        window.addEventListener("resume", actions.handleEvent, { capture: true, passive: true });
-        window.addEventListener("pageshow", actions.handleEvent, { capture: true, passive: true });
+        window.addEventListener("focus", actions.focus, opts);
+        window.addEventListener("freeze", actions.freeze, opts);
 
-        window.addEventListener("pagehide", actions.terminatedOrFrozen, { capture: true, passive: true });
-        window.addEventListener("unload", actions.terminatedOrFrozen, { capture: true, passive: true });
+        window.addEventListener("blur", actions.handleEvent, opts);
+        window.addEventListener("visibilitychange", actions.handleEvent, opts);
+        window.addEventListener("resume", actions.handleEvent, opts);
+        window.addEventListener("pageshow", actions.handleEvent, opts);
+
+        window.addEventListener("pagehide", actions.terminatedOrFrozen, opts);
+        window.addEventListener("unload", actions.terminatedOrFrozen, opts);
     }
 
     function getCurrentState() {
@@ -6026,7 +6027,7 @@ var cotonic = cotonic || {};
     };
 
 
-    function doStateChange(model, newState) {
+    function doPossibleStateChange(model, newState) {
         // Get the transition path
         const transitions = validTransitions[model.state];
         if(transitions === undefined) return;

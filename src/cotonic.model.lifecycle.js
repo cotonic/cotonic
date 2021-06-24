@@ -65,14 +65,14 @@ var cotonic = cotonic || {};
         } else {
             if(proposal.type === "blur") {
                 if(model.state === "active") {
-                    doStateChange(model, proposal.newState);
+                    doPossibleStateChange(model, proposal.newState);
                 }
             } else if(proposal.type === "visibilitychange") {
                 if(model.state !== "frozen" && model.state !== "terminated") {
-                    doStateChange(model, proposal.newState); 
+                    doPossibleStateChange(model, proposal.newState); 
                 }
             } else {
-                doStateChange(model, proposal.newState); 
+                doPossibleStateChange(model, proposal.newState); 
             }
         }
 
