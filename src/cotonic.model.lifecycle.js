@@ -77,20 +77,20 @@ var cotonic = cotonic || {};
         }
 
         state.render(model);
-    }
+    };
 
     //
     // State
     //
     
     state.nextAction = function(model) {
-    }
+    };
 
     state.representation = function(model) {
-    }
+    };
 
     state.render = function(model) {
-        state.representation(model)
+        state.representation(model);
         state.nextAction(model) ;
     };
 
@@ -100,19 +100,19 @@ var cotonic = cotonic || {};
     
     actions.focus = function() {
         model.present({type: "focus", newState: "active"});
-    }
+    };
 
     actions.freeze = function() {
         model.present({type: "freeze", newState: "frozen"});
-    }
+    };
 
     actions.terminatedOrFrozen = function(evt) {
         model.present({type: evt.type, newState: evt.persisted ? "frozen" : "terminated"});
-    }
+    };
 
     actions.handleEvent = function(evt) {
         model.present({type: evt.type, newState: getCurrentState()});
-    }
+    };
 
     //
     // Helpers
@@ -143,15 +143,14 @@ var cotonic = cotonic || {};
         }
 
         return "passive";
-    };
-
+    }
 
     function doPossibleStateChange(model, newState) {
         // Get the transition path
         const transitions = validTransitions[model.state];
         if(transitions === undefined) return;
 
-        const transitionPath = transitions[newState]
+        const transitionPath = transitions[newState];
         if(transitionPath === undefined) return;
 
         for(let i=0; i < transitionPath.length; i++) {
