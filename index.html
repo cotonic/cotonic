@@ -295,6 +295,14 @@ pre {
                     <li> - <a href="#model.ui.event.new-shadow-root.key">event/new-shadow-root/+key</a>
                 </ul>
 
+                <a class="toc_title" href="#model.lifecycle">
+                    model/lifecycle 
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.lifecycle.event.state">event/state</a>
+                    <li> - <a href="#model.lifecycle.event.ping">event/ping</a>
+                </ul>
+
                 <a class="toc_title" href="#model.autofocus">
                     model/autofocus 
                 </a>
@@ -1778,6 +1786,120 @@ self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
 ==> model.ui adds clas "ui-state-auth-anonymous" and
     adds data-ui-state-auth-auth="anonymous" to the html element of the document.</pre>
 
+
+            <!-- lifecycle model -->
+            <h3 id="model.lifecycle">model/lifecycle</h3>
+
+            <p>
+            Application lifecycle is a key way that modern operating systems manage resources.
+            On Android, iOS, and recent Windows versions, apps can be started and stopped at
+            any time by the OS. This allows these platforms to streamline and reallocate resources
+            where they best benefit the user.
+            </p>
+
+            <p>
+            Modern browsers will also suspend and discard pages. Browsers do not provide this
+            information in an orderly fashion. There are individual events like: <tt>load</tt>, 
+            <tt>unload</tt>, and <tt>visibilitychange</tt>. The lifecycle model publishes the
+            different states a page can be in.
+
+            <dl>
+                <dt><tt>active</tt></dt>
+                <dd>
+                    The page has focus, and is visible in the foreground. It is important that
+                    the page is responsive to user input. It may be needed to move non-important
+                    work from the main thread to a worker.
+                </dd>
+
+                <dt><tt>passive</tt></dt>
+                <dd>
+                    The page has lost focus, but is still visible. It is important that ui updates
+                    and animations still run smoothly. It may be a good time to store unsaved
+                    application state.
+                </dd>
+                
+                <dt><tt>hidden</tt></dt>
+                <dd>
+                    The page has lost focus, and is no longer visible, but it still exists. It is
+                    likely that this is the end of user interaction with the page. Unsaved state
+                    should be saved. It is also a good time to stop making UI updates, since they
+                    won't be seen by user.
+                </dd>
+
+                <dt><tt>frozen</tt></dt>
+                <dd>
+                    The page has been cached to memory by the browser. It can resume in a 
+                    later stage. Javascript's timers and fetch callbacks no longer work. 
+                    Browsers can freeze pages to prevent full page reloads. This is a good time
+                    to close any open Web Socket connections, close WebRTC channels because
+                    the browser want's to conserve energy.
+                </dd>
+
+                <dt><tt>terminated</tt></dt>
+                <dd>
+                    The page will be terminated shortly.
+                </dd>
+            </dl>
+
+            The lifecycle model publishes the state the page is at on the
+            <tt>model/lifecycle/event/state</tt> topic as a retained message. This makes
+            it possible to get the current state at any moment, and be notified of changes
+            so the application can scale its resource usage at any moment.
+            </p>
+
+            <p>
+            State changes are always done in an orderly way. When a page goes from state
+            <tt>active</tt> to state <tt>hidden</tt> it is made sure that the <tt>passive</tt>
+            state is also published.
+            <p>
+
+            <p>
+            State transition diagram: <br /><br />
+
+            <img width="250" alt="Lifecycle State Changes"
+                 src="https://user-images.githubusercontent.com/1024972/123400323-edbf7600-d5a5-11eb-94fd-0bd42aff2ac2.png">
+
+            </p>
+
+            <p id="model.lifecycle.event.state">
+            <strong class="header">event/state</strong>
+            <br>
+            When the lifecycle model sees a state change in the page lifecycle state, its
+            state is published on this topic. The message is published as a retained message,
+            and is available when the model is active. Possible states are: <tt>active</tt>,
+            <tt>passive</tt>, <tt>hidden</tt>, <tt>frozen</tt>, and <tt>terminated</tt>.
+            </p>
+            <pre>
+// Subscribe in a worker 
+self.subscribe("model/lifecycle/event/state",
+    function(m) {
+        switch(m.payload) {
+            case "active":
+            case "passive":
+                // Speed up network usage again.
+            case "hidden":
+                // Slow down network usage.
+                break;
+        }
+   });</pre>
+
+
+            </pre>
+
+            <p id="model.lifecycle.event.ping">
+            <strong class="header">event/ping</strong>
+            <br>
+            When the lifecycle model is enabled it publishes a retained <tt>pong</tt>
+            message on this topic. This makes it possible to check if the model is enabled.
+            </p>
+            <pre>
+// Subscribe in a worker 
+self.subscribe("model/lifecycle/event/ping",
+    function() {
+        console.log("the lifecycle model is enabled")
+   });</pre>
+
+
             <!-- autofocus model -->
             <h3 id="model.autofocus">model/autofocus</h3>
 
@@ -1794,7 +1916,6 @@ self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
             <br>
             The element with <tt>key</tt> has just been focussed.
             </p>
-            <pre></pre>
 
 
             <!-- serviceWorker model -->
