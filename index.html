@@ -1800,8 +1800,8 @@ self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
             <p>
             Modern browsers will also suspend and discard pages. Browsers do not provide this
             information in an orderly fashion. There are individual events like: <tt>load</tt>, 
-            <tt>unload</tt>, and <tt>visibilitychange</tt>. The lifecycle model provides different
-            states a page can be in.
+            <tt>unload</tt>, and <tt>visibilitychange</tt>. The lifecycle model publishes the
+            different states a page can be in.
 
             <dl>
                 <dt><tt>active</tt></dt>
@@ -1855,8 +1855,9 @@ self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
 
             <p>
             State transition diagram: <br /><br />
-            <img width="553" alt="Lifecycle State Changes"
-                 src="https://user-images.githubusercontent.com/1024972/123289319-a8049e00-d510-11eb-83ce-daf508a777a7.png">
+
+            <img width="250" alt="Lifecycle State Changes"
+                 src="https://user-images.githubusercontent.com/1024972/123400323-edbf7600-d5a5-11eb-94fd-0bd42aff2ac2.png">
 
             </p>
 
