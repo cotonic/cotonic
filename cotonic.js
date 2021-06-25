@@ -5922,17 +5922,32 @@ var cotonic = cotonic || {};
      *   hidden -> frozen;
      *
      *   frozen -> hidden;
-     *   frozen -> active;
-     *   frozen -> passive;
      * }
      */
 
     const validTransitions = {
-        active:  { passive: [], hidden: ["passive"], terminated: ["passive", "hidden"], frozen: ["passive", "hidden"] },
-        passive: { active: [], hidden: [], frozen: ["hidden"], terminated: ["hidden"] },
-        hidden:  { frozen: [], passive: [], active: ["passive"], terminated: [] },
-        frozen:  { passive: [], active: [], hidden: [], terminated: ["hidden"] },
-        terminated: {}
+        active:  {
+            passive: [],
+            hidden: ["passive"],
+            frozen: ["passive", "hidden"] },
+            terminated: ["passive", "hidden"],
+        passive: {
+            active: [],
+            hidden: [],
+            frozen: ["hidden"],
+            terminated: ["hidden"] },
+        hidden:  {
+            active: ["passive"],
+            passive: [],
+            frozen: [],
+            terminated: [] },
+        frozen:  {
+            active: ["hidden", "passive"],
+            passive: ["hidden"],
+            hidden: [],
+            terminated: ["hidden"] },
+        terminated: {
+        }
     };
 
     model.present = function(proposal) {
