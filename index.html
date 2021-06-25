@@ -1862,7 +1862,7 @@ self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
             </p>
 
             <p id="model.lifecycle.event.state">
-            <strong class="header">event/lifecycle/event/state</strong>
+            <strong class="header">event/state</strong>
             <br>
             When the lifecycle model sees a state change in the page lifecycle state, its
             state is published on this topic. The message is published as a retained message,
@@ -1887,7 +1887,7 @@ self.subscribe("model/lifecycle/event/state",
             </pre>
 
             <p id="model.lifecycle.event.ping">
-            <strong class="header">event/lifecycle/event/</strong>
+            <strong class="header">event/ping</strong>
             <br>
             When the lifecycle model is enabled it publishes a retained <tt>pong</tt>
             message on this topic. This makes it possible to check if the model is enabled.
@@ -1916,7 +1916,6 @@ self.subscribe("model/lifecycle/event/ping",
             <br>
             The element with <tt>key</tt> has just been focussed.
             </p>
-            <pre></pre>
 
 
             <!-- serviceWorker model -->
