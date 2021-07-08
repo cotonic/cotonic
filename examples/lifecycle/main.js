@@ -65,4 +65,3 @@ cotonic.broker.subscribe("model/lifecycle/event/state", function(m) {
     updateDisplayedState();
 })
 
-

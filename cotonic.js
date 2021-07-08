@@ -4068,6 +4068,7 @@ var cotonic = cotonic || {};
     const WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
     const WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
 
+
     function newTransport( remote, mqttSession, options ) {
         return new ws(remote, mqttSession, options);
     }
@@ -4116,6 +4117,13 @@ var cotonic = cotonic || {};
         }
 
         /**
+         * Name used to identify this transport.
+         */
+        this.name = function() {
+            return "mqtt_transport.ws: " + this.remoteUrl;
+        }
+
+        /**
          * Force a close of this ws connection.
          */
         this.closeConnection = function () {
@@ -4123,6 +4131,8 @@ var cotonic = cotonic || {};
                 self.socket.close();
                 self.isConnected = false;
                 self.isForceClosed = true;
+
+                cotonic.broker.unsubscribe("model/lifecycle/event/state", {wid: self.name()});
             }
         }
 
@@ -4288,6 +4298,18 @@ var cotonic = cotonic || {};
             if (callOnOpen) {
                 onopen();
             }
+
+            // Listen for ui state changes. Reset the backoff to allow quick reconnects
+            // when a page is activated. 
+            cotonic.broker.subscribe("model/lifecycle/event/state",
+                function(m) {
+                    if(m.payload === "active") {
+                        self.backoff = 0;
+                    }
+                },
+                {wid: self.name()}
+            );
+
             return true;
         }
 
@@ -4370,10 +4392,12 @@ var cotonic = cotonic || {};
 
             setTimeout(connect, connect_delay);
             setInterval(periodic, periodic_delay);
-        }
+
+       }
 
         init();
     }
+
 
     // Publish the transport ws functions.
     cotonic.mqtt_transport = cotonic.mqtt_transport || {};
@@ -4898,6 +4922,8 @@ var cotonic = cotonic || {};
                         return "text/x-integer";
                     }
                     return "text/x-number";
+                case "boolean":
+                    return "application/json";
                 case "object":
                     if (payload === null) {
                         return undefined;
@@ -5901,7 +5927,8 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 "use strict";
     const model = {
-        state: undefined
+        state: undefined,
+        online: undefined
     };
 
     const actions = {};
@@ -5910,7 +5937,7 @@ var cotonic = cotonic || {};
     /*
      * Diagram of state transitions.
      *
-     * digraph G {
+     * digraph state {
      *
      *   active -> passive;
      *   passive -> active;
@@ -5922,6 +5949,11 @@ var cotonic = cotonic || {};
      *   hidden -> frozen;
      *
      *   frozen -> hidden;
+     * }
+     *
+     * digraph online {
+     *     online -> offline;
+     *     offline -> online;
      * }
      */
 
@@ -5955,11 +5987,18 @@ var cotonic = cotonic || {};
             listenToLifecycleEvents();
 
             model.state = proposal.newState;
+            model.online = proposal.online; 
 
             cotonic.broker.publish("model/lifecycle/event/ping", "pong", { retain: true });
             cotonic.broker.publish("model/lifecycle/event/state", model.state, { retain: true });
+            cotonic.broker.publish("model/lifecycle/event/online", model.online, { retain: true });
         } else {
-            if(proposal.type === "blur") {
+            if(proposal.type === "onlineState") {
+                if(model.online !== proposal.online) {
+                    model.online = proposal.online;
+                    cotonic.broker.publish("model/lifecycle/event/online", model.online, { retain: true });
+                }
+            } else if(proposal.type === "blur") {
                 if(model.state === "active") {
                     doPossibleStateChange(model, proposal.newState);
                 }
@@ -6010,6 +6049,10 @@ var cotonic = cotonic || {};
         model.present({type: evt.type, newState: getCurrentState()});
     };
 
+    actions.handleOnlineStatus = function(evt) {
+        model.present({type: "onlineState", online: navigator.onLine});
+    }
+
     //
     // Helpers
     //
@@ -6027,6 +6070,9 @@ var cotonic = cotonic || {};
 
         window.addEventListener("pagehide", actions.terminatedOrFrozen, opts);
         window.addEventListener("unload", actions.terminatedOrFrozen, opts);
+
+        window.addEventListener("online", actions.handleOnlineStatus, opts);
+        window.addEventListener("offline", actions.handleOnlineStatus, opts);
     }
 
     function getCurrentState() {
@@ -6062,7 +6108,7 @@ var cotonic = cotonic || {};
     // Start
     //
 
-    model.present({is_init: true, newState: getCurrentState()});
+    model.present({is_init: true, newState: getCurrentState(), online: navigator.onLine});
 }(cotonic));
 /**
  * Copyright 2018 The Cotonic Authors. All Rights Reserved.

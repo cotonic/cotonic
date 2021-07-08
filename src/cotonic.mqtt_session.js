@@ -514,6 +514,8 @@ var cotonic = cotonic || {};
                         return "text/x-integer";
                     }
                     return "text/x-number";
+                case "boolean":
+                    return "application/json";
                 case "object":
                     if (payload === null) {
                         return undefined;

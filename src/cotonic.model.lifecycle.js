@@ -20,7 +20,8 @@ var cotonic = cotonic || {};
 (function(cotonic) {
 "use strict";
     const model = {
-        state: undefined
+        state: undefined,
+        online: undefined
     };
 
     const actions = {};
@@ -29,7 +30,7 @@ var cotonic = cotonic || {};
     /*
      * Diagram of state transitions.
      *
-     * digraph G {
+     * digraph state {
      *
      *   active -> passive;
      *   passive -> active;
@@ -41,6 +42,11 @@ var cotonic = cotonic || {};
      *   hidden -> frozen;
      *
      *   frozen -> hidden;
+     * }
+     *
+     * digraph online {
+     *     online -> offline;
+     *     offline -> online;
      * }
      */
 
@@ -74,11 +80,18 @@ var cotonic = cotonic || {};
             listenToLifecycleEvents();
 
             model.state = proposal.newState;
+            model.online = proposal.online; 
 
             cotonic.broker.publish("model/lifecycle/event/ping", "pong", { retain: true });
             cotonic.broker.publish("model/lifecycle/event/state", model.state, { retain: true });
+            cotonic.broker.publish("model/lifecycle/event/online", model.online, { retain: true });
         } else {
-            if(proposal.type === "blur") {
+            if(proposal.type === "onlineState") {
+                if(model.online !== proposal.online) {
+                    model.online = proposal.online;
+                    cotonic.broker.publish("model/lifecycle/event/online", model.online, { retain: true });
+                }
+            } else if(proposal.type === "blur") {
                 if(model.state === "active") {
                     doPossibleStateChange(model, proposal.newState);
                 }
@@ -129,6 +142,10 @@ var cotonic = cotonic || {};
         model.present({type: evt.type, newState: getCurrentState()});
     };
 
+    actions.handleOnlineStatus = function(evt) {
+        model.present({type: "onlineState", online: navigator.onLine});
+    }
+
     //
     // Helpers
     //
@@ -146,6 +163,9 @@ var cotonic = cotonic || {};
 
         window.addEventListener("pagehide", actions.terminatedOrFrozen, opts);
         window.addEventListener("unload", actions.terminatedOrFrozen, opts);
+
+        window.addEventListener("online", actions.handleOnlineStatus, opts);
+        window.addEventListener("offline", actions.handleOnlineStatus, opts);
     }
 
     function getCurrentState() {
@@ -181,5 +201,5 @@ var cotonic = cotonic || {};
     // Start
     //
 
-    model.present({is_init: true, newState: getCurrentState()});
+    model.present({is_init: true, newState: getCurrentState(), online: navigator.onLine});
 }(cotonic));
