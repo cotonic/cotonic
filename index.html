@@ -300,6 +300,7 @@ pre {
                 </a>
                 <ul class="toc_section">
                     <li> - <a href="#model.lifecycle.event.state">event/state</a>
+                    <li> - <a href="#model.lifecycle.event.online">event/online</a>
                     <li> - <a href="#model.lifecycle.event.ping">event/ping</a>
                 </ul>
 
@@ -1883,8 +1884,24 @@ self.subscribe("model/lifecycle/event/state",
         }
    });</pre>
 
-
-            </pre>
+            <p id="model.lifecycle.event.online">
+            <strong class="header">event/online</strong>
+            <br>
+            When the lifecycle model detects a change in the online state of the browser,
+            the state will be published on this topic. When the browser is online, <tt>true</tt>
+            will be published <tt>false</tt> otherwise.
+            </p>
+            <pre>
+self.subscribe("model/lifecycle/event/online",
+    function(m) {
+        if(m.payload) {
+            console.log("We are online");
+        } else {
+            console.log("We are offline");
+        }
+    }
+);
+</pre>
 
             <p id="model.lifecycle.event.ping">
             <strong class="header">event/ping</strong>
