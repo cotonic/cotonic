@@ -26,6 +26,7 @@ var cotonic = cotonic || {};
     const WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
     const WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
 
+
     function newTransport( remote, mqttSession, options ) {
         return new ws(remote, mqttSession, options);
     }
@@ -74,6 +75,13 @@ var cotonic = cotonic || {};
         }
 
         /**
+         * Name used to identify this transport.
+         */
+        this.name = function() {
+            return "mqtt_transport.ws: " + this.remoteUrl;
+        }
+
+        /**
          * Force a close of this ws connection.
          */
         this.closeConnection = function () {
@@ -81,6 +89,8 @@ var cotonic = cotonic || {};
                 self.socket.close();
                 self.isConnected = false;
                 self.isForceClosed = true;
+
+                cotonic.broker.unsubscribe("model/lifecycle/event/state", {wid: self.name()});
             }
         }
 
@@ -246,6 +256,18 @@ var cotonic = cotonic || {};
             if (callOnOpen) {
                 onopen();
             }
+
+            // Listen for ui state changes. Reset the backoff to allow quick reconnects
+            // when a page is activated. 
+            cotonic.broker.subscribe("model/lifecycle/event/state",
+                function(m) {
+                    if(m.payload === "active") {
+                        self.backoff = 0;
+                    }
+                },
+                {wid: self.name()}
+            );
+
             return true;
         }
 
@@ -328,10 +350,12 @@ var cotonic = cotonic || {};
 
             setTimeout(connect, connect_delay);
             setInterval(periodic, periodic_delay);
-        }
+
+       }
 
         init();
     }
+
 
     // Publish the transport ws functions.
     cotonic.mqtt_transport = cotonic.mqtt_transport || {};
