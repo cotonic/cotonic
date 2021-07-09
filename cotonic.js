@@ -55,7 +55,7 @@
 var cotonic = cotonic || {};
 
 /* Current cotonic version */
-cotonic.VERSION = "1.0.4";
+cotonic.VERSION = "1.0.7";
 
 (function(cotonic) {
     cotonic.config = cotonic.config || {};
