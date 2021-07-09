@@ -32,7 +32,7 @@ dist/zotonic-wired-bundle.js: lib
 		src/cotonic.broker.js \
 		src/cotonic.mqtt_packet.js \
 		src/cotonic.mqtt_transport.ws.js \
-		src/cotonic.mqtt_session.js  \
+		src/cotonic.mqtt_session.js  \:
 		src/cotonic.mqtt_bridge.js \
 		src/cotonic.model.*.js \
 		src/cotonic.keyserver.js \
