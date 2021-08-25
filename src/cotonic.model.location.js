@@ -183,6 +183,12 @@ var cotonic = cotonic || {};
         }
     });
 
+    cotonic.broker.subscribe("model/location/post/reload", function(msg) {
+        window.location.reload(true);
+        isNavigating = true;
+        setTimeout(function() { isNavigating = false; }, 1000);
+    });
+
     cotonic.broker.subscribe("model/location/post/redirect/back", function() {
         if ('referrer' in document) {
             window.location = document.referrer;
