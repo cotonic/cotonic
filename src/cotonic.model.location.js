@@ -178,10 +178,14 @@ var cotonic = cotonic || {};
     cotonic.broker.subscribe("model/location/post/redirect", function(msg) {
         if (msg.payload.url) {
             window.location = msg.payload.url;
-            isNavigating = true;
-            setTimeout(function() { isNavigating = false; }, 1000);
+            willNavigate();
         }
     });
+
+    cotonic.broker.subscribe("model/location/post/reload", function(msg) {
+        window.location.reload(true);
+        willNavigate();
+    }); 
 
     cotonic.broker.subscribe("model/location/post/redirect/back", function() {
         if ('referrer' in document) {
@@ -195,6 +199,14 @@ var cotonic = cotonic || {};
         if(msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, result);
         }
+    }
+
+    function willNavigate() {
+        // Set the isNavigate flag to trigger we are currently 
+        // busy navigating. When an auth change message is received
+        // this will not trigger extra reloads.
+        isNavigating = true;
+        setTimeout(function() { isNavigating = false; }, 1000);
     }
 
     init();

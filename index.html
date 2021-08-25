@@ -136,7 +136,7 @@ pre {
         <section id="sidebar">
             <div>
                 <a class="toc_title" href="#">
-                    Cotonic <span class="version">(1.0.7)</span>
+                    Cotonic <span class="version">(1.0.8)</span>
                 </a>
 
                 <ul class="toc_section">
@@ -269,6 +269,8 @@ pre {
                     <li> - <a href="#model.location.get.hostname">get/hostname</a>
                     <li> - <a href="#model.location.get.hostname">get/origin</a>
                     <li> - <a href="#model.location.get.port">get/port</a>
+                    <li> - <a href="#model.location.post.redirect">post/redirect</a>
+                    <li> - <a href="#model.location.post.reload">post/reload</a>
                     <li> - <a href="#model.location.event.search">event/search</a>
                     <li> - <a href="#model.location.event.pathname">event/pathname</a>
                     <li> - <a href="#model.location.event.hash">event/hash</a>
@@ -1533,6 +1535,38 @@ cotonic.broker.call("model/location/get/port")
 })
 => "" // The default port.</pre>
 
+
+            <!-- post/redirect -->
+
+ <p id="model.location.post.redirect">
+            <strong class="header">post/redirect</strong>
+            <br>
+            Redirect the user to another url
+            </p>
+            <pre>
+cotonic.broker.call("model/location/post/redirect", {url: "https://cotonic.org"})
+=> // The user is redirect to cotonic.org.</pre>
+
+            <!-- post/reload -->
+
+ <p id="model.location.post.reload">
+            <strong class="header">post/reload</strong>
+            <br>
+            Reload the current page. This can be handy when you know something on the server side has
+            changed.
+            </p>
+            <pre>
+cotonic.broker.call("model/location/post/reload")
+=> // The page will reload.
+</pre>
+
+<pre>
+&lt;button data-onclick-topic="bridge/origin/model/xyz/post/doit"
+        data-onresponse-topic="model/location/reload"&gt;Do It&lt;/button&gt;
+
+When the xyz model on the server responds, the page will be reloaded
+            </pre>
+
             <!-- event/search -->
             <p id="model.location.event.search">
             <strong class="header">event/search</strong>
@@ -2219,6 +2253,20 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             </p>
 
             <h3 id="changelog">Change Log</h3>
+
+            <p id="1.0.8">
+            <strong class="header">1.0.8</strong> &mdash; <small><i>Aug 25, 2021</i></small> &mdash;
+            <a href="https://github.com/cotonic/cotonic/compare/1.0.7...1.0.8">Diff</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.8/index.html"l>Docs</a> &mdash;
+            <a href="https://github.com/cotonic/cotonic/archive/1.0.8.tar.gz" download>Download</a>
+            <br />
+            <ul>
+                <li>
+                    Added <tt>model/location/post/reload</tt> model post.
+                </li>
+            </ul>
+            </p>
+
 
             <p id="1.0.7">
             <strong class="header">1.0.7</strong> &mdash; <small><i>Jul 8, 2021</i></small> &mdash;
