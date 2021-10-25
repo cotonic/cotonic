@@ -1,38 +1,581 @@
-
-(function(global) {
-    if(!(global.Promise && global.fetch && String.prototype.startsWith && String.prototype.codePointAt)) {
-        loadScript("https://polyfill.io/v3/polyfill.min.js?features=String.prototype.startsWith%2CString.prototype.codePointAt%2Cfetch%2CPromise%2CObject.assign");
-    }
-
-    if(!(global.TextEncoder && global.TextDecoder)) {
-        loadScript("https://unpkg.com/fast-text-encoding@1.0.0/text.min.js");
-    }
-
-    if(!Uint8Array.prototype.slice) {
-        Object.defineProperty(Uint8Array.prototype, 'slice', {
-            value: function (begin, end)
-            {
-                return new Uint8Array(Array.prototype.slice.call(this, begin, end));
-            }
-        });
-    }
-
-    function loadScript(src) {
-        const js = document.createElement('script');
-        js.type = "text/javascript";
-        js.async = false;
-        js.src = src;
-        js.crossorigin = 'anonymous';
-        document.head.appendChild(js);
-    }
-}(this));
-
 /**
  * @preserve
  * Copyright 2015 The Incremental DOM Authors. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
-(function(t,e){typeof exports==="object"&&typeof module!=="undefined"?e(exports):typeof define==="function"&&define.amd?define(["exports"],e):(t=t||self,e(t.IncrementalDOM={}))})(this,function(t){"use strict";var e="key";function o(){return e}function n(t){e=t}function i(t){return t}var r=Object.prototype.hasOwnProperty;function a(){}a.prototype=Object.create(null);function u(t,e){return r.call(t,e)}function l(){return new a}function v(t,e){while(t.length>e){t.pop()}}function f(t){var e=new Array(t);v(e,0);return e}var c={default:"__default"};function s(t){if(t.lastIndexOf("xml:",0)===0){return"http://www.w3.org/XML/1998/namespace"}if(t.lastIndexOf("xlink:",0)===0){return"http://www.w3.org/1999/xlink"}return null}function d(t,e,n){if(n==null){t.removeAttribute(e)}else{var r=s(e);if(r){t.setAttributeNS(r,e,String(n))}else{t.setAttribute(e,String(n))}}}function p(t,e,n){t[e]=n}function h(t,e,n){if(e.indexOf("-")>=0){t.setProperty(e,n)}else{t[e]=n}}function g(t,e,n){var r=t.style;if(typeof n==="string"){r.cssText=n}else{r.cssText="";for(var a in n){if(u(n,a)){h(r,a,n[a])}}}}function y(t,e,n){var r=typeof n;if(r==="object"||r==="function"){p(t,e,n)}else{d(t,e,n)}}var m=l();m[c.default]=y;m["style"]=g;function w(t,e,n){var r=m[e]||m[c.default];r(t,e,n)}var x={nodesCreated:null,nodesDeleted:null};var A=function(){function t(){this.created=[];this.deleted=[]}t.prototype.markCreated=function(t){this.created.push(t)};t.prototype.markDeleted=function(t){this.deleted.push(t)};t.prototype.notifyChanges=function(){if(x.nodesCreated&&this.created.length>0){x.nodesCreated(this.created)}if(x.nodesDeleted&&this.deleted.length>0){x.nodesDeleted(this.deleted)}};return t}();function O(t){return t.nodeType===11||t.nodeType===9}function b(t){return t.nodeType===1}function D(t,e){var n=[];var r=t;while(r!==e){var a=i(r);n.push(a);r=a.parentNode}return n}var _=typeof Node!=="undefined"&&Node.prototype.getRootNode||function(){var t=this;var e=t;while(t){e=t;t=t.parentNode}return e};function C(t){var e=_.call(t);return O(e)?e.activeElement:null}function N(t,e){var n=C(t);if(!n||!t.contains(n)){return[]}return D(n,e)}function S(t,e,n){var r=e.nextSibling;var a=n;while(a!==null&&a!==e){var i=a.nextSibling;t.insertBefore(a,r);a=i}}var k=function(){function t(t,e,n){this._attrsArr=null;this.staticsApplied=false;this.nameOrCtor=t;this.key=e;this.text=n}t.prototype.hasEmptyAttrsArr=function(){var t=this._attrsArr;return!t||!t.length};t.prototype.getAttrsArr=function(t){return this._attrsArr||(this._attrsArr=f(t))};return t}();function M(t,e,n,r){var a=new k(e,n,r);t["__incrementalDOMData"]=a;return a}function E(t){return Boolean(t["__incrementalDOMData"])}function I(t,e){var n=t.attributes;var r=n.length;if(!r){return}var a=e.getAttrsArr(r);for(var i=0,u=0;i<r;i+=1,u+=2){var o=n[i];var l=o.name;var f=o.value;a[u]=l;a[u+1]=f}}function P(t,e){if(t["__incrementalDOMData"]){return t["__incrementalDOMData"]}var n=b(t)?t.localName:t.nodeName;var r=o();var a=b(t)&&r!=null?t.getAttribute(r):null;var i=b(t)?a||e:null;var u=M(t,n,i);if(b(t)){I(t,u)}return u}function j(t){P(t);for(var e=t.firstChild;e;e=e.nextSibling){j(e)}}function T(t,e){return P(t,e)}function B(t){i(t["__incrementalDOMData"]);return T(t).key}function K(t){t["__incrementalDOMData"]=null;for(var e=t.firstChild;e;e=e.nextSibling){K(e)}}function L(t,e){if(t==="svg"){return"http://www.w3.org/2000/svg"}if(t==="math"){return"http://www.w3.org/1998/Math/MathML"}if(e==null){return null}if(T(e).nameOrCtor==="foreignObject"){return null}return e.namespaceURI}function R(t,e,n,r){var a;if(typeof n==="function"){a=new n}else{var i=L(n,e);if(i){a=t.createElementNS(i,n)}else{a=t.createElement(n)}}M(a,n,r);return a}function z(t){var e=t.createTextNode("");M(e,"#text",null);return e}function U(t,e,n,r,a){return e==n&&r==a}var V=null;var W=null;var X=null;var q=null;var F=[];var G=U;var H=[];var J=[];function Q(){return H}function Y(){return J}function Z(t,e,n){var r=T(t,n);return G(t,e,r.nameOrCtor,n,r.key)}function $(t,e,n){if(!t){return null}var r=t;do{if(Z(r,e,n)){return r}}while(n&&(r=r.nextSibling));return null}function tt(t,e,n){var r=t;var a=e;while(a!==n){var i=a.nextSibling;r.removeChild(a);V.markDeleted(a);a=i}}function et(){if(W){return W.nextSibling}else{return X.firstChild}}function nt(){X=W;W=null}function rt(){tt(X,et(),null);W=X;X=X.parentNode}function at(){W=et()}function it(t,e){var n;if(t==="#text"){n=z(q)}else{n=R(q,X,t,e)}V.markCreated(n);return n}function ut(t,e){at();var n=$(W,t,e);var r=n||it(t,e);if(r===W){return}if(F.indexOf(r)>=0){S(X,r,W)}else{X.insertBefore(r,W)}W=r}function ot(t,e){ut(t,e);nt();return X}function lt(){rt();return W}function ft(){ut("#text",null);return W}function ct(){return X}function vt(){return et()}function st(){W=X.lastChild}function dt(s,t){if(t===void 0){t={}}var e=t.matches,d=e===void 0?U:e;var n=function(t,e,n){var r=V;var a=q;var i=F;var u=H;var o=J;var l=W;var f=X;var c=G;q=t.ownerDocument;V=new A;G=d;H=[];J=[];W=null;X=t.parentNode;F=N(t,X);try{var v=s(t,e,n);return v}finally{V.notifyChanges();q=a;V=r;G=c;H=u;J=o;W=l;X=f;F=i}};return n}function pt(t){return dt(function(t,e,n){W=t;nt();e(n);rt();return t},t)}function ht(t){return dt(function(t,e,n){var r={nextSibling:t};W=r;e(n);if(X){tt(X,et(),t.nextSibling)}return r===W?null:W},t)}var gt=pt();var yt=ht();var mt=[];var wt=0;function xt(t,e,n,r){mt.push(t);mt.push(e);mt.push(n);mt.push(r)}function At(){var t=wt;var e=mt.length;wt=e;for(var n=t;n<e;n+=4){var r=mt[n];r(mt[n+1],mt[n+2],mt[n+3])}wt=t;v(mt,t)}var Ot=l();function bt(t,e,n,r){var a=!t.length;var i=0;for(;i<e.length;i+=2){var u=e[i];if(a){t[i]=u}else if(t[i]!==u){break}var o=e[i+1];if(a||t[i+1]!==o){t[i+1]=o;xt(r,n,u,o)}}if(i<e.length||i<t.length){var l=i;for(i=l;i<t.length;i+=2){Ot[t[i]]=t[i+1]}for(i=l;i<e.length;i+=2){var f=e[i];var o=e[i+1];if(Ot[f]!==o){xt(r,n,f,o)}t[i]=f;t[i+1]=o;delete Ot[f]}v(t,e.length);for(var c in Ot){xt(r,n,c,undefined);delete Ot[c]}}At()}var Dt=3;var _t=l();function Ct(t,e){var n=Y();var r=e.getAttrsArr(n.length);bt(r,n,t,w);v(n,0)}function Nt(t,e,n){if(e.staticsApplied){return}e.staticsApplied=true;if(!n||!n.length){return}if(e.hasEmptyAttrsArr()){for(var r=0;r<n.length;r+=2){w(t,n[r],n[r+1])}return}for(var r=0;r<n.length;r+=2){_t[n[r]]=r+1}var a=e.getAttrsArr(0);var i=0;for(var r=0;r<a.length;r+=2){var u=a[r];var o=a[r+1];var l=_t[u];if(l){if(n[l]===o){delete _t[u]}continue}a[i]=u;a[i+1]=o;i+=2}v(a,i);for(var f in _t){w(t,f,n[_t[f]]);delete _t[f]}}function St(t,e,n){var r=Q();r[0]=t;r[1]=e;r[2]=n}function kt(t){var e=Q();e[1]=t}function Mt(t,e){var n=Y();n.push(t);n.push(e)}function Et(){var t=Q();var e=ot(t[0],t[1]);var n=T(e);Nt(e,n,t[2]);Ct(e,n);v(t,0);return e}function It(t,e,n){var r=[];for(var a=3;a<arguments.length;a++){r[a-3]=arguments[a]}St(t,e,n);for(var i=Dt;i<arguments.length;i+=2){Mt(arguments[i],arguments[i+1])}return Et()}function Pt(){var t=ct();var e=T(t);Ct(t,e)}function jt(t){var e=ct();var n=T(e);Nt(e,n,t)}function Tt(t){var e=lt();return e}function Bt(t,e,n){var r=[];for(var a=3;a<arguments.length;a++){r[a-3]=arguments[a]}It.apply(null,arguments);return Tt(t)}function Kt(t){var e=[];for(var n=1;n<arguments.length;n++){e[n-1]=arguments[n]}var r=ft();var a=T(r);if(a.text!==t){a.text=t;var i=t;for(var u=1;u<arguments.length;u+=1){var o=arguments[u];i=o(i)}if(r.data!==i){r.data=i}}return r}t.applyAttr=d;t.applyProp=p;t.attributes=m;t.alignWithDOM=ut;t.close=lt;t.createPatchInner=pt;t.createPatchOuter=ht;t.currentElement=ct;t.currentPointer=vt;t.open=ot;t.patch=gt;t.patchInner=gt;t.patchOuter=yt;t.skip=st;t.skipNode=at;t.setKeyAttributeName=n;t.clearCache=K;t.getKey=B;t.importNode=j;t.isDataInitialized=E;t.notifications=x;t.symbols=c;t.applyAttrs=Pt;t.applyStatics=jt;t.attr=Mt;t.elementClose=Tt;t.elementOpen=It;t.elementOpenEnd=Et;t.elementOpenStart=St;t.elementVoid=Bt;t.key=kt;t.text=Kt;Object.defineProperty(t,"__esModule",{value:true})});
+(function (t, e) {
+  typeof exports === "object" && typeof module !== "undefined"
+    ? e(exports)
+    : typeof define === "function" && define.amd
+    ? define(["exports"], e)
+    : (t = t || self, e(t.IncrementalDOM = {}));
+})(this, function (t) {
+  "use strict";
+  var e = "key";
+  function o() {
+    return e;
+  }
+  function n(t) {
+    e = t;
+  }
+  function i(t) {
+    return t;
+  }
+  var r = Object.prototype.hasOwnProperty;
+  function a() {}
+  a.prototype = Object.create(null);
+  function u(t, e) {
+    return r.call(t, e);
+  }
+  function l() {
+    return new a();
+  }
+  function v(t, e) {
+    while (t.length > e) t.pop();
+  }
+  function f(t) {
+    var e = new Array(t);
+    v(e, 0);
+    return e;
+  }
+  var c = { default: "__default" };
+  function s(t) {
+    if (t.lastIndexOf("xml:", 0) === 0) {
+      return "http://www.w3.org/XML/1998/namespace";
+    }
+    if (t.lastIndexOf("xlink:", 0) === 0) return "http://www.w3.org/1999/xlink";
+    return null;
+  }
+  function d(t, e, n) {
+    if (n == null) t.removeAttribute(e);
+    else {
+      var r = s(e);
+      if (r) t.setAttributeNS(r, e, String(n));
+      else t.setAttribute(e, String(n));
+    }
+  }
+  function p(t, e, n) {
+    t[e] = n;
+  }
+  function h(t, e, n) {
+    if (e.indexOf("-") >= 0) t.setProperty(e, n);
+    else t[e] = n;
+  }
+  function g(t, e, n) {
+    var r = t.style;
+    if (typeof n === "string") r.cssText = n;
+    else {
+      r.cssText = "";
+      for (var a in n) if (u(n, a)) h(r, a, n[a]);
+    }
+  }
+  function y(t, e, n) {
+    var r = typeof n;
+    if (r === "object" || r === "function") p(t, e, n);
+    else d(t, e, n);
+  }
+  var m = l();
+  m[c.default] = y;
+  m["style"] = g;
+  function w(t, e, n) {
+    var r = m[e] || m[c.default];
+    r(t, e, n);
+  }
+  var x = { nodesCreated: null, nodesDeleted: null };
+  var A = function () {
+    function t() {
+      this.created = [];
+      this.deleted = [];
+    }
+    t.prototype.markCreated = function (t) {
+      this.created.push(t);
+    };
+    t.prototype.markDeleted = function (t) {
+      this.deleted.push(t);
+    };
+    t.prototype.notifyChanges = function () {
+      if (x.nodesCreated && this.created.length > 0) {
+        x.nodesCreated(this.created);
+      }
+      if (x.nodesDeleted && this.deleted.length > 0) {
+        x.nodesDeleted(this.deleted);
+      }
+    };
+    return t;
+  }();
+  function O(t) {
+    return t.nodeType === 11 || t.nodeType === 9;
+  }
+  function b(t) {
+    return t.nodeType === 1;
+  }
+  function D(t, e) {
+    var n = [];
+    var r = t;
+    while (r !== e) {
+      var a = i(r);
+      n.push(a);
+      r = a.parentNode;
+    }
+    return n;
+  }
+  var _ = typeof Node !== "undefined" && Node.prototype.getRootNode ||
+    function () {
+      var t = this;
+      var e = t;
+      while (t) {
+        e = t;
+        t = t.parentNode;
+      }
+      return e;
+    };
+  function C(t) {
+    var e = _.call(t);
+    return O(e) ? e.activeElement : null;
+  }
+  function N(t, e) {
+    var n = C(t);
+    if (!n || !t.contains(n)) return [];
+    return D(n, e);
+  }
+  function S(t, e, n) {
+    var r = e.nextSibling;
+    var a = n;
+    while (a !== null && a !== e) {
+      var i = a.nextSibling;
+      t.insertBefore(a, r);
+      a = i;
+    }
+  }
+  var k = function () {
+    function t(t, e, n) {
+      this._attrsArr = null;
+      this.staticsApplied = false;
+      this.nameOrCtor = t;
+      this.key = e;
+      this.text = n;
+    }
+    t.prototype.hasEmptyAttrsArr = function () {
+      var t = this._attrsArr;
+      return !t || !t.length;
+    };
+    t.prototype.getAttrsArr = function (t) {
+      return this._attrsArr || (this._attrsArr = f(t));
+    };
+    return t;
+  }();
+  function M(t, e, n, r) {
+    var a = new k(e, n, r);
+    t["__incrementalDOMData"] = a;
+    return a;
+  }
+  function E(t) {
+    return Boolean(t["__incrementalDOMData"]);
+  }
+  function I(t, e) {
+    var n = t.attributes;
+    var r = n.length;
+    if (!r) return;
+    var a = e.getAttrsArr(r);
+    for (var i = 0, u = 0; i < r; i += 1, u += 2) {
+      var o = n[i];
+      var l = o.name;
+      var f = o.value;
+      a[u] = l;
+      a[u + 1] = f;
+    }
+  }
+  function P(t, e) {
+    if (t["__incrementalDOMData"]) return t["__incrementalDOMData"];
+    var n = b(t) ? t.localName : t.nodeName;
+    var r = o();
+    var a = b(t) && r != null ? t.getAttribute(r) : null;
+    var i = b(t) ? a || e : null;
+    var u = M(t, n, i);
+    if (b(t)) I(t, u);
+    return u;
+  }
+  function j(t) {
+    P(t);
+    for (var e = t.firstChild; e; e = e.nextSibling) j(e);
+  }
+  function T(t, e) {
+    return P(t, e);
+  }
+  function B(t) {
+    i(t["__incrementalDOMData"]);
+    return T(t).key;
+  }
+  function K(t) {
+    t["__incrementalDOMData"] = null;
+    for (var e = t.firstChild; e; e = e.nextSibling) K(e);
+  }
+  function L(t, e) {
+    if (t === "svg") return "http://www.w3.org/2000/svg";
+    if (t === "math") return "http://www.w3.org/1998/Math/MathML";
+    if (e == null) return null;
+    if (T(e).nameOrCtor === "foreignObject") return null;
+    return e.namespaceURI;
+  }
+  function R(t, e, n, r) {
+    var a;
+    if (typeof n === "function") a = new n();
+    else {
+      var i = L(n, e);
+      if (i) a = t.createElementNS(i, n);
+      else a = t.createElement(n);
+    }
+    M(a, n, r);
+    return a;
+  }
+  function z(t) {
+    var e = t.createTextNode("");
+    M(e, "#text", null);
+    return e;
+  }
+  function U(t, e, n, r, a) {
+    return e == n && r == a;
+  }
+  var V = null;
+  var W = null;
+  var X = null;
+  var q = null;
+  var F = [];
+  var G = U;
+  var H = [];
+  var J = [];
+  function Q() {
+    return H;
+  }
+  function Y() {
+    return J;
+  }
+  function Z(t, e, n) {
+    var r = T(t, n);
+    return G(t, e, r.nameOrCtor, n, r.key);
+  }
+  function $(t, e, n) {
+    if (!t) return null;
+    var r = t;
+    do {
+      if (Z(r, e, n)) return r;
+    } while (n && (r = r.nextSibling));
+    return null;
+  }
+  function tt(t, e, n) {
+    var r = t;
+    var a = e;
+    while (a !== n) {
+      var i = a.nextSibling;
+      r.removeChild(a);
+      V.markDeleted(a);
+      a = i;
+    }
+  }
+  function et() {
+    if (W) return W.nextSibling;
+    else return X.firstChild;
+  }
+  function nt() {
+    X = W;
+    W = null;
+  }
+  function rt() {
+    tt(X, et(), null);
+    W = X;
+    X = X.parentNode;
+  }
+  function at() {
+    W = et();
+  }
+  function it(t, e) {
+    var n;
+    if (t === "#text") n = z(q);
+    else n = R(q, X, t, e);
+    V.markCreated(n);
+    return n;
+  }
+  function ut(t, e) {
+    at();
+    var n = $(W, t, e);
+    var r = n || it(t, e);
+    if (r === W) return;
+    if (F.indexOf(r) >= 0) S(X, r, W);
+    else X.insertBefore(r, W);
+    W = r;
+  }
+  function ot(t, e) {
+    ut(t, e);
+    nt();
+    return X;
+  }
+  function lt() {
+    rt();
+    return W;
+  }
+  function ft() {
+    ut("#text", null);
+    return W;
+  }
+  function ct() {
+    return X;
+  }
+  function vt() {
+    return et();
+  }
+  function st() {
+    W = X.lastChild;
+  }
+  function dt(s, t) {
+    if (t === void 0) t = {};
+    var e = t.matches, d = e === void 0 ? U : e;
+    var n = function (t, e, n) {
+      var r = V;
+      var a = q;
+      var i = F;
+      var u = H;
+      var o = J;
+      var l = W;
+      var f = X;
+      var c = G;
+      q = t.ownerDocument;
+      V = new A();
+      G = d;
+      H = [];
+      J = [];
+      W = null;
+      X = t.parentNode;
+      F = N(t, X);
+      try {
+        var v = s(t, e, n);
+        return v;
+      } finally {
+        V.notifyChanges();
+        q = a;
+        V = r;
+        G = c;
+        H = u;
+        J = o;
+        W = l;
+        X = f;
+        F = i;
+      }
+    };
+    return n;
+  }
+  function pt(t) {
+    return dt(function (t, e, n) {
+      W = t;
+      nt();
+      e(n);
+      rt();
+      return t;
+    }, t);
+  }
+  function ht(t) {
+    return dt(function (t, e, n) {
+      var r = { nextSibling: t };
+      W = r;
+      e(n);
+      if (X) tt(X, et(), t.nextSibling);
+      return r === W ? null : W;
+    }, t);
+  }
+  var gt = pt();
+  var yt = ht();
+  var mt = [];
+  var wt = 0;
+  function xt(t, e, n, r) {
+    mt.push(t);
+    mt.push(e);
+    mt.push(n);
+    mt.push(r);
+  }
+  function At() {
+    var t = wt;
+    var e = mt.length;
+    wt = e;
+    for (var n = t; n < e; n += 4) {
+      var r = mt[n];
+      r(mt[n + 1], mt[n + 2], mt[n + 3]);
+    }
+    wt = t;
+    v(mt, t);
+  }
+  var Ot = l();
+  function bt(t, e, n, r) {
+    var a = !t.length;
+    var i = 0;
+    for (; i < e.length; i += 2) {
+      var u = e[i];
+      if (a) t[i] = u;
+      else if (t[i] !== u) break;
+      var o = e[i + 1];
+      if (a || t[i + 1] !== o) {
+        t[i + 1] = o;
+        xt(r, n, u, o);
+      }
+    }
+    if (i < e.length || i < t.length) {
+      var l = i;
+      for (i = l; i < t.length; i += 2) Ot[t[i]] = t[i + 1];
+      for (i = l; i < e.length; i += 2) {
+        var f = e[i];
+        var o = e[i + 1];
+        if (Ot[f] !== o) xt(r, n, f, o);
+        t[i] = f;
+        t[i + 1] = o;
+        delete Ot[f];
+      }
+      v(t, e.length);
+      for (var c in Ot) {
+        xt(r, n, c, undefined);
+        delete Ot[c];
+      }
+    }
+    At();
+  }
+  var Dt = 3;
+  var _t = l();
+  function Ct(t, e) {
+    var n = Y();
+    var r = e.getAttrsArr(n.length);
+    bt(r, n, t, w);
+    v(n, 0);
+  }
+  function Nt(t, e, n) {
+    if (e.staticsApplied) return;
+    e.staticsApplied = true;
+    if (!n || !n.length) return;
+    if (e.hasEmptyAttrsArr()) {
+      for (var r = 0; r < n.length; r += 2) w(t, n[r], n[r + 1]);
+      return;
+    }
+    for (var r = 0; r < n.length; r += 2) _t[n[r]] = r + 1;
+    var a = e.getAttrsArr(0);
+    var i = 0;
+    for (var r = 0; r < a.length; r += 2) {
+      var u = a[r];
+      var o = a[r + 1];
+      var l = _t[u];
+      if (l) {
+        if (n[l] === o) delete _t[u];
+        continue;
+      }
+      a[i] = u;
+      a[i + 1] = o;
+      i += 2;
+    }
+    v(a, i);
+    for (var f in _t) {
+      w(t, f, n[_t[f]]);
+      delete _t[f];
+    }
+  }
+  function St(t, e, n) {
+    var r = Q();
+    r[0] = t;
+    r[1] = e;
+    r[2] = n;
+  }
+  function kt(t) {
+    var e = Q();
+    e[1] = t;
+  }
+  function Mt(t, e) {
+    var n = Y();
+    n.push(t);
+    n.push(e);
+  }
+  function Et() {
+    var t = Q();
+    var e = ot(t[0], t[1]);
+    var n = T(e);
+    Nt(e, n, t[2]);
+    Ct(e, n);
+    v(t, 0);
+    return e;
+  }
+  function It(t, e, n) {
+    var r = [];
+    for (var a = 3; a < arguments.length; a++) r[a - 3] = arguments[a];
+    St(t, e, n);
+    for (var i = Dt; i < arguments.length; i += 2) {
+      Mt(arguments[i], arguments[i + 1]);
+    }
+    return Et();
+  }
+  function Pt() {
+    var t = ct();
+    var e = T(t);
+    Ct(t, e);
+  }
+  function jt(t) {
+    var e = ct();
+    var n = T(e);
+    Nt(e, n, t);
+  }
+  function Tt(t) {
+    var e = lt();
+    return e;
+  }
+  function Bt(t, e, n) {
+    var r = [];
+    for (var a = 3; a < arguments.length; a++) r[a - 3] = arguments[a];
+    It.apply(null, arguments);
+    return Tt(t);
+  }
+  function Kt(t) {
+    var e = [];
+    for (var n = 1; n < arguments.length; n++) e[n - 1] = arguments[n];
+    var r = ft();
+    var a = T(r);
+    if (a.text !== t) {
+      a.text = t;
+      var i = t;
+      for (var u = 1; u < arguments.length; u += 1) {
+        var o = arguments[u];
+        i = o(i);
+      }
+      if (r.data !== i) r.data = i;
+    }
+    return r;
+  }
+  t.applyAttr = d;
+  t.applyProp = p;
+  t.attributes = m;
+  t.alignWithDOM = ut;
+  t.close = lt;
+  t.createPatchInner = pt;
+  t.createPatchOuter = ht;
+  t.currentElement = ct;
+  t.currentPointer = vt;
+  t.open = ot;
+  t.patch = gt;
+  t.patchInner = gt;
+  t.patchOuter = yt;
+  t.skip = st;
+  t.skipNode = at;
+  t.setKeyAttributeName = n;
+  t.clearCache = K;
+  t.getKey = B;
+  t.importNode = j;
+  t.isDataInitialized = E;
+  t.notifications = x;
+  t.symbols = c;
+  t.applyAttrs = Pt;
+  t.applyStatics = jt;
+  t.attr = Mt;
+  t.elementClose = Tt;
+  t.elementOpen = It;
+  t.elementOpenEnd = Et;
+  t.elementOpenStart = St;
+  t.elementVoid = Bt;
+  t.key = kt;
+  t.text = Kt;
+  Object.defineProperty(t, "__esModule", { value: true });
+});
+
 /* just a separator file */
 /**
  * Copyright 2018-2021 The Cotonic Authors. All Rights Reserved.

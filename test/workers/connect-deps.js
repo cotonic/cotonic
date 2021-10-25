@@ -1,5 +1,4 @@
-importScripts("/src/polyfill_worker.js",
-              "/src/cotonic.mqtt.js");
+importScripts("/src/cotonic.mqtt.js");
 
 function initialize() {
     self.publish("connect-deps/init", true);

@@ -1,8 +1,7 @@
 
 console.log("on_connect_on_depends");
 
-importScripts("/src/polyfill_worker.js",
-              "/src/cotonic.mqtt.js");
+importScripts("/src/cotonic.mqtt.js");
 
 self.on_depends_provided = function() {
     self.publish("on_connect_on_depends_order/called", {

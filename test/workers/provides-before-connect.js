@@ -1,6 +1,5 @@
 
-importScripts("/src/polyfill_worker.js",
-              "/src/cotonic.mqtt.js");
+importScripts("/src/cotonic.mqtt.js");
 
 function initialize() {
     self.publish("provides-before-connect/done", true);
