@@ -1,5 +1,4 @@
-importScripts("/src/polyfill_worker.js",
-              "/src/cotonic.mqtt.js");
+importScripts("/src/cotonic.mqtt.js");
 
 function init() {
     self.publish("connect-resolve/done", true);
