@@ -965,18 +965,11 @@ var cotonic = cotonic || {};
         };
 
         this.appendUTF8 = function ( s ) {
-            if (hasTextEncoder()) {
-                var b = new TextEncoder("utf-8").encode(s);
-                self.appendUint16(b.length);
-                self.reserve(b.length);
-                for (var i = 0; i < b.length; i++) {
-                    self.buf[ self.len++ ] = b[i];
-                }
-            } else {
-                var len = pahoUTF8Length(s);
-                self.appendUint16(len);
-                self.reserve(len);
-                self.len = pahoStringToUTF8(s, self.buf, self.len);
+            var b = stringToUTF8(s);
+            self.appendUint16(b.length);
+            self.reserve(b.length);
+            for (var i = 0; i < b.length; i++) {
+                self.buf[ self.len++ ] = b[i];
             }
         };
 
@@ -989,22 +982,13 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case "string":
-                    if (hasTextEncoder()) {
-                        b = new TextEncoder("utf-8").encode(b);
-                        if (addlen) {
-                            self.appendUint16(b.length);
-                        }
-                        self.reserve(b.length);
-                        for (var i = 0; i < b.length; i++) {
-                            self.buf[ self.len++ ] = b[i];
-                        }
-                    } else {
-                        var len = pahoUTF8Length(b);
-                        if (addlen) {
-                            self.appendUint16(len);
-                        }
-                        self.reserve(len);
-                        self.len = pahoStringToUTF8(b, self.buf, self.len);
+                    b = stringToUTF8(b);
+                    if (addlen) {
+                        self.appendUint16(b.length);
+                    }
+                    self.reserve(b.length);
+                    for (var i = 0; i < b.length; i++) {
+                        self.buf[ self.len++ ] = b[i];
                     }
                     break;
                 case "object":
@@ -1141,11 +1125,7 @@ var cotonic = cotonic || {};
      * @public
      */
     function UTF8ToString ( input ) {
-        if (hasTextEncoder()) {
-            return new TextDecoder("utf-8").decode(input);
-        } else {
-            return pahoUTF8ToString(input);
-        }
+        return new TextDecoder("utf-8").decode(input);
     }
 
     /**
@@ -1153,161 +1133,7 @@ var cotonic = cotonic || {};
      * @public
      */
     function stringToUTF8 ( input ) {
-        if (hasTextEncoder()) {
-            return new TextEncoder("utf-8").encode(input);
-        } else {
-            var len = pahoUTF8Length(input);
-            var b = new Uint8Array(len);
-            pahoStringToUTF8(input, b, 0);
-            return b;
-        }
-    }
-
-    /**
-     * Check if this browser has support for TextEncoder and TextDecoder
-     * @private
-     */
-    function hasTextEncoder() {
-        return typeof TextEncoder == "function";
-    }
-
-    /******
-     * The pahoUTF8Length, pahoUTF8ToString, pahoStringToUTF8 and encodeMBI
-     * functions are adapted from paho-mqtt.js
-     *
-     * Copyright (c) 2013 IBM Corp.
-     *
-     * All rights reserved. This program and the accompanying materials
-     * are made available under the terms of the Eclipse Public License v1.0
-     * and Eclipse Distribution License v1.0 which accompany this distribution.
-     */
-
-    function pahoUTF8ToString ( input ) {
-        var output = "";
-        var utf16;
-        var n = 0;
-
-        while (n < input.length) {
-            var byte1 = input[n++];
-            if (byte1 < 0x80) {
-                utf16 = byte1;
-            } else if (n < input.length) {
-                var byte2 = input[n++] - 0x80;
-                if (byte2 < 0) {
-                    throw "malformed_utf8";
-                }
-                if (byte1 < 0xE0) {
-                    // 2 byte character
-                    utf16 = 64 * (byte1 - 0xC0)
-                          + byte2;
-                } else if (n < input.length) {
-                    var byte3 = input[n++] - 0x80;
-                    if (byte3 < 0) {
-                        throw "malformed_utf8";
-                    }
-                    if (byte1 < 0xF0) {
-                        // 3 byte character
-                        utf16 = 4096 * (byte1 - 0xE0)
-                              + 64 * byte2
-                              + byte3;
-                    } else if (n < input.length) {
-                        var byte4 = input[n++] - 0x80;
-                        if (byte4 < 0) {
-                            throw "malformed_utf8";
-                        }
-                        if (byte1 < 0xF8) {
-                            // 4 byte character
-                           utf16 = 262144 * (byte1 - 0xF0)
-                                 + 4096 * byte2
-                                 + 64 * byte3
-                                 + byte4;
-                        } else {
-                            // longer encodings are not supported
-                            throw "malformed_utf8";
-                        }
-                    } else {
-                        // incomplete at end
-                        throw "malformed_utf8";
-                    }
-                } else {
-                    // incomplete at end
-                    throw "malformed_utf8";
-                }
-            } else {
-                // incomplete at end
-                throw "malformed_utf8";
-            }
-            if (utf16 > 0xFFFF) {
-                // 4 byte character - express as a surrogate pair
-                utf16 -= 0x10000;
-                output += String.fromCharCode(0xD800 + (utf16 >> 10)); // lead character
-                utf16 = 0xDC00 + (utf16 & 0x3FF);  // trail character
-            }
-            output += String.fromCharCode(utf16);
-        }
-        return output;
-    }
-
-
-    /**
-     * Takes a String and writes it into an array as UTF8 encoded bytes.
-     * @private
-     */
-    function pahoStringToUTF8(input, output, pos) {
-        for (var i = 0; i<input.length; i++) {
-            var charCode = input.charCodeAt(i);
-
-            // Check for a surrogate pair.
-            if (0xD800 <= charCode && charCode <= 0xDBFF) {
-                var lowCharCode = input.charCodeAt(++i);
-                if (isNaN(lowCharCode)) {
-                    // throw new Error(format(ERROR.MALFORMED_UNICODE, [charCode, lowCharCode]));
-                    throw "Invalid UTF8 character";
-                }
-                charCode = ((charCode - 0xD800)<<10) + (lowCharCode - 0xDC00) + 0x10000;
-            }
-
-            if (charCode <= 0x7F) {
-                output[pos++] = charCode;
-            } else if (charCode <= 0x7FF) {
-                output[pos++] = charCode>>6  & 0x1F | 0xC0;
-                output[pos++] = charCode     & 0x3F | 0x80;
-            } else if (charCode <= 0xFFFF) {
-                output[pos++] = charCode>>12 & 0x0F | 0xE0;
-                output[pos++] = charCode>>6  & 0x3F | 0x80;
-                output[pos++] = charCode     & 0x3F | 0x80;
-            } else {
-                output[pos++] = charCode>>18 & 0x07 | 0xF0;
-                output[pos++] = charCode>>12 & 0x3F | 0x80;
-                output[pos++] = charCode>>6  & 0x3F | 0x80;
-                output[pos++] = charCode     & 0x3F | 0x80;
-            }
-        }
-        return pos;
-    }
-
-    /**
-     * Takes a String and calculates its length in bytes when encoded in UTF8.
-     * @private
-     */
-    function pahoUTF8Length( input ) {
-        var output = 0;
-        for (var i = 0; i<input.length; i++) {
-            var charCode = input.charCodeAt(i);
-            if (charCode > 0x7FF) {
-                // Surrogate pair means its a 4 byte character
-                if (0xD800 <= charCode && charCode <= 0xDBFF) {
-                    i++;
-                    output++;
-                }
-                output +=3;
-            } else if (charCode > 0x7F) {
-                output +=2;
-            } else {
-                output++;
-            }
-        }
-        return output;
+        return new TextEncoder("utf-8").encode(input);
     }
 
     /**
@@ -1350,6 +1176,5 @@ var cotonic = cotonic || {};
     // Some useful support functions
     cotonic.mqtt_packet.stringToUTF8 = stringToUTF8;
     cotonic.mqtt_packet.UTF8ToString = UTF8ToString;
-    cotonic.mqtt_packet.hasTextEncoder = hasTextEncoder;
 
 }(cotonic));
