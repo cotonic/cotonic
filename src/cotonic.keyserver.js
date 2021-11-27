@@ -18,9 +18,6 @@
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-    // This does not work on IE11
-    if(window.msCrypto) return;
-
     // Sizes of keys, iv's and such.
     const KEY_BYTES = 32;        // 256 bits
     const IV_BYTES = 16;         // 128 bits
