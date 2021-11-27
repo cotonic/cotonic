@@ -1980,15 +1980,8 @@ var cotonic = cotonic || {};
             d = element.textContent;
             element.innerHTML = "";
 
-            /* Array.from not available on IE when it is in Quirks mode */
-            if (Array.from) {
-                if (Array.from(d).length !== 1) {
-                    d = null; // This was not a charref;
-                }
-            } else {
-                if (d.split(/(?=(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/).length !== 1) {
-                    d = null; // This was not a charref
-                }
+            if (Array.from(d).length !== 1) {
+                d = null; // This was not a charref;
             }
 
             cache[raw] = d;
@@ -6639,36 +6632,11 @@ var cotonic = cotonic || {};
         let q = {};
         let ps = [];
 
-        if (typeof(URLSearchParams) === 'function') {
-            const searchParams = new URLSearchParams(qs);
-            searchParams.forEach(function(value, key) {
-                ps.push([ key, value ]);
-            });
-        } else {
-            // For IE11...
-            if (qs.length > 0) {
-                if (qs[0] === '?') {
-                    qs = qs.substr(1);
-                }
-                var args = qs.split('&');
-                for (let i = 0; i < args.length; i++) {
-                    if (args[i].length > 0) {
-                        let kv = args[i].match(/^([^=]*)(=(.*))$/);
-                        let v;
+        const searchParams = new URLSearchParams(qs);
+        searchParams.forEach(function(value, key) {
+            ps.push([ key, value ]);
+        });
 
-                        if (kv[1].length > 0) {
-                            if (typeof(kv[3]) === "string") {
-                                v = decodeURIComponent(kv[3]);
-                            } else {
-                                v = "";
-                            }
-                        }
-
-                        ps.push([ decodeURIComponent(kv[1]), v ]);
-                    }
-                }
-            }
-        }
         for (let i = 0; i < ps.length; i++) {
             const name = ps[i][0];
             const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
@@ -7449,9 +7417,6 @@ var cotonic = cotonic || {};
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-    // This does not work on IE11
-    if(window.msCrypto) return;
-
     // Sizes of keys, iv's and such.
     const KEY_BYTES = 32;        // 256 bits
     const IV_BYTES = 16;         // 128 bits
