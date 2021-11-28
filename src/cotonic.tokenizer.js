@@ -419,7 +419,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_word(data, quote, d) {
-        let acc = [], cont=true;
+        let acc = [], i=0, cont=true;
 
         while (cont) {
             let c = data.codePointAt(d.offset);
@@ -434,10 +434,10 @@ var cotonic = cotonic || {};
 
             if (c === AMPERSAND) {
                 let charref = tokenize_charref(data, d.inc_col());
-                acc.push(charref.value);
+                acc[i++] = charref.value;
             }
 
-            acc.push(data[d.offset]);
+            acc[i++] = data[d.offset];
             d.inc_char(c);
         }
     }
@@ -456,7 +456,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_literal(data, d, type) {
-        let literal = [], cont=true, c = data.codePointAt(d.offset);
+        let literal = [], i=0, cont=true, c = data.codePointAt(d.offset);
 
         // Handle case where tokenize_literal would consume
         // 0 chars. http://github.com/mochi/mochiweb/pull/13
@@ -469,13 +469,13 @@ var cotonic = cotonic || {};
 
             if (c === AMPERSAND) {
                 charref = tokenize_charref(data, d.inc_col());
-                literal.push(charref.value);
+                literal[i++] = charref.value;
                 continue;
             }
 
             if(c !== undefined)  {
                 if (!((is_whitespace(c) || (c === GT) || (c === SLASH) || (c === EQUALS)))) {
-                    literal.push(data[d.offset]);
+                    literal[i++] = data[d.offset];
                     d.inc_col();
                     continue;
                 }
@@ -606,7 +606,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_quoted_attr_value(data, start_quote, d) {
-        let v = [], cont = true;
+        let v = [], i=0, cont = true;
 
         while (cont) {
             let c = data.codePointAt(d.offset);
@@ -618,7 +618,7 @@ var cotonic = cotonic || {};
             if (c === AMPERSAND) {
                 let charref = tokenize_charref(data, d.inc_col());
 
-                v.push(charref.value);
+                v[i++] = charref.value;
                 continue;
             }
 
@@ -626,14 +626,14 @@ var cotonic = cotonic || {};
                 return value(v.join(""), d.inc_col());
             }
 
-            v.push(data[d.offset]);
+            v[i++] = data[d.offset];
 
             d.inc_char(c);
         }
     }
 
     function tokenize_unquoted_attr_value(data, d) {
-        let v = [], cont = true;
+        let v = [], i=0, cont = true;
 
         while (cont) {
             let c = data.codePointAt(d.offset);
@@ -644,7 +644,7 @@ var cotonic = cotonic || {};
 
             if (c === AMPERSAND) {
                 let charref = tokenize_charref(data, d.inc_col());
-                v.push(charref.value);
+                v[i++] = charref.value;
                 continue;
             }
 
@@ -656,7 +656,7 @@ var cotonic = cotonic || {};
                 return value(v.join(""), d);
             }
 
-            v.push(data[d.offset]);
+            v[i++] = data[d.offset];
 
             d.inc_col();
         }
