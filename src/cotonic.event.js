@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2021 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,10 @@ var cotonic = cotonic || {};
 
 (function(cotonic) {
 "use strict";
+    cotonic.ready.then(function() {
+        window.dispatchEvent((new Event("cotonic-ready")));
+    })
 
     // Resolve the cotonic.ready promise
     cotonic.readyResolve();
-
-    // Old fashioned way for IE as it can't handle: new Event('cotonic-ready');
-    let event = document.createEvent('Event');
-    event.initEvent('cotonic-ready', true, true);
-
-    window.dispatchEvent(event);
 }(cotonic));
