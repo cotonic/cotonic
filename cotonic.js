@@ -1308,7 +1308,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_word(data, quote, d) {
-        let acc = [], cont=true;
+        let acc = [], i=0, cont=true;
 
         while (cont) {
             let c = data.codePointAt(d.offset);
@@ -1323,10 +1323,10 @@ var cotonic = cotonic || {};
 
             if (c === AMPERSAND) {
                 let charref = tokenize_charref(data, d.inc_col());
-                acc.push(charref.value);
+                acc[i++] = charref.value;
             }
 
-            acc.push(data[d.offset]);
+            acc[i++] = data[d.offset];
             d.inc_char(c);
         }
     }
@@ -1345,7 +1345,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_literal(data, d, type) {
-        let literal = [], cont=true, c = data.codePointAt(d.offset);
+        let literal = [], i=0, cont=true, c = data.codePointAt(d.offset);
 
         // Handle case where tokenize_literal would consume
         // 0 chars. http://github.com/mochi/mochiweb/pull/13
@@ -1358,13 +1358,13 @@ var cotonic = cotonic || {};
 
             if (c === AMPERSAND) {
                 charref = tokenize_charref(data, d.inc_col());
-                literal.push(charref.value);
+                literal[i++] = charref.value;
                 continue;
             }
 
             if(c !== undefined)  {
                 if (!((is_whitespace(c) || (c === GT) || (c === SLASH) || (c === EQUALS)))) {
-                    literal.push(data[d.offset]);
+                    literal[i++] = data[d.offset];
                     d.inc_col();
                     continue;
                 }
@@ -1495,7 +1495,7 @@ var cotonic = cotonic || {};
     }
 
     function tokenize_quoted_attr_value(data, start_quote, d) {
-        let v = [], cont = true;
+        let v = [], i=0, cont = true;
 
         while (cont) {
             let c = data.codePointAt(d.offset);
@@ -1507,7 +1507,7 @@ var cotonic = cotonic || {};
             if (c === AMPERSAND) {
                 let charref = tokenize_charref(data, d.inc_col());
 
-                v.push(charref.value);
+                v[i++] = charref.value;
                 continue;
             }
 
@@ -1515,14 +1515,14 @@ var cotonic = cotonic || {};
                 return value(v.join(""), d.inc_col());
             }
 
-            v.push(data[d.offset]);
+            v[i++] = data[d.offset];
 
             d.inc_char(c);
         }
     }
 
     function tokenize_unquoted_attr_value(data, d) {
-        let v = [], cont = true;
+        let v = [], i=0, cont = true;
 
         while (cont) {
             let c = data.codePointAt(d.offset);
@@ -1533,7 +1533,7 @@ var cotonic = cotonic || {};
 
             if (c === AMPERSAND) {
                 let charref = tokenize_charref(data, d.inc_col());
-                v.push(charref.value);
+                v[i++] = charref.value;
                 continue;
             }
 
@@ -1545,7 +1545,7 @@ var cotonic = cotonic || {};
                 return value(v.join(""), d);
             }
 
-            v.push(data[d.offset]);
+            v[i++] = data[d.offset];
 
             d.inc_col();
         }
@@ -1980,15 +1980,8 @@ var cotonic = cotonic || {};
             d = element.textContent;
             element.innerHTML = "";
 
-            /* Array.from not available on IE when it is in Quirks mode */
-            if (Array.from) {
-                if (Array.from(d).length !== 1) {
-                    d = null; // This was not a charref;
-                }
-            } else {
-                if (d.split(/(?=(?:[\0-\t\x0B\f\x0E-\u2027\u202A-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/).length !== 1) {
-                    d = null; // This was not a charref
-                }
+            if (Array.from(d).length !== 1) {
+                d = null; // This was not a charref;
             }
 
             cache[raw] = d;
@@ -6639,36 +6632,11 @@ var cotonic = cotonic || {};
         let q = {};
         let ps = [];
 
-        if (typeof(URLSearchParams) === 'function') {
-            const searchParams = new URLSearchParams(qs);
-            searchParams.forEach(function(value, key) {
-                ps.push([ key, value ]);
-            });
-        } else {
-            // For IE11...
-            if (qs.length > 0) {
-                if (qs[0] === '?') {
-                    qs = qs.substr(1);
-                }
-                var args = qs.split('&');
-                for (let i = 0; i < args.length; i++) {
-                    if (args[i].length > 0) {
-                        let kv = args[i].match(/^([^=]*)(=(.*))$/);
-                        let v;
+        const searchParams = new URLSearchParams(qs);
+        searchParams.forEach(function(value, key) {
+            ps.push([ key, value ]);
+        });
 
-                        if (kv[1].length > 0) {
-                            if (typeof(kv[3]) === "string") {
-                                v = decodeURIComponent(kv[3]);
-                            } else {
-                                v = "";
-                            }
-                        }
-
-                        ps.push([ decodeURIComponent(kv[1]), v ]);
-                    }
-                }
-            }
-        }
         for (let i = 0; i < ps.length; i++) {
             const name = ps[i][0];
             const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
@@ -7449,9 +7417,6 @@ var cotonic = cotonic || {};
 var cotonic = cotonic || {};
 
 (function (cotonic) {
-    // This does not work on IE11
-    if(window.msCrypto) return;
-
     // Sizes of keys, iv's and such.
     const KEY_BYTES = 32;        // 256 bits
     const IV_BYTES = 16;         // 128 bits
@@ -7758,7 +7723,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2019 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2021 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7777,13 +7742,10 @@ var cotonic = cotonic || {};
 
 (function(cotonic) {
 "use strict";
+    cotonic.ready.then(function() {
+        window.dispatchEvent((new Event("cotonic-ready")));
+    })
 
     // Resolve the cotonic.ready promise
     cotonic.readyResolve();
-
-    // Old fashioned way for IE as it can't handle: new Event('cotonic-ready');
-    let event = document.createEvent('Event');
-    event.initEvent('cotonic-ready', true, true);
-
-    window.dispatchEvent(event);
 }(cotonic));

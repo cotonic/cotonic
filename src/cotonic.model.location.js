@@ -92,36 +92,11 @@ var cotonic = cotonic || {};
         let q = {};
         let ps = [];
 
-        if (typeof(URLSearchParams) === 'function') {
-            const searchParams = new URLSearchParams(qs);
-            searchParams.forEach(function(value, key) {
-                ps.push([ key, value ]);
-            });
-        } else {
-            // For IE11...
-            if (qs.length > 0) {
-                if (qs[0] === '?') {
-                    qs = qs.substr(1);
-                }
-                var args = qs.split('&');
-                for (let i = 0; i < args.length; i++) {
-                    if (args[i].length > 0) {
-                        let kv = args[i].match(/^([^=]*)(=(.*))$/);
-                        let v;
+        const searchParams = new URLSearchParams(qs);
+        searchParams.forEach(function(value, key) {
+            ps.push([ key, value ]);
+        });
 
-                        if (kv[1].length > 0) {
-                            if (typeof(kv[3]) === "string") {
-                                v = decodeURIComponent(kv[3]);
-                            } else {
-                                v = "";
-                            }
-                        }
-
-                        ps.push([ decodeURIComponent(kv[1]), v ]);
-                    }
-                }
-            }
-        }
         for (let i = 0; i < ps.length; i++) {
             const name = ps[i][0];
             const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
