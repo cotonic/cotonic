@@ -7122,12 +7122,10 @@ var cotonic = cotonic || {};
             elt = elt.parentElement;
         }
 
-        console.log("result", topicTarget);
         if(!topicTarget)
             return;
 
         const topic = topicTarget.dataset[topicName]
-        //const topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
         let msg;
         let cancel = true;
 
@@ -7136,7 +7134,6 @@ var cotonic = cotonic || {};
             cancel = false;
         } else {
             let cancel = getFromDataset(event.target, topicTarget, `on${ event.type }Cancel`);
-            // let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
 
             switch (cancel) {
                 case "0":
@@ -7169,8 +7166,6 @@ var cotonic = cotonic || {};
             options.response_topic = responseTopic;
         }
 
-        console.log("msg and options", msg, options);
-
         cotonic.ui.on(topic, msg, event, options);
 
         if(event.type === "submit" && "onsubmitReset" in topicTarget.dataset) {
@@ -7186,11 +7181,10 @@ var cotonic = cotonic || {};
                 return elt.dataset[name];
             }
 
-            if(elt === endElt) {
-                elt = undefined;
-            } else {
-                elt = elt.parentElement;
-            }
+            if(elt === endElt) 
+                break;
+
+            elt = elt.parentElement;
         } while(elt);
     }
 
@@ -7208,11 +7202,10 @@ var cotonic = cotonic || {};
                 }
             }
 
-            if(elt === endElt) {
-                elt = undefined;
-            } else {
-                elt = elt.parentElement;
-            }
+            if(elt === endElt)
+                break;
+
+            elt = elt.parentElement;
         } while(elt);
 
         return attrs;

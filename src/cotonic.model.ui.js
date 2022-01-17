@@ -164,11 +164,10 @@ var cotonic = cotonic || {};
                 return elt.dataset[name];
             }
 
-            if(elt === endElt) {
-                elt = undefined;
-            } else {
-                elt = elt.parentElement;
-            }
+            if(elt === endElt) 
+                break;
+
+            elt = elt.parentElement;
         } while(elt);
     }
 
@@ -186,11 +185,10 @@ var cotonic = cotonic || {};
                 }
             }
 
-            if(elt === endElt) {
-                elt = undefined;
-            } else {
-                elt = elt.parentElement;
-            }
+            if(elt === endElt)
+                break;
+
+            elt = elt.parentElement;
         } while(elt);
 
         return attrs;
