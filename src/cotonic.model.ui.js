@@ -93,15 +93,11 @@ var cotonic = cotonic || {};
 
     function topic_event( event, isBuffered ) {
         const topicName = `on${ event.type }Topic`;
-        const parentList = [];
         let topicTarget = undefined;
-        let foundTopic = undefined;
 
         let elt = event.target;
         while(elt) {
-            parentList.push(elt);
             if(topicName in elt.dataset) {
-                foundTopic = elt.dataset[topicName];
                 topicTarget = elt;
                 break;
             } 
@@ -109,11 +105,11 @@ var cotonic = cotonic || {};
             elt = elt.parentElement;
         }
 
-        console.log("result", foundTopic, topicTarget, parentList);
+        console.log("result", topicTarget);
         if(!topicTarget)
             return;
 
-        const topic = topicTarget.dateset[topicName]
+        const topic = topicTarget.dataset[topicName]
         //const topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
         let msg;
         let cancel = true;
@@ -122,7 +118,7 @@ var cotonic = cotonic || {};
             // Buffered events are already canceled
             cancel = false;
         } else {
-            let cancel = getFromDataset(event.target, topicTarget, `on${ event.type }Cancel`;
+            let cancel = getFromDataset(event.target, topicTarget, `on${ event.type }Cancel`);
             // let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
 
             switch (cancel) {
@@ -156,6 +152,8 @@ var cotonic = cotonic || {};
             options.response_topic = responseTopic;
         }
 
+        console.log("msg and options", msg, options);
+
         cotonic.ui.on(topic, msg, event, options);
 
         if(event.type === "submit" && "onsubmitReset" in topicTarget.dataset) {
@@ -176,7 +174,7 @@ var cotonic = cotonic || {};
             } else {
                 elt = elt.parentElement;
             }
-        } while(cont && elt);
+        } while(elt);
     }
 
     function getAttributes(startElt, endElt) {
@@ -198,7 +196,7 @@ var cotonic = cotonic || {};
             } else {
                 elt = elt.parentElement;
             }
-        } while(cont && elt);
+        } while(elt);
 
         return attrs;
     }
