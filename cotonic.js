@@ -7109,6 +7109,27 @@ var cotonic = cotonic || {};
     // Map form submit and element clicks to topics.
 
     function topic_event( event, isBuffered ) {
+        const topicName = `on${ event.type }Topic`;
+        const parentList = [];
+        let topicTarget = undefined;
+        let foundTopic = undefined;
+
+        let elt = event.target;
+        while(elt) {
+            parentList.push(elt);
+            if(topicName in elt.dataset) {
+                foundTopic = elt.dataset[topicName];
+                topicTarget = elt;
+                break;
+            } 
+
+            elt = elt.parentElement;
+        }
+
+        console.log("result", foundTopic, topicTarget, parentList);
+        if(!topicTarget) return;
+
+
         const topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
         let msg;
 
