@@ -7109,64 +7109,106 @@ var cotonic = cotonic || {};
     // Map form submit and element clicks to topics.
 
     function topic_event( event, isBuffered ) {
-        const topic = event.target.getAttribute( "data-on"+event.type+"-topic" );
+        const topicName = `on${ event.type }Topic`;
+        let topicTarget = undefined;
+
+        let elt = event.target;
+        while(elt) {
+            if(topicName in elt.dataset) {
+                topicTarget = elt;
+                break;
+            } 
+
+            elt = elt.parentElement;
+        }
+
+        if(!topicTarget)
+            return;
+
+        const topic = topicTarget.dataset[topicName]
         let msg;
+        let cancel = true;
 
-        if (typeof topic === "string") {
-            let cancel = true;
+        if (isBuffered) {
+            // Buffered events are already canceled
+            cancel = false;
+        } else {
+            let cancel = getFromDataset(event.target, topicTarget, `on${ event.type }Cancel`);
 
-            if (isBuffered) {
-                // Buffered events are already canceled
-                cancel = false;
-            } else {
-                let cancel = event.target.getAttribute( "data-on"+event.type+"-cancel" );
-
-                if (cancel === null) {
+            switch (cancel) {
+                case "0":
+                case "no":
+                case "false":
+                    cancel = false;
+                    break;
+                case "preventDefault":
+                    cancel = 'preventDefault';
+                    break;
+                default:
                     cancel = true;
-                } else {
-                    switch (cancel) {
-                        case "0":
-                        case "no":
-                        case "false":
-                            cancel = false;
-                            break;
-                        case "preventDefault":
-                            cancel = 'preventDefault';
-                            break;
-                        default:
-                            cancel = true;
-                            break;
-                    }
-                }
-            }
-
-            if (event.target.hasAttribute( "data-on"+event.type+"-message" )) {
-                msg = event.target.getAttribute( "data-on"+event.type+"-message" );
-                if (typeof msg === "string") {
-                    msg = JSON.parse(msg);
-                }
-            } else {
-                let attrs = event.target.attributes;
-                msg = {};
-                for (let i = attrs.length - 1; i >= 0; i--) {
-                    msg[attrs[i].name] = attrs[i].value;
-                }
-            }
-
-            let options = {
-                cancel: cancel
-            };
-
-            if (event.target.hasAttribute( "data-on"+event.type+"-response-topic" )) {
-                options.response_topic = event.target.getAttribute( "data-on"+event.type+"-response-topic" );
-            }
-
-            cotonic.ui.on(topic, msg, event, options);
-
-            if(event.type === "submit" && event.target.getAttribute("data-onsubmit-reset") !== null) {
-                event.target.reset();
+                    break;
             }
         }
+
+        msg = getFromDataset(event.target, topicTarget, `on${ event.type }Message`);
+        if(msg) {
+            msg = JSON.parse(msg);
+        } else {
+            msg = getAttributes(event.target, topicTarget);
+        }
+
+        let options = {
+            cancel: cancel
+        };
+
+        const responseTopic = getFromDataset(event.target, topicTarget, `on${ event.type }ResponseTopic`);
+        if (responseTopic) {
+            options.response_topic = responseTopic;
+        }
+
+        cotonic.ui.on(topic, msg, event, options);
+
+        if(event.type === "submit" && "onsubmitReset" in topicTarget.dataset) {
+            topicTarget.reset();
+        }
+    }
+
+    function getFromDataset(startElt, endElt, name) {
+        let elt = startElt;
+
+        do {
+            if(name in elt.dataset) {
+                return elt.dataset[name];
+            }
+
+            if(elt === endElt) 
+                break;
+
+            elt = elt.parentElement;
+        } while(elt);
+    }
+
+    function getAttributes(startElt, endElt) {
+        let elt = startElt;
+        let attrs = {};
+
+        do {
+            let attributes = elt.attributes;
+            for(let i = attributes.length - 1; i >= 0; i--) {
+                let name = attributes[i].name;
+
+                if(!attrs[name]) {
+                    attrs[name] = attributes[i].value;
+                }
+            }
+
+            if(elt === endElt)
+                break;
+
+            elt = elt.parentElement;
+        } while(elt);
+
+        return attrs;
     }
 
     // Bind the ui composer to the 'model/ui/#' topics
