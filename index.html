@@ -136,7 +136,7 @@ pre {
         <section id="sidebar">
             <div>
                 <a class="toc_title" href="#">
-                    Cotonic <span class="version">(1.1.1)</span>
+                    Cotonic <span class="version">(1.1.2)</span>
                 </a>
 
                 <ul class="toc_section">
@@ -2253,6 +2253,23 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             </p>
 
             <h3 id="changelog">Change Log</h3>
+
+            <p id="1.1.2">
+            <strong class="header">1.1.2</strong> &mdash; <small><i>Jan 22, 2022</i></small> &mdash;
+            <a href="https://github.com/cotonic/cotonic/compare/1.1.1...1.1.2">Diff</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.2/index.html"l>Docs</a> &mdash;
+            <a href="https://github.com/cotonic/cotonic/archive/1.1.2.tar.gz" download>Download</a>
+            <br />
+            <ul>
+                <li>
+                    Changed the way onclick and and onsubmit topics are handled. When such an event
+                    is fired, cotonic traverers the parents of the target of the event to check for
+                    the topic attribute. When it is found, a message is published with the attributes
+                    of the elements between the target and the element on which the topic was found.
+                </li>
+            </ul>
+            </p>
+
 
             <p id="1.1.1">
             <strong class="header">1.1.1</strong> &mdash; <small><i>Dec 6, 2021</i></small> &mdash;
