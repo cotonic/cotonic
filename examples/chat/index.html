@@ -31,7 +31,7 @@
             </p>
             
             <p>
-            This example connects the page to <a href="https://mqtt.eclipseprojects.io"><code>mqtt.eclipseprojects.io</code></a>,
+            This example connects the page to <a href="https://test.mosquito.org"><code>test.mosquito.org</code></a>,
             a public, test MQTT broker service. And subscribes to topic <code>cotonic/chat</code>. Chat messages
             which are published on this topic will be displayed in the chat box.
             </p>
@@ -81,7 +81,7 @@
         const messages = [];
         const self_id = Math.floor(Math.random() * 1000000);
 
-        const broker = "mqtt.eclipseprojects.io";
+        const broker = "test.mosquitto.org:8081";
         const broker_path = "/mqtt";
 
         const presetNicks = ["Joe", "Mike", "Robert", "Micky", "Maus", "Donald", "Bruce", "Wayne", "Clark",
