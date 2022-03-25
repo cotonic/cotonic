@@ -54,23 +54,27 @@ var cotonic = cotonic || {};
         active:  {
             passive: [],
             hidden: ["passive"],
-            frozen: ["passive", "hidden"] },
+            frozen: ["passive", "hidden"],
             terminated: ["passive", "hidden"],
+        },
         passive: {
             active: [],
             hidden: [],
             frozen: ["hidden"],
-            terminated: ["hidden"] },
+            terminated: ["hidden"]
+        },
         hidden:  {
             active: ["passive"],
             passive: [],
             frozen: [],
-            terminated: [] },
+            terminated: []
+        },
         frozen:  {
             active: ["hidden", "passive"],
             passive: ["hidden"],
             hidden: [],
-            terminated: ["hidden"] },
+            terminated: ["hidden"]
+        },
         terminated: {
         }
     };
@@ -144,7 +148,7 @@ var cotonic = cotonic || {};
 
     actions.handleOnlineStatus = function(evt) {
         model.present({type: "onlineState", online: navigator.onLine});
-    }
+    };
 
     //
     // Helpers
