@@ -1,12 +1,28 @@
 #!/bin/bash
 
+readonly host=localhost
+readonly port=6227
+readonly uri=test
 
 if [[ "$OSTYPE" == darwin* ]]; then
-    (sleep 1 && open http://localhost:6227/test/) &
+    readonly cmd=open
 elif [[ "$OSTYPE" == linux* ]]; then
-    (sleep 1 && xdg-open http://localhost:6227/test/) &
+    readonly cmd=xdg-open
 else
-    (sleep 1 && firefox http://localhost:6227/test/) &
+    readonly browsers=("google-chrome" "chromium-browser" "firefox" "microsoft-edge")
+
+    for browser in "${browsers[@]}"; do
+        if which "$browser" >/dev/null; then
+            readonly cmd="$browser"
+            break
+        fi
+    done
+
+    if [ -z "$cmd" ]; then
+        echo "None of those browsers was found:"
+        printf "\t%s\n" "${browsers[@]}"
+        exit 1
+    fi
 fi
 
-python devserver.py 6227
+(sleep 1 && "$cmd" http://"$host":"$port"/"$uri") & python devserver.py "$port"
