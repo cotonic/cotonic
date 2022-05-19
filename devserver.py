@@ -15,7 +15,7 @@ class NoCacheHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 def serve(address):
     httpd = BaseHTTPServer.HTTPServer(address, NoCacheHandler)
     sa = httpd.socket.getsockname()
-    print "Serving HTTP on", sa[0], "port", sa[1], "..."
+    print("Serving HTTP on", sa[0], "port", sa[1], "...")
     httpd.serve_forever()
 
 if __name__ == "__main__":
