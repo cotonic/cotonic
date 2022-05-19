@@ -3,6 +3,8 @@
 
 if [[ "$OSTYPE" == darwin* ]]; then
     (sleep 1 && open http://localhost:6227/test/) &
+elif [[ "$OSTYPE" == linux* ]]; then
+    (sleep 1 && xdg-open http://localhost:6227/test/) &
 else
     (sleep 1 && firefox http://localhost:6227/test/) &
 fi
