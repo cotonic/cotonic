@@ -2769,7 +2769,7 @@ var cotonic = cotonic || {};
 
     function indexOfSubscription( v, thing ) {
         let index = v.indexOf(thing);
-        if (index === -1) {
+        if (index === -1 && thing.wid !== null) {
             for(index = v.length-1; index >= 0; index--) {
                 const sub = v[index];
                 if (thing.type === sub.type && sub.wid === thing.wid) {
@@ -2896,7 +2896,7 @@ var cotonic = cotonic || {};
      */
     function subscribe(topics, callback, options) {
         options = options || {};
-        if(options.wid === undefined) options.wid = 0;
+        if(options.wid === undefined) options.wid = null;
 
         let subtopics = [];
 
