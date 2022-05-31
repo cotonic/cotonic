@@ -25,4 +25,4 @@ else
     fi
 fi
 
-(sleep 1 && "$cmd" http://"$host":"$port"/"$uri") & python devserver.py "$port"
+(sleep 1 && "$cmd" http://"$host":"$port"/"$uri") & python3 devserver.py "$port"

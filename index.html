@@ -136,7 +136,7 @@ pre {
         <section id="sidebar">
             <div>
                 <a class="toc_title" href="#">
-                    Cotonic <span class="version">(1.1.2)</span>
+                    Cotonic <span class="version">(1.1.5)</span>
                 </a>
 
                 <ul class="toc_section">
@@ -2253,6 +2253,30 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             </p>
 
             <h3 id="changelog">Change Log</h3>
+
+            <p id="1.1.5">
+            <strong class="header">1.1.5</strong> &mdash; <small><i>May 31, 2022</i></small> &mdash;
+            <a href="https://github.com/cotonic/cotonic/compare/1.1.1...1.1.5">Diff</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.5/index.html"l>Docs</a> &mdash;
+            <a href="https://github.com/cotonic/cotonic/archive/1.1.5.tar.gz" download>Download</a>
+            <br />
+            <ul>
+                <li>
+                    Don't de-dup subscriptions from unspecified worker ids (wid). 
+                </li>
+                <li>
+                    Warn when unsubscribing from a topic, without specifying a worker id (wid).
+                </li>
+                <li>
+                    Fix starting the python dev server.
+                </li>
+                <li>
+                    Fix a typo in the specification of the page lifecycle state-machine.
+                </li>
+            </ul>
+            Special thanks go to <a href="https://github.com/williamthome">@williamthome</a> for fixing the 
+            python dev environment.
+            </p>
 
             <p id="1.1.2">
             <strong class="header">1.1.2</strong> &mdash; <small><i>Jan 22, 2022</i></small> &mdash;
