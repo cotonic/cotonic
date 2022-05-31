@@ -385,13 +385,14 @@ var cotonic = cotonic || {};
       */
     function unsubscribe( topics, options ) {
         options = options || {};
-        if(options.wid === undefined) options.wid = 0;
-
-        if (typeof topics === "string") {
-            topics = [ topics ];
+        if(options.wid === undefined) {
+            console.error("Cotonic unsubscribe without wid", topics, options);
+        } else {
+            if (typeof topics === "string") {
+                topics = [ topics ];
+            }
+            unsubscribe_subscriber({type: "page", wid: options.wid}, { topics: topics });
         }
-
-        unsubscribe_subscriber({type: "page", wid: options.wid}, { topics: topics });
     }
 
     function unsubscribe_subscriber(sub, msg) {
