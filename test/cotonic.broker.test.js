@@ -140,7 +140,7 @@ QUnit.test("Delete retained messages", function(assert) {
 
 QUnit.test("Look for subscribers with match", function(assert) {
     const test_topics = ["a/a", "a/+", "a/#", "b/b"];
-    cotonic.broker.subscribe(test_topics, function() { } );
+    cotonic.broker.subscribe(test_topics, function() { }, { wid: "qunit" } );
     try {
         let a_a_match = cotonic.broker.match("a/a");
         let c_c_match = cotonic.broker.match("c/c");
@@ -158,7 +158,7 @@ QUnit.test("Look for subscribers with match", function(assert) {
             cotonic.broker.match("#")
         }, Error, "It should not be possible to match on wildcards");
     } finally {
-        cotonic.broker.unsubscribe(test_topics); 
+        cotonic.broker.unsubscribe(test_topics, { wid: "qunit" }); 
     }
 
 });

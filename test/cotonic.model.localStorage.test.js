@@ -28,7 +28,8 @@ QUnit.test("test.model.localStorage - get", function(assert) {
         function(msg) {
             assert.equal(msg.payload, "get - test");
             done();
-        }
+        },
+        { wid: "qunit" }
     );
 
     try {
@@ -37,7 +38,7 @@ QUnit.test("test.model.localStorage - get", function(assert) {
                 response_topic: response_topic
             }});
     } finally {
-        broker.unsubscribe(response_topic, {});
+        broker.unsubscribe(response_topic, { wid: "qunit" });
     }
 
 });
@@ -61,7 +62,7 @@ QUnit.test("test.model.localStorage - events", function(assert, bindings) {
         function(msg, bindings) {
             events.push({msg:msg, key: bindings.key});
         },
-        {}
+        { wid: "qunit" }
     );
 
     try {
@@ -77,6 +78,6 @@ QUnit.test("test.model.localStorage - events", function(assert, bindings) {
         assert.equal(events[3].key, "foo"); 
         assert.equal(events[4].key, "foo1"); 
     } finally {
-        broker.unsubscribe("model/localStorage/event/+key", {});
+        broker.unsubscribe("model/localStorage/event/+key", { wid: "qunit" });
     }
 });

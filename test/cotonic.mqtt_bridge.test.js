@@ -28,7 +28,7 @@ QUnit.test("Connect with mock mqtt_bridge", function(assert) {
     let done = assert.async();
 
     // Clear retained bridge status messages 
-    cotonic.broker.publish("$bridge/mock/status", undefined, {retain: true});
+    cotonic.broker.publish("$bridge/mock/status", undefined, {retain: true, wid: "qunit"});
 
     let mockSession;
 
@@ -61,7 +61,7 @@ QUnit.test("Connect with mock mqtt_bridge", function(assert) {
         // After the connack below, the test is done.
         if(m.payload && m.payload.session_present) {
             done();
-            cotonic.broker.unsubscribe("$bridge/mock/status");
+            cotonic.broker.unsubscribe("$bridge/mock/status", {wid: "qunit"});
         }
     })
 
