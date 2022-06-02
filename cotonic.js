@@ -598,7 +598,7 @@
 var cotonic = cotonic || {};
 
 /* Current cotonic version */
-cotonic.VERSION = "1.1.2";
+cotonic.VERSION = "1.1.5";
 
 (function(cotonic) {
     cotonic.config = cotonic.config || {};
