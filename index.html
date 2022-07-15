@@ -267,7 +267,7 @@ pre {
                     <li> - <a href="#model.location.get.protocol">get/protocol</a>
                     <li> - <a href="#model.location.get.host">get/host</a>
                     <li> - <a href="#model.location.get.hostname">get/hostname</a>
-                    <li> - <a href="#model.location.get.hostname">get/origin</a>
+                    <li> - <a href="#model.location.get.origin">get/origin</a>
                     <li> - <a href="#model.location.get.port">get/port</a>
                     <li> - <a href="#model.location.post.redirect">post/redirect</a>
                     <li> - <a href="#model.location.post.reload">post/reload</a>
@@ -1438,7 +1438,7 @@ self.call("model/document/get/intl")
      language: {cookie: "", user_agent: "en-US", document: null}}</pre>
 
             <!-- model location -->
-            <h3 id="model.location">Location</h3>
+            <h3 id="model.location">model/location</h3>
             <p>
             The location model can be used to retrieve information on the current location
             of the page. It also allows subscription to location changes.
@@ -1821,6 +1821,24 @@ self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
 ==> model.ui adds clas "ui-state-auth-anonymous" and
     adds data-ui-state-auth-auth="anonymous" to the html element of the document.</pre>
 
+            <!-- event/new-shadow-root/+key -->
+
+            <p id="model.ui.event.new-shadow-root.key">
+            <strong class="header">event/new-shadow-root/+key</strong>
+            <br>
+            Init the topic event listener when new shadow roots are added.
+            <dl>
+                <dt><tt>id</tt></dt>
+                <dd>Element id</dd>
+            </dl>
+            </p>
+            <pre>
+cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
+    function(m) {
+         console.log("Init the event listener for", "data-list")
+    }
+);
+=> Init the topic event listener when new shadow roots are added.</pre>
 
             <!-- lifecycle model -->
             <h3 id="model.lifecycle">model/lifecycle</h3>
@@ -2018,7 +2036,7 @@ self.publish("model/serviceWorker/post/broadcast/background",
 // Subscribe on a page
 cotonic.broker.subscribe("model/serviceWorker/event/broadcast/background",
     function(m) {
-        console.log("Setting background to", m.payload");
+        console.log("Setting background to", m.payload);
         setBackground(m.payload);
     })</pre>
 
