@@ -157,10 +157,18 @@ var cotonic = cotonic || {};
         }
     });
 
+    cotonic.broker.subscribe("model/location/post/redirect-local", function(msg) {
+        if (msg.payload.url) {
+            let url = new URL(msg.payload.url, window.location);
+            window.location = url.pathname + url.search + url.hash;
+            willNavigate();
+        }
+    });
+
     cotonic.broker.subscribe("model/location/post/reload", function(msg) {
         window.location.reload(true);
         willNavigate();
-    }); 
+    });
 
     cotonic.broker.subscribe("model/location/post/redirect/back", function() {
         if ('referrer' in document) {
