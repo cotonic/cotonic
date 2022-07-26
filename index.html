@@ -31,7 +31,7 @@ section#sidebar {
     -webkit-overflow-scrolling: touch;
     padding: 15px 0 30px 30px;
     border-right: 1px solid #bbb;
-    box-shadow: 0 0 20px #ccc; 
+    box-shadow: 0 0 20px #ccc;
 }
 
 section#documentation {
@@ -61,7 +61,7 @@ ul.toc_section {
 }
 
 ul.toc_section ul {
-    padding-top: 0.66ex; 
+    padding-top: 0.66ex;
     padding-left: 2em;
     list-style-type: none;
 }
@@ -189,10 +189,10 @@ pre {
                 </a>
                 <ul class="toc_section">
                     <li> - <a href="#cotonic.mqtt_bridge.newBridge">newBridge</a>
-                    <li> - <a href="#cotonic.mqtt_bridge.newBridge">findBridge</a>
+                    <li> - <a href="#cotonic.mqtt_bridge.findBridge">findBridge</a>
                     <li> - <a href="#cotonic.mqtt_bridge.deleteBridge">deleteBridge</a>
                 </ul>
-                
+
                 <!-- UI -->
                 <a href="#cotonic.ui" class="toc_title">
                     ui
@@ -247,7 +247,7 @@ pre {
                     model/window
                 </a>
                 <ul class="toc_section">
-                    <li> - <a href="#model.window.post.close">post/open</a>
+                    <li> - <a href="#model.window.post.open">post/open</a>
                     <li> - <a href="#model.window.post.close">post/close</a>
                 </ul>
 
@@ -279,7 +279,7 @@ pre {
                 </ul>
 
                 <a class="toc_title" href="#model.ui">
-                    model/ui 
+                    model/ui
                 </a>
                 <ul class="toc_section">
                     <li> - <a href="#model.ui.insert.key">insert/+key</a>
@@ -298,7 +298,7 @@ pre {
                 </ul>
 
                 <a class="toc_title" href="#model.lifecycle">
-                    model/lifecycle 
+                    model/lifecycle
                 </a>
                 <ul class="toc_section">
                     <li> - <a href="#model.lifecycle.event.state">event/state</a>
@@ -307,7 +307,7 @@ pre {
                 </ul>
 
                 <a class="toc_title" href="#model.autofocus">
-                    model/autofocus 
+                    model/autofocus
                 </a>
                 <ul class="toc_section">
                     <li> - <a href="#model.autofocus.event.focus.key">event/focus/+key</a>
@@ -343,7 +343,7 @@ pre {
                     <li> - <a href="#model.sessionStorage.post.key">post/+key</a>
                     <li> - <a href="#model.sessionStorage.post.key.subkey">post/+key/+subkey</a>
                     <li> - <a href="#model.sessionStorage.delete.key">delete/+key</a>
-                    <li> - <a href="#model.sessionStorage.delete.key">delete/+key/+subkey</a>
+                    <li> - <a href="#model.sessionStorage.delete.key.subkey">delete/+key/+subkey</a>
                     <li> - <a href="#model.sessionStorage.event.key">event/+key</a>
                     <li> - <a href="#model.sessionStorage.event.key.subkey">event/+key/+subkey</a>
                     <li> - <a href="#model.sessionStorage.event.ping">event/ping</a>
@@ -410,14 +410,14 @@ pre {
             Cotonic uses Web Workers which all run in separate calling context. This
             means that they will not block the main user interface thread. They are
             also truly isolated from each other. This means that a crash or another
-            kind of problem in worker A can't crash worker B. 
+            kind of problem in worker A can't crash worker B.
             </p>
 
             <p>
             You can run whatever code you like in workers, with some exceptions. You
             can't access the DOM, and a lot of things from the window object. This also
             makes them more secure because you don't have to worry that worker code
-            from an external resource can steal the a credit-card number entered 
+            from an external resource can steal the a credit-card number entered
             somewhere in the DOM tree.
             </p>
 
@@ -468,7 +468,7 @@ cotonic.broker.publish("some/topic", "hello workers!");
             Spawn a new worker. The code of the worker should be available at <tt>url</tt>. The optional
             <tt>args</tt> parameter list will be passed to the worker and can be used to pass information from
             the page to the worker. It can be picked up with the <a href="#worker.on_init"><tt>on_init</tt></a>
-            callback. The structured clone algorithm will be used to send the <tt>args</tt> to the worker. See 
+            callback. The structured clone algorithm will be used to send the <tt>args</tt> to the worker. See
             <a href="#worker.functions">worker functions</a> for more information on implementing a worker.
             Returns the worker-id of the newly created worker process.
             </p>
@@ -495,7 +495,7 @@ cotonic.spawn_named("example", "example-worker.js");
             <p id="cotonic.exit">
             <strong class="header">exit</strong> <code>cotonic.exit(nameOrwid)</code>
             <br>
-            Exit terminates a worker which was previously spawned and has <tt>nameOrWid</tt> as 
+            Exit terminates a worker which was previously spawned and has <tt>nameOrWid</tt> as
         worker-id.
             </p>
 
@@ -519,19 +519,19 @@ cotonic.send(worker_id1, "hello");</pre>
             <p id="cotonic.receive">
             <strong class="header">receive</strong> <code>cotonic.receive(handler)</code>
             <br>
-            Receive messages from workers. The handler should be a function which takes 
+            Receive messages from workers. The handler should be a function which takes
             two parameters, the message, and the worker_id.
             </p>
             <pre>
 cotonic.receive(function(message, worker_id) {
     console.log("Received", message, "from worker", worker_id);
 });</pre>
-            
+
             <!-- configuration -->
             <p id="cotonic.config">
             <em class="header">Configuration</em>
             <br>
-            The page function has one configuration option. 
+            The page function has one configuration option.
             <dl>
                 <dt><tt>base_worker_src</tt></dt>
                 <dd>The url for the base worker runtime for cotonic. This runtime provides
@@ -591,7 +591,7 @@ cotonic.broker.subscribe("truck/02/speed", function(msg) {
 cotonic.broker.match("truck/01/speed");
 => [Object, Object] // Returns two subscriptions, truck/+/speed, and truck/#
 cotonic.broker.match("truck/01/speed")[0]
-=> {type: "page", wid: 0, callback: function, sub: Object, topic: "truck/+/speed"}  
+=> {type: "page", wid: 0, callback: function, sub: Object, topic: "truck/+/speed"}
 cotonic.broker.match("truck/02/speed");
 => [Object, Object, Object] // Returns all subscriptions
 cotonic.broker.match("boat/02/speed");
@@ -629,7 +629,7 @@ cotonic.broker.publish("truck/001/speed", 74, {retain: true});
             and <tt>info</tt>. Argument <tt>message</tt> is the received mqtt message, and <tt>info</tt>
             the returned information object returned by <a href="#cotonic.mqtt.extract">extract</a>.
             This makes it possible to easily extract information from the topic.
-            Parameter <tt>options</tt> can be 
+            Parameter <tt>options</tt> can be
             <dl>
                 <dt><tt>wid</tt></dt>
                 <dd>The worker if used for making the scription. Can be used to differentiate
@@ -726,9 +726,9 @@ cotonic.broker.call("model/localStorage/get/username", {}, {timeout: 1000})
 cotonic.mqtt.matches("truck/+/speed", "truck/01/speed");
 => true
 cotonic.mqtt.matches("boat/+/speed", "truck/01/speed");
-=> false 
+=> false
 cotonic.mqtt.matches("+/+/speed", "plane/01/speed");
-=> true 
+=> true
 cotonic.mqtt.matches("+/+/speed", "plane/01/height");
 => false</pre>
 
@@ -751,7 +751,7 @@ cotonic.mqtt.fill("truck/+truck_id/speed", {truck_id: 100});
             a single level of the topic path. It places an attribute <tt>key</tt> with as value the
             found element in the path in the returned object. The pattern <tt>#&ltkey&gt;</tt>
             matches a multi level path. When it is matched it places that part of the path into a list.
-            Returns an object with the found elements. 
+            Returns an object with the found elements.
             </p>
             <pre>
 cotonic.mqtt.extract("truck/+truck_id/speed", "truck/01/speed");
@@ -787,7 +787,7 @@ cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
 
             <!-- MQTT Bridge -->
             <h3 id="cotonic.mqtt_bridge">mqtt_bridge</h3>
-            
+
             <p>
             This module makes it possible to bridge the broker on the local page to
             an external MQTT broker.
@@ -805,7 +805,7 @@ cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
             <em>Note: It is possible to connect to multiple brokers.</em>
             <dl>
                 <dt><tt>protocol</tt></dt>
-                <dd>The protocol to use to connect to the mqtt broker. Defaults to "ws" when the page is 
+                <dd>The protocol to use to connect to the mqtt broker. Defaults to "ws" when the page is
                 loaded via "http", "wss" otherwise.
                 </dd>
 
@@ -868,7 +868,7 @@ cotonic.mqtt_bridge.deleteBridge("test.mosquitto.org:8081");</pre>
             <h3 id="cotonic.ui">ui</h3>
 
             <p>
-            The user interface composer manages html snippets which can be placed in the DOM tree. When an 
+            The user interface composer manages html snippets which can be placed in the DOM tree. When an
             updated html snippet is delivered to the composer it will render it by using Google's incremental-dom library.
             The updates will be applied <em>incrementally</em> directly to the DOM tree. The updates can be
             delivered as html text snippets to the interface composer.
@@ -879,7 +879,7 @@ cotonic.mqtt_bridge.deleteBridge("test.mosquitto.org:8081");</pre>
             <strong class="header">insert</strong> <code>cotonic.ui.insert(targetId, mode, initialHTML, [priority])</code>
             <br>
             Insert a new html snippet into the user interface composer. The snippet will be stored under the given
-            targetId. The element will not be placed in the dom-tree immediately. This will happen when one of the 
+            targetId. The element will not be placed in the dom-tree immediately. This will happen when one of the
             render functions is called. Parameter <tt>mode</tt> supports the following options:
 
             <dl>
@@ -994,7 +994,7 @@ cotonic.ui.updateStateData("auth", {});
             </p>
             <pre>
 cotonic.ui.updateStateClass("auth", ["unauthorized", "pending"]);
-=> &lt;html class="ui-state-auth-pending ui-state-auth-unauthorized"&gt; 
+=> &lt;html class="ui-state-auth-pending ui-state-auth-unauthorized"&gt;
 cotonic.ui.updateStateClass("auth", ["authorized"]);
 => &lt;html class="ui-state-auth-authorized"&gt;</pre>
 
@@ -1015,7 +1015,7 @@ cotonic.ui.updateStateClass("auth", ["authorized"]);
 document.addEvenListener("click", function(e) {
     const topic = event.target.getAttribute("data-topic");
     if(!topic) return;
-    
+
     cotonic.ui.on(topic, {foo: "bar"}, e);
 }, {passive: true})
 => When somebody clicks on an element with has a data-topic="a/topic"
@@ -1051,7 +1051,7 @@ document.addEvenListener("click", function(e) {
                 set to the tagname of the close element.</dd>
 
                 <dt><tt>void</tt><dt>
-                <dd>Represents a void element. The attribute <tt>tag</tt> is set to the 
+                <dd>Represents a void element. The attribute <tt>tag</tt> is set to the
                 tagname of the void element.</dd>
 
                 <dt><tt>text</tt><dt>
@@ -1059,7 +1059,7 @@ document.addEvenListener("click", function(e) {
                 text data.</dd>
 
                 <dt><tt>doctype</tt><dt>
-                <dd>Represents a doctype element. The attribute <tt>attributes</tt> is 
+                <dd>Represents a doctype element. The attribute <tt>attributes</tt> is
                 set to the attributes of the element.</dd>
 
                 <dt><tt>pi</tt><dt>
@@ -1068,7 +1068,7 @@ document.addEvenListener("click", function(e) {
                 <tt>arguments</tt> contains the list of attributes.</dd>
 
                 <dt><tt>comment</tt><dt>
-                <dd>Represents a comment element. The attribute <tt>data</tt> contains 
+                <dd>Represents a comment element. The attribute <tt>data</tt> contains
                 the text in the comment element.</dd>
             </dl>
             </p>
@@ -1088,7 +1088,7 @@ cotonic.tokenizer.tokens("&lt;div class='example'&gt;Tokenizing&lt;br /&gt; is c
             </p>
             <pre>
 cotonic.tokenizer.charref("#128540");
-=> "😜" 
+=> "😜"
 cotonic.tokenizer.charref("amp");
 => "&"</pre>
 
@@ -1108,7 +1108,7 @@ cotonic.tokenizer.charref("amp");
             <br>
             The callback <tt>on_init</tt> is called when the worker receives the initialization
             message by the page. It can take multiple arguments. The arguments are passed in via
-            the <a href="#cotonic.spawn"><tt>spawn</tt></a> <tt>args</tt> argument list. 
+            the <a href="#cotonic.spawn"><tt>spawn</tt></a> <tt>args</tt> argument list.
             This function can be used to initialize the worker. The callback is optional.
             </p>
             <pre>
@@ -1121,18 +1121,18 @@ let amount = null;
 let targetId = null;
 
 self.on_init = function(n, id) {
-    amount = n; 
+    amount = n;
     targetId = id;
 }
 ==> Worker receives the arguments which can be used for initialization.</pre>
- 
+
             <!-- worker connect -->
             <p id="worker.connect">
             <strong class="header">connect</strong> <code>self.connect(connectOptions)</code>
             <br>
-            Connect the worker to the page. Returns a promise. This promise is resolved when 
+            Connect the worker to the page. Returns a promise. This promise is resolved when
             the worker is connected to the page. When is indicated in the <tt>connectOptions</tt> that
-            the worker depends on other services the promise is resolved after those dependencies 
+            the worker depends on other services the promise is resolved after those dependencies
             have become available.
 
             Parameter <tt>connectOptions</tt> supports the following options:
@@ -1142,7 +1142,7 @@ self.on_init = function(n, id) {
                 <dd>The name of the worker.</dd>
 
                 <dt><tt>depends</tt></dt>
-                <dd>A list of dependencies on which the worker needs. The connect promise will be 
+                <dd>A list of dependencies on which the worker needs. The connect promise will be
                 resolved, after the dependencies become available.</dd>
 
                 <dt><tt>provides</tt></dt>
@@ -1221,8 +1221,8 @@ self.whenDependenciesProvided(["model/ui", "model/x"]).then(
             <strong class="header">provides</strong> <code>self.provides(modelsAndWorkers)</code>
             <br />
             Indicate to other workers and the page that this worker provides models or workers.
-            Other workers waiting on these dependencies will get notified when they become 
-            available. The parameter <tt>modelsAndWorkers</tt> should be a list with model or 
+            Other workers waiting on these dependencies will get notified when they become
+            available. The parameter <tt>modelsAndWorkers</tt> should be a list with model or
             worker names this worker provides.
             </p>
             <pre>
@@ -1259,7 +1259,7 @@ self.subscribe(["truck/+boat_id/speed", "boat/+boat_id/speed"], logSpeed);
             <p id="worker.unsubscribe">
             <strong class="header">unsubscribe</strong> <code>self.unsubscribe(topics, callback, ack_callback)</code>
             <br>
-            Unsubscribe the worker from page. The worker will no longer receive messages from the specified topics. 
+            Unsubscribe the worker from page. The worker will no longer receive messages from the specified topics.
             </p>
             <pre>
 self.unsubscribe();</pre>
@@ -1291,8 +1291,8 @@ self.call("model/document/get/all")
 
             <p>
             Because workers run as independent components it is not possible to directly
-            call api's. Some api's are also not available to web workers. Models are 
-            special modules, or workers, which publish their data, or are ready to 
+            call api's. Some api's are also not available to web workers. Models are
+            special modules, or workers, which publish their data, or are ready to
             receive calls via mqtt topics.
             </p>
 
@@ -1337,7 +1337,7 @@ self.call("model/document/get/all")
                 <dd>A JSON string containing properties described below.</dd>
             </dl>
 
-            Or 
+            Or
 
             <dl>
                 <dt><tt>url</tt></dt>
@@ -1397,7 +1397,7 @@ self.publish("model/window/post/open", {url: "https://example.com/logon",
             Open a window.
             </p>
             <pre>
-&lt;a href="#" class="btn btn-default" 
+&lt;a href="#" class="btn btn-default"
       data-onclick-topic="model/window/post/close"&gt; Close Window &lt;a&gt;
 ==> Closes the current window.
 </pre>
@@ -1616,7 +1616,7 @@ cotonic.broker.subscribe("model/location/event/hash",
             </p>
             <pre>
 cotonic.broker.subscribe("model/location/event/ping",
-    function(m) { 
+    function(m) {
         console.log("The location model is enabled", m.payload)
     })
 => Logs a message on the console when the location model is enabled.</pre>
@@ -1630,7 +1630,7 @@ cotonic.broker.subscribe("model/location/event/ping",
                 <dd>Set to the current search parameters of the page. Alternatively this setting
                 can can be done as <tt>data-cotonic-pathname-search</tt> attribute on the body tag. dd>
             </dl>
-            
+
             </p>
 
             <pre>
@@ -1698,7 +1698,7 @@ self.publish("model/ui/insert/root", {
             by an <tt>insert</tt>. Expects a message with the html snippet as message.
             </p>
             <pre>
-self.publish("model/ui/update/root", 
+self.publish("model/ui/update/root",
     "<div class="main-app>" +
         "..." +
     "</div>");
@@ -1734,8 +1734,8 @@ self.publish("model/ui/render.root");</pre>
             <p id="model.ui.render-template.key">
             <strong class="header">render-template/+key</strong>
             <br>
-            Request rendering a template with parameters. A rendering engine must be 
-            available to respond to the render requests. The render result will update 
+            Request rendering a template with parameters. A rendering engine must be
+            available to respond to the render requests. The render result will update
             <tt>key</tt> element. Note: The element must first be inserted with
             <a href="#cotonic.ui.insert">cotonic.ui.insert</tt></a> or
             <a href="#model.ui.insert.key"><tt>model/ui/insert/+key</tt></a>.
@@ -1749,7 +1749,7 @@ self.publish("model/ui/render.root");</pre>
                 <dd>The data which the render engine can use to render the template.</dd>
 
                 <dt><tt>dedup</tt></dt>
-                <dd>Send the render request via a MQTT QoS 1 message. This means that we can 
+                <dd>Send the render request via a MQTT QoS 1 message. This means that we can
                 get multiple responses. Dedup makes sure the result will be rendered only once.</dd>
             </dl>
             </p>
@@ -1778,7 +1778,7 @@ self.subscribe("model/ui/event/recent-activity",
         const a = m.payload.is_active?"active":"not active";
         console.log("The user is: ", a);
     }
-); 
+);
 => Displays the user's activity status.</pre>
 
             <p id="model.ui.event.dom-updated">
@@ -1804,8 +1804,8 @@ cotonic.broker.subscribe("model/ui/event/dom-updated/message-container",
             <br>
             Events send to this topic will result in class and data attributes set on
             the <tt>html</tt> of the document. The <tt>model</tt> attribute is used in the
-            data and class attributes. This can be used to signal the state of a model to 
-            the document. This can be used to signal the state of cotonic workers or models to 
+            data and class attributes. This can be used to signal the state of a model to
+            the document. This can be used to signal the state of cotonic workers or models to
             other ui libraries like <a href="https://elm-lang.org">Elm</a> or
             <a href="https://reactjs.org">React</a>. The payload of the message:
             <dl>
@@ -1852,7 +1852,7 @@ cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
 
             <p>
             Modern browsers will also suspend and discard pages. Browsers do not provide this
-            information in an orderly fashion. There are individual events like: <tt>load</tt>, 
+            information in an orderly fashion. There are individual events like: <tt>load</tt>,
             <tt>unload</tt>, and <tt>visibilitychange</tt>. The lifecycle model publishes the
             different states a page can be in.
 
@@ -1870,7 +1870,7 @@ cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
                     and animations still run smoothly. It may be a good time to store unsaved
                     application state.
                 </dd>
-                
+
                 <dt><tt>hidden</tt></dt>
                 <dd>
                     The page has lost focus, and is no longer visible, but it still exists. It is
@@ -1881,8 +1881,8 @@ cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
 
                 <dt><tt>frozen</tt></dt>
                 <dd>
-                    The page has been cached to memory by the browser. It can resume in a 
-                    later stage. Javascript's timers and fetch callbacks no longer work. 
+                    The page has been cached to memory by the browser. It can resume in a
+                    later stage. Javascript's timers and fetch callbacks no longer work.
                     Browsers can freeze pages to prevent full page reloads. This is a good time
                     to close any open Web Socket connections, close WebRTC channels because
                     the browser want's to conserve energy.
@@ -1923,7 +1923,7 @@ cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
             <tt>passive</tt>, <tt>hidden</tt>, <tt>frozen</tt>, and <tt>terminated</tt>.
             </p>
             <pre>
-// Subscribe in a worker 
+// Subscribe in a worker
 self.subscribe("model/lifecycle/event/state",
     function(m) {
         switch(m.payload) {
@@ -1962,7 +1962,7 @@ self.subscribe("model/lifecycle/event/online",
             message on this topic. This makes it possible to check if the model is enabled.
             </p>
             <pre>
-// Subscribe in a worker 
+// Subscribe in a worker
 self.subscribe("model/lifecycle/event/ping",
     function() {
         console.log("the lifecycle model is enabled")
@@ -2015,9 +2015,9 @@ self.subscribe("model/lifecycle/event/ping",
             <p id="model.serviceWorker.post.broadcast.channel">
             <strong class="header">post/broadcast/+channel</strong>
             <br>
-            Broadcast the message on <tt>channel</tt>. The message can be received 
+            Broadcast the message on <tt>channel</tt>. The message can be received
             via the <tt>"model/serviceWorker/event/+channel</tt> topic. This works
-            across all open tabs. 
+            across all open tabs.
             </p>
             <pre>
 // Publish from a worker
@@ -2047,7 +2047,7 @@ cotonic.broker.subscribe("model/serviceWorker/event/broadcast/background",
             message on this topic. This makes it possible to check if the model is enabled.
             </p>
             <pre>
-// Subscribe on a page            
+// Subscribe on a page
 cotonic.broker.subscribe("model/serviceWorker/event/ping",
     function() {
         console.log("the serviceWorker model is enabled")
@@ -2066,7 +2066,7 @@ cotonic.broker.subscribe("model/serviceWorker/event/ping",
                     <br/ ><strong>default</strong>
                     <tt>/cotonic-service-worker.js</tt></dd>
             </dl>
-            
+
             </p>
 
             <pre>
@@ -2120,7 +2120,7 @@ cotonic.broker.publish("model/localStorage/delete/a");</pre>
             <strong class="header">event/+key</strong>
             <br>
             Subscribe to changes or deletions from localStorage. When the message payload
-            is <tt>null</tt> the item is delete. Otherwise the payload is set to the 
+            is <tt>null</tt> the item is delete. Otherwise the payload is set to the
             newly updated value.
             </p>
             <pre>
@@ -2138,7 +2138,7 @@ cotonic.broker.subscribe("model/localStorage/event/+key",
             <strong class="header">event/ping</strong>
             <br>
             When the localStorage model is enabled it publishes a retained message
-            under the topic <tt>model/localStorage/event/ping</tt>. It makes it 
+            under the topic <tt>model/localStorage/event/ping</tt>. It makes it
             possible to detect the localStorage model is enabled.
             </p>
             <pre>
@@ -2150,8 +2150,8 @@ cotonic.broker.subscribe("model/localStorage/event/ping",
             <h3 id="model.sessionStorage">model.sessionStorage</h3>
             <p>
             The sessionStorage model provids access to the <tt>sessionStorage</tt> of
-            the browser. It makes it possible to set and retrieve values via 
-            mqtt topics. For more information about the session storage see: 
+            the browser. It makes it possible to set and retrieve values via
+            mqtt topics. For more information about the session storage see:
             </p>
 
             <p id="model.sessionStorage.get.key">
@@ -2185,7 +2185,7 @@ self.call("model/sessionStorage/get/item-2/a")
             Store a message under <tt>key</tt> in the sessionStorage.
             </p>
             <pre>
-self.publish("model/sessionStorage/post/item-1", "Cucumbers are sometimes green");            
+self.publish("model/sessionStorage/post/item-1", "Cucumbers are sometimes green");
 => New value stored.</pre>
 
             <p id="model.sessionStorage.post.key.subkey">
@@ -2226,8 +2226,8 @@ self.subscribe("model/sessionStorage/subscribe/+key",
     function(m, a) {
         console.log(m, a);
     });
-self.publish("model/sessionStorage/post/a", "hello");            
-self.publish("model/sessionStorage/post/b", "world");            
+self.publish("model/sessionStorage/post/a", "hello");
+self.publish("model/sessionStorage/post/b", "world");
 => Logs the update in the console</pre>
 
             <p id="model.sessionStorage.event.ping">
@@ -2240,8 +2240,8 @@ self.publish("model/sessionStorage/post/b", "world");
 let storageReady = false;
 cotonic.broker.subscribe("model/sessionStorage/event/+key",
     function(msg, args) {
-        switch(args.key) 
-        case "pong": 
+        switch(args.key)
+        case "pong":
             storageReady = true;
             break;
         ...
@@ -2280,7 +2280,7 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
             <br />
             <ul>
                 <li>
-                    Don't de-dup subscriptions from unspecified worker ids (wid). 
+                    Don't de-dup subscriptions from unspecified worker ids (wid).
                 </li>
                 <li>
                     Warn when unsubscribing from a topic, without specifying a worker id (wid).
@@ -2292,7 +2292,7 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
                     Fix a typo in the specification of the page lifecycle state-machine.
                 </li>
             </ul>
-            Special thanks go to <a href="https://github.com/williamthome">@williamthome</a> for fixing the 
+            Special thanks go to <a href="https://github.com/williamthome">@williamthome</a> for fixing the
             python dev environment.
             </p>
 
