@@ -598,7 +598,7 @@
 var cotonic = cotonic || {};
 
 /* Current cotonic version */
-cotonic.VERSION = "1.1.6";
+cotonic.VERSION = "1.1.7";
 
 (function(cotonic) {
     cotonic.config = cotonic.config || {};
@@ -6544,7 +6544,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2019 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2022 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6730,7 +6730,7 @@ var cotonic = cotonic || {};
     }
 
     function willNavigate() {
-        // Set the isNavigate flag to trigger we are currently 
+        // Set the isNavigate flag to trigger we are currently
         // busy navigating. When an auth change message is received
         // this will not trigger extra reloads.
         isNavigating = true;
@@ -7340,7 +7340,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2020 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2020-2022 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7361,6 +7361,12 @@ var cotonic = cotonic || {};
 "use strict";
 
     function init() {
+        cotonic.broker.publish("model/window/event/ping", "pong", { retain: true });
+        cotonic.broker.publish("model/location/event/ui-status", {
+            status: {
+                is_opener: !!window.opener
+            }
+        }, { retain: true });
     }
 
     cotonic.broker.subscribe("model/window/post/close",
@@ -7369,6 +7375,9 @@ var cotonic = cotonic || {};
 
             if (window.opener) {
                 window.close();
+                result = true;
+            } else if (msg.payload.url) {
+                cotonic.broker.publish("model/location/post/redirect", { url: msg.payload.url });
                 result = true;
             } else {
                 result = false;
