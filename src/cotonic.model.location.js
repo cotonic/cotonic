@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2022 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ var cotonic = cotonic || {};
     }
 
     function willNavigate() {
-        // Set the isNavigate flag to trigger we are currently 
+        // Set the isNavigate flag to trigger we are currently
         // busy navigating. When an auth change message is received
         // this will not trigger extra reloads.
         isNavigating = true;
