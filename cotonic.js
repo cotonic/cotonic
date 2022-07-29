@@ -7379,6 +7379,9 @@ var cotonic = cotonic || {};
             } else if (msg.payload.url) {
                 cotonic.broker.publish("model/location/post/redirect", { url: msg.payload.url });
                 result = true;
+            } else if (msg.payload.message && msg.payload.message.href) {
+                cotonic.broker.publish("model/location/post/redirect", { url: msg.payload.message.href });
+                result = true;
             } else {
                 result = false;
             }
