@@ -553,6 +553,7 @@ var cotonic = cotonic || {};
     function call(topic, payload, options) {
         options = options || {};
         payload = payload || null;
+        if(options.qos === undefined) options.qos = 1;
         let timeout = options.timeout || 15000;
         let willRespond = new Promise(
             function(resolve, reject) {

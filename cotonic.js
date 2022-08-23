@@ -598,7 +598,7 @@
 var cotonic = cotonic || {};
 
 /* Current cotonic version */
-cotonic.VERSION = "1.1.7";
+cotonic.VERSION = "1.1.8";
 
 (function(cotonic) {
     cotonic.config = cotonic.config || {};
@@ -3168,6 +3168,7 @@ var cotonic = cotonic || {};
     function call(topic, payload, options) {
         options = options || {};
         payload = payload || null;
+        if(options.qos === undefined) options.qos = 1;
         let timeout = options.timeout || 15000;
         let willRespond = new Promise(
             function(resolve, reject) {

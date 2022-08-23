@@ -747,8 +747,9 @@ var cotonic = cotonic || {};
     // Publish to a topic, return a promise for the response_topic publication
     self.call = function(topic, payload, options) {
         options = options || {};
-        let timeout = options.timeout || 15000;
-        var willRespond = new Promise(
+        if(options.qos === undefined) options.qos = 1;
+        const timeout = options.timeout || 15000;
+        const willRespond = new Promise(
             function(resolve, reject) {
                 let response_topic = model.response_topic_prefix + model.response_topic_nr;
                 let timer = setTimeout(function() {
@@ -756,20 +757,21 @@ var cotonic = cotonic || {};
                                 let reason = new Error("Worker timeout waiting for response on " + topic);
                                 reject(reason);
                             }, timeout);
-                let handler = {
+                const handler = {
                     handler: resolve,
                     timeout: timer
                 };
                 actions.subscribe_response_handler({ topic: response_topic, handler: handler });
-                let pubdata = {
+
+                options.properties = options.properties || {};
+                options.properties.response_topic = response_topic;
+
+                const pubdata = {
                     topic: topic,
                     payload: payload,
-                    options: {
-                        properties: {
-                            response_topic: response_topic
-                        }
-                    }
+                    options: options
                 };
+
                 actions.publish(pubdata);
             });
         return willRespond;
