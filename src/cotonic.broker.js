@@ -480,7 +480,7 @@ var cotonic = cotonic || {};
         } else if(sub.type === "page") {
             sub.callback(mqttmsg, cotonic.mqtt.extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
         } else {
-            if(window.console) window.console.error("Unkown subscription type", sub);
+            if(window.console) window.console.error("Unknown subscription type", sub);
         }
     }
 
