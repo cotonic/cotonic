@@ -3095,7 +3095,7 @@ var cotonic = cotonic || {};
         } else if(sub.type === "page") {
             sub.callback(mqttmsg, cotonic.mqtt.extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
         } else {
-            if(window.console) window.console.error("Unkown subscription type", sub);
+            if(window.console) window.console.error("Unknown subscription type", sub);
         }
     }
 
@@ -7377,10 +7377,10 @@ var cotonic = cotonic || {};
             if (window.opener) {
                 window.close();
                 result = true;
-            } else if (msg.payload.url) {
+            } else if (msg.payload && msg.payload.url) {
                 cotonic.broker.publish("model/location/post/redirect", { url: msg.payload.url });
                 result = true;
-            } else if (msg.payload.message && msg.payload.message.href) {
+            } else if (msg.payload && msg.payload.message && msg.payload.message.href) {
                 cotonic.broker.publish("model/location/post/redirect", { url: msg.payload.message.href });
                 result = true;
             } else {
