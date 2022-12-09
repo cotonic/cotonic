@@ -5054,6 +5054,8 @@ var cotonic = cotonic || {};
                         });
                 }
             }
+
+            publishEvent("transport-connected");
         };
 
         function publish( pubmsg ) {
@@ -5212,6 +5214,8 @@ var cotonic = cotonic || {};
                 self.keepAliveInterval = 0;
                 stopKeepAliveTimer();
             });
+
+            publishEvent("transport-disconnected");
         };
 
         /**
@@ -5676,6 +5680,13 @@ var cotonic = cotonic || {};
         }
 
         /**
+         * Publish event
+         */
+        function publishEvent( event ) {
+            localPublish(`${ self.bridgeTopics.session_event }/${ event }`, {});
+        }
+
+        /**
          * Initialize, connect to local topics
          */
         function init() {
@@ -5724,6 +5735,7 @@ var cotonic = cotonic || {};
     const SESSION_OUT_TOPIC = "session/+name/out";
     const SESSION_STATUS_TOPIC = "session/+name/status";
     const SESSION_CONTROL_TOPIC = "session/+name/control";
+    const SESSION_EVENT_TOPIC = "session/+name/event";
 
     // Bridges to remote servers and clients
     var bridges = {};
@@ -5801,7 +5813,8 @@ var cotonic = cotonic || {};
                 session_in: cotonic.mqtt.fill(SESSION_IN_TOPIC, {name: self.name}),
                 session_out: cotonic.mqtt.fill(SESSION_OUT_TOPIC, {name: self.name}),
                 session_status: cotonic.mqtt.fill(SESSION_STATUS_TOPIC, {name: self.name}),
-                session_control: cotonic.mqtt.fill(SESSION_CONTROL_TOPIC, {name: self.name})
+                session_control: cotonic.mqtt.fill(SESSION_CONTROL_TOPIC, {name: self.name}),
+                session_event: cotonic.mqtt.fill(SESSION_EVENT_TOPIC, {name: self.name})
             };
             cotonic.broker.subscribe(self.local_topics.bridge_local, relayOut, {wid: self.wid, no_local: true});
             cotonic.broker.subscribe(self.local_topics.bridge_control, bridgeControl);
