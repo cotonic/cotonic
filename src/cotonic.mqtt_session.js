@@ -284,7 +284,7 @@ var cotonic = cotonic || {};
                 }
             }
 
-            publishEvent("transport-connected");
+            publishEvent("transport/connected");
         };
 
         function publish( pubmsg ) {
@@ -444,7 +444,7 @@ var cotonic = cotonic || {};
                 stopKeepAliveTimer();
             });
 
-            publishEvent("transport-disconnected");
+            publishEvent("transport/disconnected");
         };
 
         /**
@@ -852,7 +852,6 @@ var cotonic = cotonic || {};
             }
         }
 
-
         /**
          * Force all connections closed - happens on:
          * - receive of 'DISCONNECT'
@@ -909,7 +908,7 @@ var cotonic = cotonic || {};
         }
 
         /**
-         * Publish event
+         * Publish a session event
          */
         function publishEvent( event ) {
             localPublish(`${ self.bridgeTopics.session_event }/${ event }`, {});
