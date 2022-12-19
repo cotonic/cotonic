@@ -283,6 +283,8 @@ var cotonic = cotonic || {};
                         });
                 }
             }
+
+            publishEvent("transport/connected");
         };
 
         function publish( pubmsg ) {
@@ -441,6 +443,8 @@ var cotonic = cotonic || {};
                 self.keepAliveInterval = 0;
                 stopKeepAliveTimer();
             });
+
+            publishEvent("transport/disconnected");
         };
 
         /**
@@ -848,7 +852,6 @@ var cotonic = cotonic || {};
             }
         }
 
-
         /**
          * Force all connections closed - happens on:
          * - receive of 'DISCONNECT'
@@ -902,6 +905,13 @@ var cotonic = cotonic || {};
                 self.bridgeTopics.session_status,
                 { is_connected: isConnected, client_id: self.clientId  },
                 { retain: true });
+        }
+
+        /**
+         * Publish a session event
+         */
+        function publishEvent( event ) {
+            localPublish(`${ self.bridgeTopics.session_event }/${ event }`, {});
         }
 
         /**
