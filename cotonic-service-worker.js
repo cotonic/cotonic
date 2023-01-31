@@ -24,6 +24,46 @@ self.addEventListener('activate', function(event) {
     event.waitUntil( self.clients.claim() );
 });
 
+self.addEventListener('push', (event) => {
+    const message = event.data.json();
+
+    console.log(message);
+
+    switch(message.type) {
+        case "notification":
+            const data = message.data;
+            self.registration.showNotification(data.title, data.options);
+            break;
+        default:
+            console.info("Service Worker: unknown push message", event);
+    }
+});
+
+self.addEventListener("notificationclick", function(event) {
+    console.log("on notification click", event);
+    let url = new URL("/", self.origin);
+    const notification = event.notification;
+    if(notification.data && notification.data.url) {
+        url = new URL(notification.data.url, self.origin);
+    }
+
+    // Check if there already is a tab with has this url open.
+    event.waitUntil(clients.matchAll({ type: "window" })
+        .then((clientList) => {
+            for (const client of clientList) {
+                if ('focus' in client) {
+                    
+                    return client.focus();
+                }
+            }
+
+            if (clients.openWindow) {
+                return clients.openWindow(url);
+            }
+        })
+    );
+});
+
 self.addEventListener('fetch', function(event) {
     // Firefox 88 is failing downloads for large requests over slower
     // connections if the service worker handles the fetch event.
