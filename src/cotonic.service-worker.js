@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,43 +22,6 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
     event.waitUntil( self.clients.claim() );
-});
-
-self.addEventListener('push', (event) => {
-    const message = event.data.json();
-
-    console.log(message);
-
-    switch(message.type) {
-        case "notification":
-            const data = message.data;
-            self.registration.showNotification(data.title, data.options);
-            break;
-        default:
-            console.info("Service Worker: unknown push message", event);
-    }
-});
-
-self.addEventListener("notificationclick", (event) => {
-    console.log("on notification click", event);
-
-    const notification = event.notification;
-    const localURL = ensureLocalURL(notification.data?notification.data.url:undefined);
-
-    // Check if there already is a tab with has this url open.
-    event.waitUntil(clients.matchAll({ type: "window" })
-        .then((clientList) => {
-            for(const client of clientList) {
-                if((client.url === localURL) && ('focus' in client)) {
-                    return client.focus();
-                }
-            }
-
-            if (clients.openWindow) {
-                return clients.openWindow(localURL);
-            }
-        })
-    );
 });
 
 self.addEventListener('fetch', (event) => {
@@ -88,11 +51,49 @@ self.addEventListener('message', (event) => {
     }
 });
 
+self.addEventListener('push', (event) => {
+    const message = event.data.json();
+
+    switch(message.type) {
+        case "notification":
+            const data = message.data;
+            self.registration.showNotification(data.title, data.options);
+            break;
+        default:
+            console.info("Service Worker: unknown push message", event);
+    }
+});
+
+self.addEventListener("notificationclick", (event) => {
+    const notification = event.notification;
+    const localURL = ensureLocalURL(notification.data?notification.data.url:undefined);
+    event.waitUntil(focusWindow(localURL));
+});
+
+
+// Try to focus a tab with the given url. When such a tab is not found,
+// a new one will be opened.
+function focusWindow(url)  {
+    return clients.matchAll({ type: "window" })
+        .then((clientList) => {
+            // Check if there already is a tab with has this url open.
+            for(const client of clientList) {
+                if((client.url === url) && ('focus' in client)) {
+                    return client.focus();
+                }
+            }
+
+            if (clients.openWindow) {
+                return clients.openWindow(url);
+            }
+        });
+}
+
 // Relay a message to all clients (including the sender)
 function messageClients( message ) {
     return self.clients.matchAll()
-        .then(function(clientList) {
-            clientList.forEach(function(client) {
+        .then((clientList) => {
+            clientList.forEach((client) => {
                 client.postMessage(message);
             })
         });
