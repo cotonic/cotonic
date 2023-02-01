@@ -16,11 +16,11 @@
 
 "use strict";
 
-self.addEventListener('install', function(event) {
+self.addEventListener('install', (event) => {
     event.waitUntil( self.skipWaiting() );
 });
 
-self.addEventListener('activate', function(event) {
+self.addEventListener('activate', (event) => {
     event.waitUntil( self.clients.claim() );
 });
 
@@ -39,32 +39,29 @@ self.addEventListener('push', (event) => {
     }
 });
 
-self.addEventListener("notificationclick", function(event) {
+self.addEventListener("notificationclick", (event) => {
     console.log("on notification click", event);
-    let url = new URL("/", self.origin);
+
     const notification = event.notification;
-    if(notification.data && notification.data.url) {
-        url = new URL(notification.data.url, self.origin);
-    }
+    const localURL = ensureLocalURL(notification.data?notification.data.url:undefined);
 
     // Check if there already is a tab with has this url open.
     event.waitUntil(clients.matchAll({ type: "window" })
         .then((clientList) => {
-            for (const client of clientList) {
-                if ('focus' in client) {
-                    
+            for(const client of clientList) {
+                if((client.url === localURL) && ('focus' in client)) {
                     return client.focus();
                 }
             }
 
             if (clients.openWindow) {
-                return clients.openWindow(url);
+                return clients.openWindow(localURL);
             }
         })
     );
 });
 
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', (event) => {
     // Firefox 88 is failing downloads for large requests over slower
     // connections if the service worker handles the fetch event.
     // Temporarily disabled the code below to fix this issue.
@@ -77,31 +74,42 @@ self.addEventListener('fetch', function(event) {
     // }
 });
 
-self.addEventListener('message', function(event) {
+self.addEventListener('message', (event) => {
     switch (event.data.type)  {
         case "broadcast":
             // Relay broadcast messages
-            let message = event.data;
+            const message = event.data;
             message.sender_id = event.source.id;
-            let promise = message_clients(message);
-            if (event.waitUntil) {
-                event.waitUntil(promise);
-            }
+
+            event.waitUntil(messageClients(message));
             break;
         default:
-            console.log("Service Worker: unknown message", event);
-            break;
+            console.info("Service Worker: unknown message", event);
     }
 });
 
 // Relay a message to all clients (including the sender)
-function message_clients( message ) {
-    let promise = self.clients.matchAll()
+function messageClients( message ) {
+    return self.clients.matchAll()
         .then(function(clientList) {
             clientList.forEach(function(client) {
                 client.postMessage(message);
             })
         });
-    return promise;
 }
 
+// Ensure that a local url is returned to prevent cross
+// origin navigations from a notification.
+function ensureLocalURL(url) {
+    let parsed;
+
+    if(url) {
+        parsed = new URL(url, self.origin);
+    }
+
+    if((parsed === undefined) || (parsed.origin !== self.origin)) {
+        parsed = new URL("/", self.origin);
+    }
+
+    return parsed.toJSON();
+}
