@@ -60,7 +60,9 @@ QUnit.test("test.model.localStorage - events", function(assert, bindings) {
 
     broker.subscribe("model/localStorage/event/+key",
         function(msg, bindings) {
-            events.push({msg:msg, key: bindings.key});
+            if (bindings.key != 'ping') {
+                events.push({msg:msg, key: bindings.key});
+            }
         },
         { wid: "qunit" }
     );
