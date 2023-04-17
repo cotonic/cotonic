@@ -78,7 +78,7 @@ var cotonic = cotonic || {};
         var name;
         var session;
         var clientId;
-        var routingId;
+        var routingId = undefined;      // Must have same initial value as in mqtt_session
         var local_topics = {};
         var sessionTopic;
         var is_connected = false;
