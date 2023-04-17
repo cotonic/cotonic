@@ -4827,7 +4827,7 @@ var cotonic = cotonic || {};
             return sessions[remote];
         } else {
             // console.log("new-session");
-            var ch = new mqttSession(bridgeTopics);
+            let ch = new mqttSession(bridgeTopics);
             sessions[remote] = ch;
             ch.connect(remote, options);
             return ch;
@@ -4913,6 +4913,7 @@ var cotonic = cotonic || {};
         this.bridgeTopics = mqttBridgeTopics;   // mqtt_bridge responsible for this session
         this.connections = {};                  // Websocket and other connections
         this.clientId = '';                     // Assigned by server
+        this.routingId = undefined;             // Assigned by server, use 'undefined' as in mqtt_bridge.
         this.cleanStart = true;
         this.sendQueue = [];                    // Queued outgoing messages
         this.receiveQueue = [];                 // Queued incoming messages
@@ -5086,7 +5087,7 @@ var cotonic = cotonic || {};
             if (typeof topics == "string") {
                 topics = [ { topic: topics } ];
             }
-            var msg = {
+            let msg = {
                 type: 'subscribe',
                 packet_id: nextPacketId(),
                 topics: topics,
@@ -5105,7 +5106,7 @@ var cotonic = cotonic || {};
             if (typeof topics == "string") {
                 topics = [ topics ];
             }
-            var msg = {
+            let msg = {
                 type: 'unsubscribe',
                 packet_id: nextPacketId(),
                 topics: topics,
@@ -5137,7 +5138,7 @@ var cotonic = cotonic || {};
         };
 
         this.sendMessage = function ( msg, connecting ) {
-            var isSent = false;
+            let isSent = false;
             if (isStateConnected() || (connecting && isStateNew())) {
                 switch (msg.type) {
                     case 'subscribe':
@@ -5182,8 +5183,8 @@ var cotonic = cotonic || {};
         };
 
         this.sendTransport = function( msg ) {
-            var isSent = false;
-            for (var conn in self.connections) {
+            let isSent = false;
+            for (let conn in self.connections) {
                 if (!isSent) {
                     isSent = self.connections[conn].sendMessage(msg);
                 }
@@ -5310,7 +5311,7 @@ var cotonic = cotonic || {};
          * Receive the messages in the incoming message queue
          */
         function doReceive() {
-            for (var i=0; i < self.receiveQueue.length; i++) {
+            for (let i=0; i < self.receiveQueue.length; i++) {
                 handleReceivedMessage( self.receiveQueue[i] );
             }
             self.receiveQueue = [];
@@ -5335,15 +5336,22 @@ var cotonic = cotonic || {};
 
 
         // Cleanup the sendQueue - remove:
+        // - rewrite response topics to use the new routingId
         // - publish with QoS > 0
         // - ack messages
         // - expired publish (QoS 0) [TODO]
-        function cleanupSendQueue() {
-            var q = [];
-            for (var k in self.sendQueue) {
-                var msg = self.sendQueue[k];
+        function cleanupSendQueue(previousRoutingId) {
+            const previousBridgePrefix = "bridge/" + previousRoutingId + "/";
+            const bridgePrefix = "bridge/" + self.routingId + "/";
+            let q = [];
+
+            for (let k in self.sendQueue) {
+                let msg = self.sendQueue[k];
                 switch (msg.type) {
                     case 'publish':
+                        if (msg.response_topic && msg.response_topic.startsWith(previousBridgePrefix)) {
+                            msg.response_topic = msg.response_topic.replace(previousBridgePrefix, bridgePrefix);
+                        }
                         if (msg.qos > 0) {
                             q.push(msg);
                         }
@@ -5357,19 +5365,19 @@ var cotonic = cotonic || {};
 
         // Send all queued messages
         function sendQueuedMessages() {
-            var queue = self.sendQueue;
+            let queue = self.sendQueue;
             self.sendQueue = [];
-            for (var k = 0; k < queue.length; k++) {
+            for (let k = 0; k < queue.length; k++) {
                 self.sendMessage(queue[k]);
             }
         }
 
         // Resend unacknowledged publish (QoS > 0) and pubrec messages
         function resendUnacknowledged() {
-            var msgs = [];
-            for (var packetId in self.awaitingAck) {
-                var unack = self.awaitingAck[packetId];
-                var msg;
+            let msgs = [];
+            for (let packetId in self.awaitingAck) {
+                const unack = self.awaitingAck[packetId];
+                let msg;
                 switch (unack.type) {
                     case 'puback':
                     case 'pubrec':
@@ -5395,13 +5403,13 @@ var cotonic = cotonic || {};
                 }
             }
             msgs.sort(function(a, b) { return a.nr - b.nr; });
-            for (var k in msgs) {
+            for (let k in msgs) {
                 self.sendMessage(msgs[k].msg);
             }
         }
 
         function handleReceivedMessage ( msg ) {
-            var replyMsg;
+            let replyMsg;
 
             switch (msg.type) {
                 case 'connack':
@@ -5411,11 +5419,20 @@ var cotonic = cotonic || {};
                     self.isWaitConnack = false;
                     switch (msg.reason_code) {
                         case MQTT_RC_SUCCESS:
+                            const previousRoutingId = self.routingId;
                             self.connectProps = msg.properties;
+
+                            // Optional client-id, assigned by the server
                             if (msg.properties.assigned_client_identifier) {
                                 self.clientId = msg.properties.assigned_client_identifier;
                             }
-                            cleanupSendQueue();
+                            // Optional routing-id, assigned by the server
+                            if (msg.properties['cotonic-routing-id']) {
+                                self.routingId = msg.properties['cotonic-routing-id'];
+                            } else {
+                                self.routingId = self.clientId;
+                            }
+                            cleanupSendQueue(previousRoutingId);
                             if (msg.session_present) {
                                 // Resend pending connack and connrel messages
                                 resendUnacknowledged();
@@ -5536,8 +5553,8 @@ var cotonic = cotonic || {};
                     }
                     break;
                 case 'publish':
-                    var isPubOk = false;
-                    var await;
+                    let isPubOk = false;
+                    let await;
                     switch (msg.qos) {
                         case 0:
                             isPubOk = true;
@@ -5574,7 +5591,7 @@ var cotonic = cotonic || {};
                             };
                     }
                     if (isPubOk) {
-                        var ct = msg.properties.content_type;
+                        let ct = msg.properties.content_type;
                         msg.payload = decodePayload(msg.payload, ct);
 
                         sessionToBridge(msg);
@@ -5786,7 +5803,7 @@ var cotonic = cotonic || {};
         var name;
         var session;
         var clientId;
-        var routingId;
+        var routingId = undefined;      // Must have same initial value as in mqtt_session
         var local_topics = {};
         var sessionTopic;
         var is_connected = false;
