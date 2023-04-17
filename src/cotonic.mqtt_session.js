@@ -142,7 +142,7 @@ var cotonic = cotonic || {};
         this.bridgeTopics = mqttBridgeTopics;   // mqtt_bridge responsible for this session
         this.connections = {};                  // Websocket and other connections
         this.clientId = '';                     // Assigned by server
-        this.routingId = undefined;
+        this.routingId = undefined;             // Assigned by server, use 'undefined' as in mqtt_bridge.
         this.cleanStart = true;
         this.sendQueue = [];                    // Queued outgoing messages
         this.receiveQueue = [];                 // Queued incoming messages
@@ -565,12 +565,13 @@ var cotonic = cotonic || {};
 
 
         // Cleanup the sendQueue - remove:
+        // - rewrite response topics to use the new routingId
         // - publish with QoS > 0
         // - ack messages
         // - expired publish (QoS 0) [TODO]
-        function cleanupSendQueue(previousRoutingId, routingId) {
+        function cleanupSendQueue(previousRoutingId) {
             const previousBridgePrefix = "bridge/" + previousRoutingId + "/";
-            const bridgePrefix = "bridge/" + routingId + "/";
+            const bridgePrefix = "bridge/" + self.routingId + "/";
             let q = [];
 
             for (let k in self.sendQueue) {
@@ -647,8 +648,7 @@ var cotonic = cotonic || {};
                     self.isWaitConnack = false;
                     switch (msg.reason_code) {
                         case MQTT_RC_SUCCESS:
-                            let previousRoutingId = self.routingId;
-
+                            const previousRoutingId = self.routingId;
                             self.connectProps = msg.properties;
 
                             // Optional client-id, assigned by the server
@@ -662,7 +662,7 @@ var cotonic = cotonic || {};
                                 self.routingId = self.clientId;
                             }
 
-                            cleanupSendQueue(previousRoutingId, routingId);
+                            cleanupSendQueue(previousRoutingId);
 
                             if (msg.session_present) {
                                 // Resend pending connack and connrel messages
