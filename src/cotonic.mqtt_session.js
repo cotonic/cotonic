@@ -661,9 +661,7 @@ var cotonic = cotonic || {};
                             } else {
                                 self.routingId = self.clientId;
                             }
-
                             cleanupSendQueue(previousRoutingId);
-
                             if (msg.session_present) {
                                 // Resend pending connack and connrel messages
                                 resendUnacknowledged();
