@@ -578,8 +578,10 @@ var cotonic = cotonic || {};
                 let msg = self.sendQueue[k];
                 switch (msg.type) {
                     case 'publish':
-                        if (msg.response_topic && msg.response_topic.startsWith(previousBridgePrefix)) {
-                            msg.response_topic = msg.response_topic.replace(previousBridgePrefix, bridgePrefix);
+                        if (   msg.properties
+                            && msg.properties.response_topic
+                            && msg.properties.response_topic.startsWith(previousBridgePrefix)) {
+                            msg.properties.response_topic = msg.properties.response_topic.replace(previousBridgePrefix, bridgePrefix)
                         }
                         if (msg.qos > 0) {
                             q.push(msg);
@@ -666,7 +668,6 @@ var cotonic = cotonic || {};
                                 // Resend pending connack and connrel messages
                                 resendUnacknowledged();
                             } else {
-                                self.clientId = msg.properties.assigned_client_identifier;
                                 self.awaitingRel = {};
                                 self.awaitingAck = {};
                                 self.cleanStart = false;
