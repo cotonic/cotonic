@@ -75,7 +75,7 @@ var cotonic = cotonic || {};
         }
 
         if(!currentPointer || currentPointer.id !== id) {
-            let tag, attributes = [];
+            let tag = "div", attributes = [];
         
             for(let i = 0; i < token.attributes.length; i=i+2) {
                 if(token.attributes[i] === "tag") {
@@ -84,10 +84,6 @@ var cotonic = cotonic || {};
                     attributes.push(token.attributes[i]);
                     attributes.push(token.attributes[i+1]);
                 }
-            }
-
-            if(!tag) {
-                throw("No tag attribute found in cotonic-idom-skip node");
             }
 
             return idom.elementVoid.apply(null,  [tag, token.hasOwnProperty("key")?token.key:null, null].concat(attributes));
