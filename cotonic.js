@@ -6812,7 +6812,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6842,18 +6842,23 @@ var cotonic = cotonic || {};
     if (cotonic.config.start_service_worker && navigator.serviceWorker) {
         navigator.serviceWorker
             .register(cotonic.config.service_worker_src)
-            .catch(
+            .then(
+                function(registration) {
+                    cotonic.broker.publish("model/serviceWorker/event/state", "registered", { retain: true });
+                },
                 function(error) {
+                    cotonic.broker.publish("model/serviceWorker/event/state", "errored", { retain: true });
                     switch (error.name) {
                         case 'SecurityError':
-                            console.log("Could not start serviceWorker due to a SecurityError.");
-                            console.log("See https://cotonic.org/#model.serviceWorker for more information.");
+                            console.warn("Could not start serviceWorker due to a SecurityError.");
+                            console.warn("See https://cotonic.org/#model.serviceWorker for more information.");
                             break;
                         default:
-                            console.log("Could not start serviceWorker: ", error.message);
+                            console.warn("Could not start serviceWorker: ", error.message);
                             break;
                     }
-                });
+                }
+            );
 
         navigator.serviceWorker.addEventListener('message', function(event) {
             switch (event.data.type) {
@@ -6867,6 +6872,8 @@ var cotonic = cotonic || {};
                     break;
             }
         });
+    } else {
+        cotonic.broker.publish("model/serviceWorker/event/state", "unregistered", { retain: true });
     }
 
     cotonic.broker.subscribe("model/serviceWorker/post/broadcast/+channel", function(msg, bindings) {
