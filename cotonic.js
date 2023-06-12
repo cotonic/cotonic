@@ -576,9 +576,10 @@
   Object.defineProperty(t, "__esModule", { value: true });
 });
 
-/* just a separator file */
+/* Define cotonic as a global */
+var cotonic = cotonic || {};
 /**
- * Copyright 2018-2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -593,14 +594,13 @@
  * limitations under the License.
  */
 
-"use strict";
-
-var cotonic = cotonic || {};
-
-/* Current cotonic version */
-cotonic.VERSION = "1.3.0";
-
 (function(cotonic) {
+"use strict";
+    cotonic = cotonic || {};
+
+    /* Current cotonic version */
+    cotonic.VERSION = "1.3.0";
+
     cotonic.config = cotonic.config || {};
 
     /* Get the data-base-worker-src from the script tag that loads
@@ -817,7 +817,7 @@ cotonic.VERSION = "1.3.0";
     cotonic.receive = receive;
 }(cotonic));
 /**
- * Copyright 2017 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2017-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -832,10 +832,9 @@ cotonic.VERSION = "1.3.0";
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic, idom) {
 "use strict";
+    cotonic = cotonic || {};
 
     function render(tokens) {
         function renderToken(token) {
@@ -928,7 +927,7 @@ var cotonic = cotonic || {};
     cotonic.idom.patchOuter = patch.bind(this, idom.patchOuter);
 }(cotonic, IncrementalDOM));
 /**
- * Copyright 2016, 2017 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -945,10 +944,9 @@ var cotonic = cotonic || {};
 
 // Tokenizer based on the erlang html tokenizer in https://github.com/mochi/mochiweb
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
 "use strict";
+    cotonic = cotonic || {};
     const TAB = 9,
           NEWLINE = 10,
           SPACE = 32,
@@ -2034,7 +2032,7 @@ var cotonic = cotonic || {};
     cotonic.tokenizer.charref = charref;
 }(cotonic));
 /**
- * Copyright 2017 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2017-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2049,10 +2047,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
-    "use strict";
+"use strict";
+
+    cotonic = cotonic || {};
 
     const state = {};
     const order = [];
@@ -2513,7 +2511,7 @@ var cotonic = cotonic || {};
     cotonic.ui.on = on;
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2530,15 +2528,13 @@ var cotonic = cotonic || {};
 
 /* Originial code from https://github.com/RangerMauve/mqtt-pattern */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
-    
+    cotonic = cotonic || {};
+
     const SEPARATOR = "/";
     const SINGLE = "+";
     const ALL = "#";
-
 
     function exec(pattern, topic) {
 	return matches(pattern, topic) ? extract(pattern, topic) : null;
@@ -2600,7 +2596,6 @@ var cotonic = cotonic || {};
 	return result.join(SEPARATOR);
     }
 
-
     function extract(pattern, topic) {
 	var params = {};
 	var patternSegments = pattern.split(SEPARATOR);
@@ -2646,15 +2641,15 @@ var cotonic = cotonic || {};
     }
 
     cotonic.mqtt = cotonic.mqtt || {};
+
     cotonic.mqtt.matches = matches;
     cotonic.mqtt.extract = extract;
     cotonic.mqtt.exec = exec;
     cotonic.mqtt.fill = fill;
     cotonic.mqtt.remove_named_wildcards = remove_named_wildcards;
- 
-})(cotonic);
+}(cotonic));
 /**
- * Copyright 2017-2019 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2017-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2669,10 +2664,9 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+    cotonic = cotonic || {};
 
     let clients;
     let root;
@@ -3264,7 +3258,7 @@ var cotonic = cotonic || {};
     cotonic.broker.publish_mqtt_message = publish_mqtt_message;
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -3283,9 +3277,8 @@ var cotonic = cotonic || {};
  * @doc Encoder/decoder for MQTT v5, see also http://docs.oasis-open.org/mqtt/mqtt/v5.0/cs01/mqtt-v5.0-cs01.html
  */
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+    cotonic = cotonic || {};
 
     /**
      * Unique message type identifiers, with associated
@@ -4444,7 +4437,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4459,9 +4452,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+"use strict";
+
+    cotonic = cotonic || {};
 
     /*************************************************************************************************/
     /********************************** Connections using Websocket **********************************/
@@ -4810,7 +4804,7 @@ var cotonic = cotonic || {};
 }(cotonic));
 
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -4831,9 +4825,8 @@ var cotonic = cotonic || {};
 // TODO: Drop QoS 0 messages if sendQueue gets too large
 // TODO: add support for WebRTC and SSE+post
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+    cotonic = cotonic || {};
     const console = window.console;
 
     /**
@@ -5765,7 +5758,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5780,9 +5773,11 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+"use strict";
+
+    cotonic = cotonic || {};
+
     const BRIDGE_LOCAL_TOPIC = "bridge/+name/#topic";
     const BRIDGE_STATUS_TOPIC = "$bridge/+name/status";
     const BRIDGE_AUTH_TOPIC = "$bridge/+name/auth";
@@ -6139,7 +6134,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2021-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6154,11 +6149,9 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+    cotonic = cotonic || {};
 
     function isInputElementActive() {
         if (!document.activeElement) {
@@ -6194,7 +6187,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6209,11 +6202,9 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+    cotonic = cotonic || {};
 
     function init() {
     }
@@ -6339,7 +6330,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2021-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6354,11 +6345,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+    cotonic = cotonic || {};
+
     const model = {
         state: undefined,
         online: undefined
@@ -6548,7 +6538,7 @@ var cotonic = cotonic || {};
     model.present({is_init: true, newState: getCurrentState(), online: navigator.onLine});
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6563,11 +6553,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
 
     cotonic.broker.subscribe("model/localStorage/get/+key", function(msg, bindings) {
         if (msg.properties.response_topic) {
@@ -6615,7 +6604,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2019-2022 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6630,10 +6619,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
 
     let location = {};
     let isNavigating = false;
@@ -6812,7 +6801,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6829,10 +6818,10 @@ var cotonic = cotonic || {};
 
 /* Starts the service worker and adds message relay topics */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
     const console = window.console;
 
     cotonic.load_config_defaults(
@@ -6887,7 +6876,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2021-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6902,11 +6891,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
 
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
@@ -7005,10 +6993,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
 
     // Direct key / value
     cotonic.broker.subscribe("model/sessionStorage/get/+key", function(msg, bindings) {
@@ -7100,7 +7088,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7115,10 +7103,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
 
     let is_activity_event = false;
     let render_serial = 1;
@@ -7411,7 +7399,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2020-2022 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2020-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7426,10 +7414,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
 
     function init() {
         cotonic.broker.publish("model/window/event/ping", "pong", { retain: true });
@@ -7536,7 +7524,7 @@ var cotonic = cotonic || {};
 }(cotonic));
 
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7551,10 +7539,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-"use strict";
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+"use strict";
+    cotonic = cotonic || {};
+
     // Sizes of keys, iv's and such.
     const KEY_BYTES = 32;        // 256 bits
     const IV_BYTES = 16;         // 128 bits
@@ -7861,7 +7849,7 @@ var cotonic = cotonic || {};
 
 }(cotonic));
 /**
- * Copyright 2019-2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -7876,10 +7864,10 @@ var cotonic = cotonic || {};
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+    cotonic = cotonic || {};
+
     cotonic.ready.then(function() {
         window.dispatchEvent((new Event("cotonic-ready")));
     })
