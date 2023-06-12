@@ -1,5 +1,5 @@
 /**
- * Copyright 2016, 2017 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 // Tokenizer based on the erlang html tokenizer in https://github.com/mochi/mochiweb
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
 "use strict";
+    cotonic = cotonic || {};
     const TAB = 9,
           NEWLINE = 10,
           SPACE = 32,

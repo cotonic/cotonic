@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-"use strict";
-
-var cotonic = cotonic || {};
-
-/* Current cotonic version */
-cotonic.VERSION = "1.3.0";
-
 (function(cotonic) {
+"use strict";
+    cotonic = cotonic || {};
+
+    /* Current cotonic version */
+    cotonic.VERSION = "1.3.0";
+
     cotonic.config = cotonic.config || {};
 
     /* Get the data-base-worker-src from the script tag that loads

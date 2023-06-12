@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2021-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
 
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)

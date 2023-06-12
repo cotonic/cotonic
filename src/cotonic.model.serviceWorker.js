@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 /* Starts the service worker and adds message relay topics */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
+
+    cotonic = cotonic || {};
     const console = window.console;
 
     cotonic.load_config_defaults(

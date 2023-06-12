@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 /* Cotonic worker code */
 
 (function(self) {
@@ -684,5 +682,5 @@ var cotonic = cotonic || {};
     }
 
     self.addEventListener("message", handle_init);
-})(self);
+}(self));
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-"use strict";
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+"use strict";
+    cotonic = cotonic || {};
+
     // Sizes of keys, iv's and such.
     const KEY_BYTES = 32;        // 256 bits
     const IV_BYTES = 16;         // 128 bits

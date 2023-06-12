@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,8 @@
 // TODO: Drop QoS 0 messages if sendQueue gets too large
 // TODO: add support for WebRTC and SSE+post
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+    cotonic = cotonic || {};
     const console = window.console;
 
     /**

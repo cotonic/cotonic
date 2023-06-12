@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 
 /* Originial code from https://github.com/RangerMauve/mqtt-pattern */
 
-var cotonic = cotonic || {};
-
 (function(cotonic) {
 "use strict";
-    
+    cotonic = cotonic || {};
+
     const SEPARATOR = "/";
     const SINGLE = "+";
     const ALL = "#";
-
 
     function exec(pattern, topic) {
 	return matches(pattern, topic) ? extract(pattern, topic) : null;
@@ -86,7 +84,6 @@ var cotonic = cotonic || {};
 	return result.join(SEPARATOR);
     }
 
-
     function extract(pattern, topic) {
 	var params = {};
 	var patternSegments = pattern.split(SEPARATOR);
@@ -132,10 +129,10 @@ var cotonic = cotonic || {};
     }
 
     cotonic.mqtt = cotonic.mqtt || {};
+
     cotonic.mqtt.matches = matches;
     cotonic.mqtt.extract = extract;
     cotonic.mqtt.exec = exec;
     cotonic.mqtt.fill = fill;
     cotonic.mqtt.remove_named_wildcards = remove_named_wildcards;
- 
-})(cotonic);
+}(cotonic));

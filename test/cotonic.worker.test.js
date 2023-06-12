@@ -221,4 +221,3 @@ QUnit.test("on_init is called before connect.",
     }
 );
 
-

@@ -1,5 +1,5 @@
 
-importScripts("/src/cotonic.mqtt.js");
+importScripts("/src/cotonic_global.js", "/src/cotonic.mqtt.js");
 
 let calls = [ ];
 

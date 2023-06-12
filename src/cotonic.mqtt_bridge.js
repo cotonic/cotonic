@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
-
 (function (cotonic) {
+"use strict";
+
+    cotonic = cotonic || {};
+
     const BRIDGE_LOCAL_TOPIC = "bridge/+name/#topic";
     const BRIDGE_STATUS_TOPIC = "$bridge/+name/status";
     const BRIDGE_AUTH_TOPIC = "$bridge/+name/auth";
