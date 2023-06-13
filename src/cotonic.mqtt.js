@@ -16,8 +16,6 @@
 
 /* Originial code from https://github.com/RangerMauve/mqtt-pattern */
 
-"use strict";
-    
 const SEPARATOR = "/";
 const SINGLE = "+";
 const ALL = "#";

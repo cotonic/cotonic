@@ -5,10 +5,17 @@
         <script src="lib/qunit.js"></script>
 
 	<script type="text/javascript" src="/src/cotonic.js"></script>
-	<script type="text/javascript" src="/src/cotonic.mqtt.js"></script>
-        <script type="text/javascript" src="/src/cotonic.broker.js"></script>
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "cotonic.mqtt": "/src/cotonic.mqtt.js",
+                    "cotonic.broker": "/src/cotonic.broker.js"
+                }
+            }
+        </script>
 	
-        <script type="text/javascript" src="cotonic.broker.test.js"></script>
+        <script type="module" src="cotonic.broker.test.js"></script>
     </head>
     <body>
         <div id="qunit"></div>

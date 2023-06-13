@@ -4,6 +4,10 @@
 
 "use strict";
 
+import * as broker from "cotonic.broker";
+
+cotonic.broker = broker;
+
 QUnit.test("Subscribe and publish, no wildcards", function(assert) {
     let publishes = [];
 
