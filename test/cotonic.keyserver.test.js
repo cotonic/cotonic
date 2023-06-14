@@ -1,12 +1,14 @@
 "use strict";
 
+import * as keyserver from "cotonic.keyserver";
+
 QUnit.test("cotonic.keyserver is defined", function(assert) {
     assert.equal(cotonic.hasOwnProperty('keyserver'), true, "Check if keyserver is defined.");
 });
 
 QUnit.test("Generate random nonces", function(assert) {
-    let nonce1 = cotonic.keyserver.randomNonce();
-    let nonce2 = cotonic.keyserver.randomNonce();
+    let nonce1 = keyserver.randomNonce();
+    let nonce2 = keyserver.randomNonce();
 
     assert.notEqual(nonce1, nonce2, "The generated random nonces are equal, are they random?");
 });
@@ -14,7 +16,7 @@ QUnit.test("Generate random nonces", function(assert) {
 QUnit.test("Generate key", function(assert) {
     let done = assert.async();
 
-    cotonic.keyserver.generateKey().then(function(key) {
+    keyserver.generateKey().then(function(key) {
         assert.ok(true, "A key was generated");
         done();
     }).catch(function(err) {
@@ -26,7 +28,7 @@ QUnit.test("Generate key", function(assert) {
 QUnit.test("Get the public encryption key of the server.", function(assert) {
     let done = assert.async();
     
-    cotonic.keyserver.publicEncKey().then(function(key) {
+    keyserver.publicEncKey().then(function(key) {
         assert.ok(true, "Got the key... \o/");
         done();
     }).catch(function(err) {
@@ -36,17 +38,17 @@ QUnit.test("Get the public encryption key of the server.", function(assert) {
 
 QUnit.test("Encrypt connect message", function(assert) {
     let done = assert.async();
-    let nonce = cotonic.keyserver.randomNonce();
+    let nonce = keyserver.randomNonce();
 
     let enckey;
 
-    cotonic.keyserver.publicEncKey()
+    keyserver.publicEncKey()
         .then(function(keydata) {
             enckey = keydata;
-            return cotonic.keyserver.generateKey();
+            return keyserver.generateKey();
         })
         .then(function(key) {
-            return cotonic.keyserver.encryptConnectMessage("test", key, nonce, enckey); 
+            return keyserver.encryptConnectMessage("test", key, nonce, enckey); 
         })
         .then(function(msg) {
             assert.ok(msg, "Encrypted the connect message")
@@ -61,16 +63,16 @@ QUnit.test("Encrypt connect message", function(assert) {
 QUnit.test("Encrypt publish request", function(assert) {
     let done = assert.async();
 
-    let nonce = cotonic.keyserver.randomNonce();
-    let iv = cotonic.keyserver.randomIV();
+    let nonce = keyserver.randomNonce();
+    let iv = keyserver.randomIV();
     
-    cotonic.keyserver.generateKey()
+    keyserver.generateKey()
         .then(function(key) {
-            return cotonic.keyserver.encryptRequest("test",
-                                                    nonce,
-                                                    {type: cotonic.keyserver.PUBLISH,
-                                                     topic: "test/test/123"},
-                                                    key, iv)
+            return keyserver.encryptRequest("test",
+                nonce,
+                {type: keyserver.PUBLISH,
+                    topic: "test/test/123"},
+                key, iv)
         })
         .then(function(cipherText) {
             assert.ok(cipherText, "got ciphertext");
@@ -85,20 +87,20 @@ QUnit.test("Encrypt publish request", function(assert) {
 QUnit.test("Encrypt subscribe request", function(assert) {
     let done = assert.async();
 
-    let nonce = cotonic.keyserver.randomNonce();
-    let iv = cotonic.keyserver.randomIV();
+    let nonce = keyserver.randomNonce();
+    let iv = keyserver.randomIV();
 
     let keyId = new Uint8Array(4);
     crypto.getRandomValues(keyId);
     
-    cotonic.keyserver.generateKey()
+    keyserver.generateKey()
         .then(function(key) {
-            return cotonic.keyserver.encryptRequest("test",
-                                                    nonce,
-                                                    {type: cotonic.keyserver.SUBSCRIBE,
-                                                     keyId: keyId,
-                                                     topic: "test/test/123"},
-                                                    key, iv)
+            return keyserver.encryptRequest("test",
+                nonce,
+                {type: keyserver.SUBSCRIBE,
+                    keyId: keyId,
+                    topic: "test/test/123"},
+                key, iv)
         })
         .then(function(cipherText) {
             assert.ok(cipherText, "got ciphertext");
@@ -114,19 +116,19 @@ QUnit.test("Encrypt subscribe request", function(assert) {
 QUnit.test("Encrypt direct request", function(assert) {
     let done = assert.async();
 
-    let nonce = cotonic.keyserver.randomNonce();
-    let iv = cotonic.keyserver.randomIV();
+    let nonce = keyserver.randomNonce();
+    let iv = keyserver.randomIV();
 
     let keyId = new Uint8Array(4);
     crypto.getRandomValues(keyId);
     
-    cotonic.keyserver.generateKey()
+    keyserver.generateKey()
         .then(function(key) {
-            return cotonic.keyserver.encryptRequest("test",
-                                                    nonce,
-                                                    {type: cotonic.keyserver.DIRECT,
-                                                     otherId: "another-identifier"},
-                                                    key, iv)
+            return keyserver.encryptRequest("test",
+                nonce,
+                {type: keyserver.DIRECT,
+                    otherId: "another-identifier"},
+                key, iv)
         })
         .then(function(cipherText) {
             assert.ok(cipherText, "Got the ciphertext");
@@ -141,27 +143,27 @@ QUnit.test("Encrypt direct request", function(assert) {
 QUnit.test("Decrypt direct request", function(assert) {
     let done = assert.async();
 
-    let nonce = cotonic.keyserver.randomNonce();
-    let iv = cotonic.keyserver.randomIV();
+    let nonce = keyserver.randomNonce();
+    let iv = keyserver.randomIV();
 
     let key;
-    
-    cotonic.keyserver.generateKey()
+
+    keyserver.generateKey()
         .then(function(k) {
             key = k;
             assert.ok(true, "Got the key");
-            return cotonic.keyserver.encryptRequest("test",
-                                                    nonce,
-                                                    {type: cotonic.keyserver.DIRECT,
-                                                     otherId: "another-identifier"},
-                                                    key, iv)
+            return keyserver.encryptRequest("test",
+                nonce,
+                {type: keyserver.DIRECT,
+                    otherId: "another-identifier"},
+                key, iv)
         })
         .then(function(cipherText) {
             assert.ok(cipherText, "Got ciphertext");
-            return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
+            return keyserver.decryptResponse("test", nonce, cipherText, key, iv);
         }).then(function(stuff) {
             assert.deepEqual(nonce, stuff.nonce, "The nonce is correct");
-            assert.equal(cotonic.keyserver.DIRECT, stuff.payload.type, "The type is correct");
+            assert.equal(keyserver.DIRECT, stuff.payload.type, "The type is correct");
             assert.equal("another-identifier", stuff.payload.otherId, "The identifier is correct");
             done();
         })
@@ -174,31 +176,31 @@ QUnit.test("Decrypt direct request", function(assert) {
 QUnit.test("Decrypt subscribe request", function(assert) {
     let done = assert.async();
 
-    let nonce = cotonic.keyserver.randomNonce();
-    let iv = cotonic.keyserver.randomIV();
+    let nonce = keyserver.randomNonce();
+    let iv = keyserver.randomIV();
 
     let keyId = new Uint8Array(4);
     crypto.getRandomValues(keyId);
 
     let key;
     
-    cotonic.keyserver.generateKey()
+    keyserver.generateKey()
         .then(function(k) {
             key = k;
             assert.ok(true, "Got the key");
-            return cotonic.keyserver.encryptRequest("test",
-                                                    nonce,
-                                                    {type: cotonic.keyserver.SUBSCRIBE,
-                                                     keyId: keyId,
-                                                     topic: "this/is/a/test/topic"},
-                                                    key, iv)
+            return keyserver.encryptRequest("test",
+                nonce,
+                {type: keyserver.SUBSCRIBE,
+                    keyId: keyId,
+                    topic: "this/is/a/test/topic"},
+                key, iv)
         })
         .then(function(cipherText) {
             assert.ok(cipherText, "Got ciphertext");
-            return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
+            return keyserver.decryptResponse("test", nonce, cipherText, key, iv);
         }).then(function(stuff) {
             assert.deepEqual(nonce, stuff.nonce, "The nonce is correct");
-            assert.equal(cotonic.keyserver.SUBSCRIBE, stuff.payload.type, "The type is correct.");
+            assert.equal(keyserver.SUBSCRIBE, stuff.payload.type, "The type is correct.");
             assert.deepEqual(keyId, stuff.payload.keyId, "The key-id is correct.");
             assert.equal("this/is/a/test/topic", stuff.payload.topic, "The topic is correct.");
             done();
@@ -212,27 +214,27 @@ QUnit.test("Decrypt subscribe request", function(assert) {
 QUnit.test("Decrypt publish request", function(assert) {
     let done = assert.async();
 
-    let nonce = cotonic.keyserver.randomNonce();
-    let iv = cotonic.keyserver.randomIV();
+    let nonce = keyserver.randomNonce();
+    let iv = keyserver.randomIV();
 
     let key;
     
-    cotonic.keyserver.generateKey()
+    keyserver.generateKey()
         .then(function(k) {
             key = k;
             assert.ok(true, "Got the key");
-            return cotonic.keyserver.encryptRequest("test",
-                                                    nonce,
-                                                    {type: cotonic.keyserver.PUBLISH,
-                                                     topic: "this/is/a/test/topic"},
-                                                    key, iv)
+            return keyserver.encryptRequest("test",
+                nonce,
+                {type: keyserver.PUBLISH,
+                    topic: "this/is/a/test/topic"},
+                key, iv)
         })
         .then(function(cipherText) {
             assert.ok(cipherText, "Got ciphertext");
-            return cotonic.keyserver.decryptResponse("test", nonce, cipherText, key, iv);
+            return keyserver.decryptResponse("test", nonce, cipherText, key, iv);
         }).then(function(stuff) {
             assert.deepEqual(nonce, stuff.nonce, "The nonce is correct.");
-            assert.equal(cotonic.keyserver.PUBLISH, stuff.payload.type, "The type is correct.");
+            assert.equal(keyserver.PUBLISH, stuff.payload.type, "The type is correct.");
             assert.equal("this/is/a/test/topic", stuff.payload.topic, "The topic is correct.");
             done();
         })
@@ -247,15 +249,15 @@ QUnit.test("Encrypt and decrypt a secure publish", function(assert) {
     let key;
     const keyId = new Uint8Array([10,20,30,40]);
 
-    cotonic.keyserver.generateKey()
+    keyserver.generateKey()
         .then(function(k) {
             let msg = new Uint8Array([1,2,3,4,5,6,7,8,9,0]);
             key = k;
             assert.ok(true, "Got a key");
-            return cotonic.keyserver.encryptSecurePublish(msg, keyId, key);
+            return keyserver.encryptSecurePublish(msg, keyId, key);
         }).then(function(cipherText) {
             assert.ok(true, "Got the ciphertext");
-            return cotonic.keyserver.decryptSecurePublish(cipherText, keyId, key); 
+            return keyserver.decryptSecurePublish(cipherText, keyId, key); 
         }).then(function(plainText) {
             assert.deepEqual(new Uint8Array(plainText), new Uint8Array([1,2,3,4,5,6,7,8,9,0]), "The plaintext is ok.");
             done();
@@ -266,29 +268,24 @@ QUnit.test("Encrypt and decrypt a secure publish", function(assert) {
 })
 
 QUnit.test("Unsigned int conversions", function(assert) {
-    assert.equal(cotonic.keyserver.toBigUnsignedInt(16, new Uint8Array([0, 44])), 44,
+    assert.equal(keyserver.toBigUnsignedInt(16, new Uint8Array([0, 44])), 44,
                 "Converted 16 bit value.");
 
-    assert.equal(cotonic.keyserver.toBigUnsignedInt(16, new Uint8Array([1, 44])), 300,
+    assert.equal(keyserver.toBigUnsignedInt(16, new Uint8Array([1, 44])), 300,
                 "Converted 16 bit value.");
 
-    assert.equal(cotonic.keyserver.toBigUnsignedInt(16, new Uint8Array([1, 44])), 300,
+    assert.equal(keyserver.toBigUnsignedInt(16, new Uint8Array([1, 44])), 300,
                 "Converted 16 bit value.");
 
-    assert.equal(cotonic.keyserver.toBigUnsignedInt(32, new Uint8Array([0, 0, 1, 44])),
+    assert.equal(keyserver.toBigUnsignedInt(32, new Uint8Array([0, 0, 1, 44])),
                  300,
                 "Converted 32 bit value.");
 
-    assert.equal(cotonic.keyserver.toBigUnsignedInt(32, new Uint8Array([149,165,21,116])),
+    assert.equal(keyserver.toBigUnsignedInt(32, new Uint8Array([149,165,21,116])),
                  2510624116,
                  "Converted 32 bit value.");
 
-    assert.equal(cotonic.keyserver.toBigUnsignedInt(64, new Uint8Array([197,226,171,40,59,22,1,133])),
+    assert.equal(keyserver.toBigUnsignedInt(64, new Uint8Array([197,226,171,40,59,22,1,133])),
                  14259147559486751109,
                  "Converted a 64 bit value.");
-
-
-
-
-
 })

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { receive, send } from "cotonic";
 import { remove_named_wildcards, extract, matches } from "cotonic.mqtt";
 
 let clients;
@@ -200,7 +201,7 @@ function collect_subscribers(path, trie, subs) {
 
 
 /* We assume every message is for the broker. */
-cotonic.receive(function(data, wid) {
+receive(function(data, wid) {
     if(!data.type) return;
 
     switch(data.type) {
@@ -226,12 +227,12 @@ function handle_connect(wid, data) {
         if(window.console) window.console.error("Wrong client_id in connect from " + wid, data);
     }
     clients[wid] = data;
-    cotonic.send(wid, {type: "connack", reason_code: 0});
+    send(wid, {type: "connack", reason_code: 0});
 }
 
 function handle_subscribe(wid, data) {
     let result = subscribe_subscriber({type: "worker", wid: wid}, data);
-    cotonic.send(wid, {type: "suback", packet_id: data.packet_id, acks: result.acks});
+    send(wid, {type: "suback", packet_id: data.packet_id, acks: result.acks});
     send_retained(result.retained);
 }
 
@@ -246,7 +247,7 @@ function send_retained( retained ) {
 
 function handle_unsubscribe(wid, data) {
     let acks = unsubscribe_subscriber({type: "worker", wid: wid}, data);
-    cotonic.send(wid, {type: "unsuback", packet_id: data.packet_id, acks: acks});
+    send(wid, {type: "unsuback", packet_id: data.packet_id, acks: acks});
 }
 
 function handle_publish(wid, data) {
@@ -255,7 +256,7 @@ function handle_publish(wid, data) {
 
 function handle_pingreq(wid) {
     // TODO: reset keep-alive timer
-    cotonic.send(wid, {type: "pingresp"});
+    send(wid, {type: "pingresp"});
 }
 
 function send_promised(topics) {
@@ -473,7 +474,7 @@ function publish_subscriber(sub, mqttmsg, wid) {
     }
 
     if(sub.type === "worker") {
-        cotonic.send(sub.wid, mqttmsg);
+        send(sub.wid, mqttmsg);
     } else if(sub.type === "page") {
         sub.callback(mqttmsg, extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
     } else {

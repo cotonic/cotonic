@@ -4,17 +4,21 @@
         <link rel="stylesheet" href="lib/qunit.css">
         <script src="lib/qunit.js"></script>
 
-        <script type="text/javascript" src="/src/cotonic.js"></script>
-        <script type="text/javascript" src="/src/cotonic.broker.js"></script>
-        <script type="text/javascript" src="/src/cotonic.mqtt.js"></script>
-        <script type="text/javascript" src="/src/cotonic.mqtt_packet.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "cotonic":              "/src/cotonic.js",
+                    "cotonic.mqtt":         "/src/cotonic.mqtt.js",
+                    "cotonic.mqtt_packet":  "/src/cotonic.mqtt_packet.js",
+                    "cotonic.mqtt_session": "/src/cotonic.mqtt_session.js",
+                    "cotonic.broker":       "/src/cotonic.broker.js",
 
-        <script type="text/javascript" src="/src/cotonic.mqtt_session.js"></script>
-        <script type="text/javascript" src="/src/cotonic.mqtt_transport.ws.js"></script>
+                    "cotonic.mqtt_bridge":  "/src/cotonic.mqtt_bridge.js",
+                }
+            }
+        </script>
 
-        <script type="text/javascript" src="/src/cotonic.mqtt_bridge.js"></script>
-
-        <script type="text/javascript" src="cotonic.mqtt_bridge.test.js"></script>
+        <script type="module" src="cotonic.mqtt_bridge.test.js"></script>
     </head>
     <body>
         <h1>MQTT Bridge Test</h1>

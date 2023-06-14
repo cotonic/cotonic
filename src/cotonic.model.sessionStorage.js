@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
+import { publish, subscribe } from "cotonic.broker";
 
-(function(cotonic) {
-"use strict";
-
-    // Direct key / value
-    cotonic.broker.subscribe("model/sessionStorage/get/+key", function(msg, bindings) {
+// Direct key / value
+subscribe("model/sessionStorage/get/+key",
+    function(msg, bindings) {
         if (msg.properties.response_topic) {
             let value = window.sessionStorage.getItem(bindings.key);
             if (typeof value == "string") {
@@ -29,27 +27,35 @@ var cotonic = cotonic || {};
             }
             cotonic.broker.publish(msg.properties.response_topic, value);
         }
-    });
+    },
+    {wid: "model.sessionStorage"}
+);
 
-    cotonic.broker.subscribe("model/sessionStorage/post/+key", function(msg, bindings) {
+subscribe("model/sessionStorage/post/+key",
+    function(msg, bindings) {
         window.sessionStorage.setItem(bindings.key, JSON.stringify(msg.payload));
         if (msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, msg.payload);
         }
         cotonic.broker.publish("model/sessionStorage/event/" + bindings.key, msg.payload);
-    });
+    },
+    {wid: "model.sessionStorage"}
+);
 
-    cotonic.broker.subscribe("model/sessionStorage/delete/+key", function(msg, bindings) {
+subscribe("model/sessionStorage/delete/+key",
+    function(msg, bindings) {
         window.sessionStorage.removeItem(bindings.key);
         if (msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, null);
+            publish(msg.properties.response_topic, null);
         }
-        cotonic.broker.publish("model/sessionStorage/event/" + bindings.key, null);
-    });
+        publish("model/sessionStorage/event/" + bindings.key, null);
+    },
+    {wid: "model.sessionStorage"}
+);
 
-
-    // Item with subkeys
-    cotonic.broker.subscribe("model/sessionStorage/get/+key/+subkey", function(msg, bindings) {
+// Item with subkeys
+subscribe("model/sessionStorage/get/+key/+subkey",
+    function(msg, bindings) {
         if (msg.properties.response_topic) {
             let value = window.sessionStorage.getItem(bindings.key);
             if (typeof value == "string") {
@@ -57,11 +63,14 @@ var cotonic = cotonic || {};
                 catch (e) { value = {}; }
             }
             value = value || {};
-            cotonic.broker.publish(msg.properties.response_topic, value[bindings.subkey]);
+            publish(msg.properties.response_topic, value[bindings.subkey]);
         }
-    });
+    },
+    {wid: "model.sessionStorage"}
+);
 
-    cotonic.broker.subscribe("model/sessionStorage/post/+key/+subkey", function(msg, bindings) {
+subscribe("model/sessionStorage/post/+key/+subkey",
+    function(msg, bindings) {
         let value = window.sessionStorage.getItem(bindings.key);
         if (typeof value == "string") {
             try { value = JSON.parse(value); }
@@ -71,11 +80,14 @@ var cotonic = cotonic || {};
         value[bindings.subkey] = msg.payload;
         window.sessionStorage.setItem(bindings.key, JSON.stringify(value));
         if (msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, value);
+            publish(msg.properties.response_topic, value);
         }
-    });
+    },
+    {wid: "model.sessionStorage"}
+);
 
-    cotonic.broker.subscribe("model/sessionStorage/delete/+key/+subkey", function(msg, bindings) {
+subscribe("model/sessionStorage/delete/+key/+subkey",
+    function(msg, bindings) {
         let value = window.sessionStorage.getItem(bindings.key);
         if (typeof value == "string") {
             try { value = JSON.parse(value); }
@@ -85,26 +97,27 @@ var cotonic = cotonic || {};
         delete value[bindings.subkey];
         window.sessionStorage.setItem(bindings.key, JSON.stringify(value));
         if (msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, value);
+            publish(msg.properties.response_topic, value);
         }
-    });
+    },
+    {wid: "model.sessionStorage"}
+);
 
 
-    // Called if sessionStorage is changed in an iframe in the same tab
-    window.addEventListener(
-        'storage',
-        function(evt) {
-            if (evt.type == 'storage' && evt.storageArea === window.sessionStorage) {
-                let value = evt.newValue;
-                if (typeof value == "string") {
-                    try { value = JSON.parse(value); }
-                    catch (e) { }
-                }
-                cotonic.broker.publish("model/sessionStorage/event/" + evt.key, value);
+// Called if sessionStorage is changed in an iframe in the same tab
+window.addEventListener(
+    'storage',
+    function(evt) {
+        if (evt.type == 'storage' && evt.storageArea === window.sessionStorage) {
+            let value = evt.newValue;
+            if (typeof value == "string") {
+                try { value = JSON.parse(value); }
+                catch (e) { }
             }
-        },
-        false);
+            publish("model/sessionStorage/event/" + evt.key, value);
+        }
+    },
+    false);
 
-    cotonic.broker.publish("model/sessionStorage/event/ping", "pong", { retain: true });
+publish("model/sessionStorage/event/ping", "pong", { retain: true });
 
-}(cotonic));

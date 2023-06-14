@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
+import { ready, readyResolve } from "cotonic";
 
-(function(cotonic) {
-"use strict";
-    cotonic.ready.then(function() {
-        window.dispatchEvent((new Event("cotonic-ready")));
-    })
+ready.then(() => {
+    window.dispatchEvent((new Event("cotonic-ready")));
+});
 
-    // Resolve the cotonic.ready promise
-    cotonic.readyResolve();
-}(cotonic));
+// Resolve the cotonic.ready promise
+readyResolve();

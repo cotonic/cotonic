@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2017-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,98 +14,95 @@
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
+// TODO: Import incrementalDOM... 
+const idom = IncrementalDOM;
 
-(function(cotonic, idom) {
-"use strict";
-
-    function render(tokens) {
-        function renderToken(token) {
-            switch(token.type) {
-                case "text":
-                    return idom.text(token.data);
-                case "open":
-                    return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
-                case "void":
-                    return voidNode(token);
-                case "close":
-                    return closeNode(token);
-            }
-        }
-
-        for(let i=0; i < tokens.length; i++) {
-            renderToken(tokens[i]);
+function render(tokens) {
+    function renderToken(token) {
+        switch(token.type) {
+            case "text":
+                return idom.text(token.data);
+            case "open":
+                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+            case "void":
+                return voidNode(token);
+            case "close":
+                return closeNode(token);
         }
     }
 
-    function closeNode(token) {
-        const currentTag = idom.currentElement().tagName;
+    for(let i=0; i < tokens.length; i++) {
+        renderToken(tokens[i]);
+    }
+}
 
-        /* Safety measure. If the tag of the current element does not match, doc
-         * not close the element via IncrementalDOM
-         */
-        if (currentTag.toLowerCase() != token.tag.toLowerCase()) {
-            return;
-        }
+function closeNode(token) {
+    const currentTag = idom.currentElement().tagName;
 
-        return idom.elementClose(token.tag);
+    /* Safety measure. If the tag of the current element does not match, doc
+     * not close the element via IncrementalDOM
+     */
+    if (currentTag.toLowerCase() != token.tag.toLowerCase()) {
+        return;
     }
 
-    function voidNode(token) {
-        if(token.tag === "cotonic-idom-skip") {
-            return skipNode(token);
-        }
+    return idom.elementClose(token.tag);
+}
 
-        return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+function voidNode(token) {
+    if(token.tag === "cotonic-idom-skip") {
+        return skipNode(token);
     }
 
-    function skipNode(token) {
-        const currentPointer = idom.currentPointer();
-        let id;
-        
+    return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+}
+
+function skipNode(token) {
+    const currentPointer = idom.currentPointer();
+    let id;
+
+    for(let i = 0; i < token.attributes.length; i=i+2) {
+        if(token.attributes[i] === "id") {
+            id = token.attributes[i+1];
+            break;
+        }
+    }
+
+    if(!id) {
+        throw("No id attribute found in cotonic-idom-skip node");
+    }
+
+    if(!currentPointer || currentPointer.id !== id) {
+        let tag = "div", attributes = [];
+
         for(let i = 0; i < token.attributes.length; i=i+2) {
-            if(token.attributes[i] === "id") {
-                id = token.attributes[i+1];
-                break;
+            if(token.attributes[i] === "tag") {
+                tag = token.attributes[i+1];
+            } else {
+                attributes.push(token.attributes[i]);
+                attributes.push(token.attributes[i+1]);
             }
         }
 
-        if(!id) {
-            throw("No id attribute found in cotonic-idom-skip node");
-        }
+        return idom.elementVoid.apply(null,  [tag, token.hasOwnProperty("key")?token.key:null, null].concat(attributes));
+    } 
 
-        if(!currentPointer || currentPointer.id !== id) {
-            let tag = "div", attributes = [];
-        
-            for(let i = 0; i < token.attributes.length; i=i+2) {
-                if(token.attributes[i] === "tag") {
-                    tag = token.attributes[i+1];
-                } else {
-                    attributes.push(token.attributes[i]);
-                    attributes.push(token.attributes[i+1]);
-                }
-            }
+    idom.skipNode();
+}
 
-            return idom.elementVoid.apply(null,  [tag, token.hasOwnProperty("key")?token.key:null, null].concat(attributes));
-        } 
+function patch(patch, element, HTMLorTokens) {
+    let tokens;
 
-        idom.skipNode();
+    if(Array.isArray(HTMLorTokens)) {
+        tokens = HTMLorTokens;
+    } else {
+        tokens = cotonic.tokenizer.tokens(HTMLorTokens);
     }
 
-    function patch(patch, element, HTMLorTokens) {
-        let tokens;
+    patch(element, function() { render(tokens); });
+}
 
-        if(Array.isArray(HTMLorTokens)) {
-            tokens = HTMLorTokens;
-        } else {
-            tokens = cotonic.tokenizer.tokens(HTMLorTokens);
-        }
+const patchInner = patch.bind(this, idom.patch);
+const patchOuter = patch.bind(this, idom.patchOuter);
 
-        patch(element, function() { render(tokens); });
-    }
-
-    cotonic.idom = cotonic.idom || {};
-
-    cotonic.idom.patchInner = patch.bind(this, idom.patch);
-    cotonic.idom.patchOuter = patch.bind(this, idom.patchOuter);
-}(cotonic, IncrementalDOM));
+export { patchInner, patchOuter };
