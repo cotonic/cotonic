@@ -2,10 +2,6 @@
 
 import * as keyserver from "cotonic.keyserver";
 
-QUnit.test("cotonic.keyserver is defined", function(assert) {
-    assert.equal(cotonic.hasOwnProperty('keyserver'), true, "Check if keyserver is defined.");
-});
-
 QUnit.test("Generate random nonces", function(assert) {
     let nonce1 = keyserver.randomNonce();
     let nonce2 = keyserver.randomNonce();

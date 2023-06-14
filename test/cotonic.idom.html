@@ -5,9 +5,17 @@
         <script type="text/javascript" src="lib/qunit.js"></script>
 
         <script type="text/javascript" src="/lib/incremental-dom.js"></script>
-        <script type="text/javascript" src="/src/cotonic.tokenizer.js"></script>
-        <script type="text/javascript" src="/src/cotonic.idom.js"></script>
-        <script type="text/javascript" src="cotonic.idom.test.js"></script>
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "cotonic.tokenizer": "/src/cotonic.tokenizer.js",
+                    "cotonic.idom": "/src/cotonic.idom.js"
+                }
+            }
+        </script>
+
+        <script type="module" src="cotonic.idom.test.js"></script>
     </head>
     <body>
         <div id="qunit"></div>

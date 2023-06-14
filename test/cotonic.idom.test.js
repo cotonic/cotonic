@@ -2,9 +2,7 @@
 // HTML Idom Tests.
 //
 
-"use strict";
-
-var idom = cotonic.idom;
+import * as idom from "cotonic.idom";
 
 QUnit.test("Idom patch html", function(assert) {
     var element = document.getElementById("test-1");

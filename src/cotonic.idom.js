@@ -17,6 +17,8 @@
 // TODO: Import incrementalDOM... 
 const idom = IncrementalDOM;
 
+import { tokens as getTokens } from "cotonic.tokenizer";
+
 function render(tokens) {
     function renderToken(token) {
         switch(token.type) {
@@ -96,7 +98,7 @@ function patch(patch, element, HTMLorTokens) {
     if(Array.isArray(HTMLorTokens)) {
         tokens = HTMLorTokens;
     } else {
-        tokens = cotonic.tokenizer.tokens(HTMLorTokens);
+        tokens = getTokens(HTMLorTokens);
     }
 
     patch(element, function() { render(tokens); });
