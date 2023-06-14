@@ -12,10 +12,17 @@
                     );
                 </script>
 
-	<script type="text/javascript" src="/src/cotonic.js"></script>
-	<script type="text/javascript" src="/src/cotonic.event.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "cotonic": "/src/cotonic.js",
+                    "cotonic.event": "/src/cotonic.event.js",
+                    "cotonic.broker": "/src/cotonic.broker.js"
+                }
+            }
+        </script>
 	
-        <script type="text/javascript" src="cotonic.event.test.js"></script>
+        <script type="module" src="cotonic.event.test.js"></script>
     </head>
     <body>
         <div id="qunit"></div>
