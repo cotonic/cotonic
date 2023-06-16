@@ -69,7 +69,7 @@ model.handleImportDone = function(isImportDone) {
 
     while(model.message_queue.length > 0) {
         const msg = model.message_queue.shift();
-        model.present(msg);
+        setTimeout(() => { model.present(msg); }, 0)
     }
 }
 
@@ -403,7 +403,9 @@ model.present = function(data) {
             self.subscribe(
                 model.response_topic_prefix + "+",
                 self.response,
-                function() { accept(model.init_args); });
+                () => {
+                    accept(model.init_args);
+                });
         } else if(data.connect_timeout) {
             model.connected = false;
             model.connecting = false;
@@ -476,7 +478,6 @@ function client_cmd(type, data, present) {
 }
 
 actions.on_message = function(e) {
-    console.log("action.on_message", e);
     let data = e.data;
     if(data.type) {
         data.from = "broker";
@@ -588,7 +589,6 @@ self.connect = function(options) {
         return Promise.all([connectPromise, depsPromise]);
 
     return Promise.all([connectPromise]);
-
 };
 
 self.subscribe = function(topics, callback, ack_callback) {
@@ -694,8 +694,6 @@ function handle_init(e) {
 
     self.removeEventListener("message", handle_init);
 
-    console.log("before", model.init_args);
-
     model.client_id = e.data[1].wid;
     model.name = e.data[1].name || undefined;
     model.location = e.data[1].location;
@@ -703,8 +701,6 @@ function handle_init(e) {
 
     model.init_args = e.data[1].args;
     const url = e.data[1].url;
-
-    console.log("after", model);
 
     model.is_importing = true;
 

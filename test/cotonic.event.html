@@ -1,17 +1,8 @@
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="lib/qunit.css">
-        <script src="lib/qunit.js"></script>
-                <script>
-                    cotonicReadyFired = false;
-                    window.addEventListener("cotonic-ready",
-                        function() { 
-                            cotonicReadyFired = true;
-                        }
-                    );
-                </script>
-
         <script type="importmap">
             {
                 "imports": {
@@ -21,7 +12,15 @@
                 }
             }
         </script>
-	
+        <script src="lib/qunit.js"></script>
+        <script>
+            cotonicReadyFired = false;
+            window.addEventListener("cotonic-ready",
+                function() { 
+                    cotonicReadyFired = true;
+                }
+            );
+        </script>
         <script type="module" src="cotonic.event.test.js"></script>
     </head>
     <body>

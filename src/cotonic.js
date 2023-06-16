@@ -77,7 +77,6 @@ function error_from_worker(wid, e) {
  * Start a worker
  */
 function spawn(url, args) {
-    console.log("spawn", url, args);
     if(!config.base_worker_src){
         throw("Can't spawn worker, no data-base-worker-src attribute set.");
     }
@@ -153,7 +152,6 @@ function send(wid, message) {
 
     const worker = workers[wid];
     if(worker) {
-        console.log("worker", worker);
         worker.postMessage(message);
     }
 }
