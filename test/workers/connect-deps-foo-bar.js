@@ -1,4 +1,3 @@
-importScripts("/src/cotonic.mqtt.js");
 
 function initialize() {
     self.publish("connect-deps-foo-bar/init", true);

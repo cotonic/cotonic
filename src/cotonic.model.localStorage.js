@@ -25,7 +25,7 @@ subscribe("model/localStorage/get/+key",
                 catch (e) { }
             }
             publish(msg.properties.response_topic, value);
-        },
+        }
     },
     {wid: "model.localStorage"}
 );
@@ -38,7 +38,7 @@ subscribe("model/localStorage/post/+key",
         }
         publish("model/localStorage/event/" + bindings.key, msg.payload);
     },
-    {wid: "model.localStorage}
+    {wid: "model.localStorage"}
 );
 
 subscribe("model/localStorage/delete/+key",

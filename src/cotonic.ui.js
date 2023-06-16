@@ -455,6 +455,6 @@ function requestRender() {
     animationFrameRequestId = window.requestAnimationFrame(renderUpdate);
 }
 
-export { insert, get, update, remove, delete,
+export { insert, get, update, remove,
     render, renderId,
     updateStateData, updateStateClass, on };

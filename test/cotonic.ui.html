@@ -5,10 +5,21 @@
         <script src="/test/lib/qunit.js"></script>
 
         <script type="text/javascript" src="/lib/incremental-dom.js"></script>
-        <script type="text/javascript" src="/src/cotonic.tokenizer.js"></script>
-        <script type="text/javascript" src="/src/cotonic.idom.js"></script>
-        <script type="text/javascript" src="/src/cotonic.ui.js"></script>
-        <script type="text/javascript" src="cotonic.ui.test.js"></script>
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "cotonic":  "/src/cotonic.js",
+                    "cotonic.mqtt":  "/src/cotonic.mqtt.js",
+                    "cotonic.tokenizer":  "/src/cotonic.tokenizer.js",
+                    "cotonic.idom":  "/src/cotonic.idom.js",
+                    "cotonic.broker":  "/src/cotonic.broker.js",
+                    "cotonic.ui":  "/src/cotonic.ui.js"
+                }
+            }
+        </script>
+
+        <script type="module" src="cotonic.ui.test.js"></script>
     </head>
     <body>
         <style>

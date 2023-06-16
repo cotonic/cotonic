@@ -4,13 +4,18 @@
         <link rel="stylesheet" href="lib/qunit.css">
         <script src="lib/qunit.js"></script>
 
-        <script type="text/javascript" src="../src/cotonic.js"></script>
+        <script type="importmap">
+            {
+                "imports": {
+                    "cotonic": "/src/cotonic.js",
+                    "cotonic.mqtt": "/src/cotonic.mqtt.js",
+                    "cotonic.broker": "/src/cotonic.broker.js",
+                    "cotonic.model.localStorage": "/src/cotonic.model.localStorage.js"
+                }
+            }
+        </script>
 
-        <script type="text/javascript" src="../src/cotonic.mqtt.js"></script>
-        <script type="text/javascript" src="../src/cotonic.broker.js"></script>
-        <script type="text/javascript" src="../src/cotonic.model.localStorage.js"></script>
-
-        <script type="text/javascript" src="cotonic.model.localStorage.test.js"></script>
+        <script type="module" src="cotonic.model.localStorage.test.js"></script>
     </head>
     <body>
         <h1>Model localStorage Tests</h1>

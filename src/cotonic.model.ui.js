@@ -62,11 +62,16 @@ function init() {
         }
     };
 
-    if (cotonic.bufferedEvents) {
-        for (const e in cotonic.bufferedEvents) {
-            topic_event(cotonic.bufferedEvents[e], true);
+    /* 
+     * Check if there are buffered events which are triggered before
+     * the cotonic library was loaded. When there are, publish the
+     * events.
+     */
+    if (globalThis.cotonic && globalThis.cotonic.bufferedEvents) {
+        for (const e in globalThis.cotonic.bufferedEvents) {
+            topic_event(globalThis.cotonic.bufferedEvents[e], true);
         }
-        cotonic.bufferedEvents = [];
+        globalThis.cotonic.bufferedEvents = [];
     }
 }
 

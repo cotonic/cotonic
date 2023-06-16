@@ -18,7 +18,7 @@
 const VERSION = "1.3.0";
 
 /* Get a configuration from a global cotonic variable, when available */
-let config = (globalThis.cotonic && globalThiscotonic.config) ? globalThis.cotonic.config : {};
+const config = (globalThis.cotonic && globalThis.cotonic.config) ? globalThis.cotonic.config : {};
 
 /* Get the data-base-worker-src from the script tag that loads
  * cotonic on this page.
@@ -77,10 +77,11 @@ function error_from_worker(wid, e) {
  * Start a worker
  */
 function spawn(url, args) {
-    if(!cotonic.config.base_worker_src){
+    console.log("spawn", url, args);
+    if(!config.base_worker_src){
         throw("Can't spawn worker, no data-base-worker-src attribute set.");
     }
-    return spawn_named("", url, cotonic.config.base_worker_src, args);
+    return spawn_named("", url, config.base_worker_src, args);
 }
 
 /**
@@ -92,12 +93,15 @@ function spawn_named(name, url, base, args) {
     if (name && named_worker_ids[name]) {
         return named_worker_ids[name];
     }
-    base = base || cotonic.config.base_worker_src;
+    base = base || config.base_worker_src;
     if(!base) {
         throw("Can't spawn worker, no data-base-worker-src attribute set.");
     }
     const worker_id = next_worker_id++;
-    const worker = new Worker(base, {name: name?name:worker_id.toString()});
+    const worker = new Worker(base, {
+        name: name?name:worker_id.toString(),
+        type: "module"
+    });
 
     worker.postMessage(["init", {
         url: ensure_hostname(url),
@@ -141,12 +145,15 @@ function ensure_hostname(url) {
  */
 function send(wid, message) {
     if(wid === 0) {
-        setTimeout(function() { handler(message, wid) }, 0);
+        setTimeout(() => {
+            handler(message, wid)
+        }, 0);
         return;
     }
 
-    let worker = workers[wid];
+    const worker = workers[wid];
     if(worker) {
+        console.log("worker", worker);
         worker.postMessage(message);
     }
 }
@@ -232,4 +239,4 @@ cleanupSessionStorage();
 
 export { VERSION, config };
 export { ready, readyResolve };
-export { load_config_defaults, spawn_named, whereis, send, receive };
+export { load_config_defaults, spawn, spawn_named, whereis, send, receive };

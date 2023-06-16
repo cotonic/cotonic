@@ -2,9 +2,8 @@
 // LocalStorage model tests
 //
 
-"use strict";
-
-const broker = cotonic.broker;
+import * as localStorage from "cotonic.model.localStorage";
+import * as broker from "cotonic.broker";
 
 QUnit.test("test.model.localStorage - post, and post remove", function(assert) {
     broker.publish("model/localStorage/post/foo", "bar");
@@ -56,7 +55,7 @@ QUnit.test("test.model.localStorage - delete", function(assert) {
 QUnit.test("test.model.localStorage - events", function(assert, bindings) {
     let events = [];
 
-    cotonic.broker._delete_all_retained();
+    broker._delete_all_retained();
 
     broker.subscribe("model/localStorage/event/+key",
         function(msg, bindings) {

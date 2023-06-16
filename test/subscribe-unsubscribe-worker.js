@@ -2,10 +2,6 @@
  * Test worker which connects, subscribes, and unsubscribes.
  */
 
-"use strict";
-
-importScripts("/src/cotonic.mqtt.js");
-
 function init() {
     function ab() {
         // console.log("ab called");

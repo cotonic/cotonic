@@ -1,5 +1,3 @@
-importScripts("/src/cotonic.mqtt.js");
-
 function initialize() {
     self.publish("connect-deps/init", true);
     return self.whenDependenciesProvided([]);

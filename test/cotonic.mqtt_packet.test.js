@@ -2,15 +2,11 @@
 // MQTT Packet Tests.
 //
 
-"use strict";
-
-var mqtt_packet = cotonic.mqtt_packet;
-
+import * as mqtt_packet from "cotonic.mqtt_packet";
 
 function string2bin( s ) {
     return new TextEncoder("utf-8").encode(s);
 }
-
 
 QUnit.test("Partial packet", function(assert) {
     var a, m, r, _;

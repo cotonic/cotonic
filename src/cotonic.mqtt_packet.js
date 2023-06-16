@@ -1162,4 +1162,4 @@ function init() {
 
 init();
 
-export { encode, decode, stringToUTF8, UTF8ToString };
+export { encoder as encode , decoder as decode, stringToUTF8, UTF8ToString };

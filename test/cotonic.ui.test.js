@@ -2,9 +2,7 @@
 // HTML Idom Tests.
 //
 
-"use strict";
-
-var ui = cotonic.ui;
+import * as ui from "cotonic.ui";
 
 QUnit.test("Basic render test", function(assert) {
     var i = 0, j = 0, k = 0;

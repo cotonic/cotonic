@@ -1,12 +1,27 @@
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="lib/qunit.css">
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "cotonic":  "/src/cotonic.js"
+                }
+            }
+        </script>
+
         <script src="lib/qunit.js"></script>
-        <script type="text/javascript"
-		src="/src/cotonic.js"
-		data-base-worker-src="http://localhost:6227/src/cotonic.worker.js"></script>
-        <script type="text/javascript" src="cotonic.test.js"></script>
+
+        <script type="text/javascript">
+            var cotonic = cotonic || {};
+            cotonic.config = {
+                base_worker_src: "/src/cotonic.worker.js"
+            }
+        </script>
+
+        <script type="module" src="cotonic.test.js"></script>
     </head>
     <body>
         <div id="qunit"></div>
