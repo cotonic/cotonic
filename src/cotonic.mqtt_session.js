@@ -784,7 +784,7 @@ function mqttSession( mqttBridgeTopics ) {
                 break;
             case 'publish':
                 let isPubOk = false;
-                let await;
+                let awaitRel;
                 switch (msg.qos) {
                     case 0:
                         isPubOk = true;
@@ -810,8 +810,8 @@ function mqttSession( mqttBridgeTopics ) {
                             packet_id: msg.packet_id
                         };
                         if (self.awaitingRel[msg.packet_id]) {
-                            await = self.awaitingRel[msg.packet_id];
-                            replyMsg.reason_code = await.reason_code;
+                            awaitRel = self.awaitingRel[msg.packet_id];
+                            replyMsg.reason_code = awaitRel.reason_code;
                         } else {
                             isPubOk = true;
                         }
@@ -829,8 +829,8 @@ function mqttSession( mqttBridgeTopics ) {
                     if (replyMsg) {
                         replyMsg.reason_code = MQTT_RC_SUCCESS;
                     }
-                    if (await) {
-                        await.reason_code = MQTT_RC_SUCCESS;
+                    if (awaitRel) {
+                        awaitRel.reason_code = MQTT_RC_SUCCESS;
                     }
                 }
                 break;

@@ -207,8 +207,10 @@ function ws ( remote, mqttSession, options ) {
             }
         };
 
-        if (cotonic.bridgeSocket && cotonic.bridgeSocket.url == self.remoteUrl) {
-            switch (cotonic.bridgeSocket.readyState) {
+        if (globalThis.cotonic
+            && globalThis.cotonic.bridgeSocket
+            && globalThis.cotonic.bridgeSocket.url == self.remoteUrl) {
+            switch (globalThis.cotonic.bridgeSocket.readyState) {
                 case 0:
                     self.socket = cotonic.bridgeSocket;
                     break;
@@ -219,7 +221,7 @@ function ws ( remote, mqttSession, options ) {
                 default:
                     break;
             }
-            cotonic.bridgeSocket = undefined;
+            globalThis.cotonic.bridgeSocket = undefined;
         }
         if (!self.socket) {
             // EMQ is erronously accepting any protocol starting with `mqtt`, so it accepts

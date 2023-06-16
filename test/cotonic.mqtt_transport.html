@@ -1,18 +1,20 @@
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
         <link rel="stylesheet" href="lib/qunit.css">
-        <script src="lib/qunit.js"></script>
-
         <script type="importmap">
             {
                 "imports": {
-                    "cotonic.mqtt_packet":  "/src/cotonic.mqtt_packet.js"
-                    "cotonic.mqtt_transport.ws":  "/src/cotonic.mqtt_transport.ws.js"
+                    "cotonic": "/src/cotonic.js",
+                    "cotonic.broker": "/src/cotonic.broker.js",
+                    "cotonic.mqtt": "/src/cotonic.mqtt.js",
+                    "cotonic.mqtt_packet": "/src/cotonic.mqtt_packet.js",
+                    "cotonic.mqtt_transport.ws": "/src/cotonic.mqtt_transport.ws.js"
                 }
             }
         </script>
-
+        <script src="lib/qunit.js"></script>
         <script type="module" src="cotonic.mqtt_transport.test.js"></script>
     </head>
     <body>

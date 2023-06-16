@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 import { fill, remove_named_wildcards } from "cotonic.mqtt";
 import { subscribe, publish, publish_mqtt_message, find_subscriptions_below } from "cotonic.broker";
+import * as mqtt_session from "cotonic.mqtt_session";
 
 const BRIDGE_LOCAL_TOPIC = "bridge/+name/#topic";
 const BRIDGE_STATUS_TOPIC = "$bridge/+name/status";
@@ -34,7 +35,7 @@ var bridges = {};
 var newBridge = function( remote, options ) {
     remote = remote || 'origin';
     options = options || {}; if(!options.mqtt_session) {
-        options.mqtt_session = cotonic.mqtt_session;
+        options.mqtt_session = mqtt_session;
     }
 
     let bridge = bridges[remote];
