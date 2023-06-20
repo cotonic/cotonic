@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { config } from "./cotonic.js";
 import { subscribe, publish } from "./cotonic.broker.js";
 
 let location = {};
@@ -33,7 +34,7 @@ function publishLocation() {
     const oldpathname = location.pathname;
     const oldsearch = location.search;
     const oldpathname_search = location.pathname_search;
-    const pathname_search = cotonic.config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
+    const pathname_search = config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
 
     location.protocol = window.location.protocol;
     location.port = window.location.port;

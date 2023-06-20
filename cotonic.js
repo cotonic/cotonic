@@ -953,6 +953,10 @@
   }
   cleanupSessionStorage();
 
+  // src/require_idom.js
+  var IncrementalDOM2 = require_incremental_dom_cjs();
+  globalThis.IncrementalDOM = IncrementalDOM2;
+
   // src/cotonic.idom.js
   var cotonic_idom_exports = {};
   __export(cotonic_idom_exports, {
@@ -5441,7 +5445,7 @@
     },
     { wid: "model.document" }
   );
-  broker.subscribe(
+  subscribe(
     "model/document/get/cookie/+key",
     (msg, bindings) => {
       if (msg.properties.response_topic) {
@@ -5827,7 +5831,7 @@
     const oldpathname = location.pathname;
     const oldsearch = location.search;
     const oldpathname_search = location.pathname_search;
-    const pathname_search = cotonic.config.pathname_search || document.body && document.body.getAttribute("data-cotonic-pathname-search") || "";
+    const pathname_search = config.pathname_search || document.body && document.body.getAttribute("data-cotonic-pathname-search") || "";
     location.protocol = window.location.protocol;
     location.port = window.location.port;
     location.host = window.location.host;
@@ -5962,14 +5966,14 @@
 
   // src/cotonic.model.serviceWorker.js
   var console3 = globalThis.console;
-  cotonic.load_config_defaults(
+  load_config_defaults(
     {
       start_service_worker: true,
       service_worker_src: "/cotonic-service-worker.js"
     }
   );
-  if (cotonic.config.start_service_worker && navigator.serviceWorker) {
-    navigator.serviceWorker.register(cotonic.config.service_worker_src).catch(
+  if (config.start_service_worker && navigator.serviceWorker) {
+    navigator.serviceWorker.register(config.service_worker_src).catch(
       function(error) {
         switch (error.name) {
           case "SecurityError":
@@ -6458,17 +6462,11 @@
   );
   init6();
 
-  // src/cotonic.event.js
-  ready.then(() => {
-    window.dispatchEvent(new Event("cotonic-ready"));
-  });
-  readyResolve();
-
   // src/index-bundle.js
-  var IncrementalDOM2 = require_incremental_dom_cjs();
-  window.IncrementalDOM = IncrementalDOM2;
-  var cotonic2 = cotonic2 || {};
-  globalThis.cotonic = cotonic2;
+  var cotonic2 = globalThis.cotonic || {};
+  if (!globalThis.cotonic) {
+    globalThis.cotonic = cotonic2;
+  }
   cotonic2.VERSION = VERSION;
   cotonic2.ready = ready;
   cotonic2.spawn = spawn;
@@ -6484,6 +6482,10 @@
   cotonic2.mqtt_session = cotonic_mqtt_session_exports;
   cotonic2.mqtt_bridge = cotonic_mqtt_bridge_exports;
   cotonic2.keyserver = cotonic_keyserver_exports;
+  cotonic2.ready.then(() => {
+    window.dispatchEvent(new Event("cotonic-ready"));
+  });
+  cotonic2.readyResolve();
 })();
 /**
  * @preserve

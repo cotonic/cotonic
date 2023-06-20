@@ -16,17 +16,18 @@
 
 /* Starts the service worker and adds message relay topics */
 
+import { config, load_config_defaults } from "./cotonic.js";
 import { publish, subscribe, publish_mqtt_message } from "./cotonic.broker.js";
 
 const console = globalThis.console;
 
-cotonic.load_config_defaults(
+load_config_defaults(
     {start_service_worker: true,
         service_worker_src: "/cotonic-service-worker.js"});
 
-if (cotonic.config.start_service_worker && navigator.serviceWorker) {
+if (config.start_service_worker && navigator.serviceWorker) {
     navigator.serviceWorker
-        .register(cotonic.config.service_worker_src)
+        .register(config.service_worker_src)
         .catch(
             function(error) {
                 switch (error.name) {

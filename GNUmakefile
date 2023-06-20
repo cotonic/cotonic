@@ -64,7 +64,6 @@ test/lib/qunit-composite.js:
 #		> dist/cotonic-bundle.js
 
 dist/cotonic-bundle.js: lib
-	--global-name='example.versions["1.0"]'
 	esbuild src/index-bundle.js --bundle --outfile=dist/cotonic-bundle.js
 
 dist/cotonic-worker-bundle.js: lib

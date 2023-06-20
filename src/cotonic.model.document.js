@@ -49,7 +49,7 @@ subscribe("model/document/get/+key",
 );
 
 // Used to fetch z.tz and z.lang cookies
-broker.subscribe("model/document/get/cookie/+key",
+subscribe("model/document/get/cookie/+key",
     (msg, bindings) => {
         if(msg.properties.response_topic) {
             publish(msg.properties.response_topic, getCookie(bindings.key));
