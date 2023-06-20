@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { patchOuter, patchInner } from "cotonic.idom";
-import { publish, call } from "cotonic.broker";
+import { patchOuter, patchInner } from "./cotonic.idom.js";
+import { publish, call } from "./cotonic.broker.js";
 
 const state = {};
 const order = [];

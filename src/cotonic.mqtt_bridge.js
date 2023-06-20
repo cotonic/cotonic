@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { fill, remove_named_wildcards } from "cotonic.mqtt";
-import { subscribe, publish, publish_mqtt_message, find_subscriptions_below } from "cotonic.broker";
-import * as mqtt_session from "cotonic.mqtt_session";
+import { fill, remove_named_wildcards } from "./cotonic.mqtt.js";
+import { subscribe, publish, publish_mqtt_message, find_subscriptions_below } from "./cotonic.broker.js";
+import * as mqtt_session from "./cotonic.mqtt_session.js";
 
 const BRIDGE_LOCAL_TOPIC = "bridge/+name/#topic";
 const BRIDGE_STATUS_TOPIC = "$bridge/+name/status";

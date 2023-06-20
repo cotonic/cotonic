@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { publish, subscribe, call } from "cotonic.broker";
+import { publish, subscribe, call } from "./cotonic.broker.js";
 import { on, get, insert, remove, update, render,
-    updateStateClass, updateStateData } from "cotonic.ui";
+    updateStateClass, updateStateData } from "./cotonic.ui.js";
 
 let is_activity_event = false;
 let render_serial = 1;

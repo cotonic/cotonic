@@ -16,7 +16,7 @@
 
 /* Starts the service worker and adds message relay topics */
 
-import { publish, subscribe, publish_mqtt_message } from "cotonic.broker";
+import { publish, subscribe, publish_mqtt_message } from "./cotonic.broker.js";
 
 const console = globalThis.console;
 

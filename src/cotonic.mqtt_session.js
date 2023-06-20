@@ -20,9 +20,9 @@
 // TODO: Drop QoS 0 messages if sendQueue gets too large
 // TODO: add support for WebRTC and SSE+post
 
-import { publish, subscribe, call } from "cotonic.broker";
-import { UTF8ToString } from "cotonic.mqtt_packet";
-import { newTransport as newWSTransport } from "cotonic.mqtt_transport.ws";
+import { publish, subscribe, call } from "./cotonic.broker.js";
+import { UTF8ToString } from "./cotonic.mqtt_packet.js";
+import { newTransport as newWSTransport } from "./cotonic.mqtt_transport.ws.js";
 
 const console = globalThis.console;
 

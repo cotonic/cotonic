@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { receive, send } from "cotonic";
-import { remove_named_wildcards, extract, matches } from "cotonic.mqtt";
+import { receive, send } from "./cotonic.js";
+import { remove_named_wildcards, extract, matches } from "./cotonic.mqtt.js";
 
 let clients;
 let root;

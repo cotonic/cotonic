@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { publish, subscribe } from "cotonic.broker";
+import { publish, subscribe } from "./cotonic.broker.js";
 
 function s4() {
     return Math.floor((1 + Math.random()) * 0x10000)
@@ -50,7 +50,7 @@ subscribe("model/sessionId/get",
             }
             publish(msg.properties.response_topic, value);
         }
-    }
+    },
     {wid: "model.sessionId"}
 );
 

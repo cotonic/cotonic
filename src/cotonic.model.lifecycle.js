@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { publish } from "cotonic.broker";
+import { publish } from "./cotonic.broker.js";
 
 const model = {
     state: undefined,

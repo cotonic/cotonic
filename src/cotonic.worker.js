@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { matches, extract, remove_named_wildcards } from "/src/cotonic.mqtt.js"
+import { matches, extract, remove_named_wildcards } from "./cotonic.mqtt.js"
 
 /*
  * TODO: this script now exports functions via the self global. This

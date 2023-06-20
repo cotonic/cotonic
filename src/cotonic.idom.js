@@ -17,7 +17,7 @@
 // TODO: Import incrementalDOM... 
 const idom = IncrementalDOM;
 
-import { tokens as getTokens } from "cotonic.tokenizer";
+import { tokens as getTokens } from "./cotonic.tokenizer.js";
 
 function render(tokens) {
     function renderToken(token) {

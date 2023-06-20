@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ready, readyResolve } from "cotonic";
+import { ready, readyResolve } from "./cotonic.js";
 
 ready.then(() => {
     window.dispatchEvent((new Event("cotonic-ready")));

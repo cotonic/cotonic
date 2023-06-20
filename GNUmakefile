@@ -5,54 +5,19 @@ $(shell mkdir -p $(DIRS))
 
 LIBS := $(wildcard lib/*)
 
-
 download = curl --create-dirs --location -f --output $(1) $(2)
-
-## Build cotonic for Zotonic - includes variant for deprecated wird ui
-
-ifeq (1,$(ZOTONIC_LIB))
-
-.PHONY: zotonic-lib
-
-all: release lib zotonic-lib
-
-zotonic-lib: dist dist/zotonic-wired-bundle.js
-	mkdir -p ../../lib/cotonic/.
-	cp lib/* ../../lib/cotonic/.
-	cp dist/* ../../lib/cotonic/.
-	cp src/* ../../lib/cotonic/.
-
-dist/zotonic-wired-bundle.js: lib
-	cat lib/incremental-dom-min.js \
-		src/empty.js \
-		src/cotonic.js \
-		src/cotonic.ui.js \
-		src/cotonic.tokenizer.js \
-		src/cotonic.mqtt.js \
-		src/cotonic.broker.js \
-		src/cotonic.mqtt_packet.js \
-		src/cotonic.mqtt_transport.ws.js \
-		src/cotonic.mqtt_session.js  \:
-		src/cotonic.mqtt_bridge.js \
-		src/cotonic.model.*.js \
-		src/cotonic.keyserver.js \
-		src/cotonic.idom.js \
-		src/cotonic.event.js \
-		| grep -v '^//# sourceMappingURL=' \
-		 > dist/zotonic-wired-bundle.js
-else
-
-all: lib
-
-endif
 
 ## Deps
 
-lib: lib/incremental-dom.js lib/incremental-dom-min.js
+lib: lib/incremental-dom.js lib/incremental-dom-min.js lib/incremental-dom-cjs.js
 
 lib/incremental-dom.js:
 	$(call download, "$@", \
 	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom.js")
+
+lib/incremental-dom-cjs.js:
+	$(call download, "$@", \
+	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom-cjs.js")
 
 lib/incremental-dom-min.js:
 	$(call download, "$@", \
@@ -79,29 +44,31 @@ test/lib/qunit-composite.js:
 			"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.js")
 
 
+#dist/cotonic-bundle.js: lib
+#	cat lib/incremental-dom-min.js \
+#		src/empty.js \
+#		src/cotonic.js \
+#		src/cotonic.idom.js \
+#		src/cotonic.tokenizer.js \
+#		src/cotonic.ui.js \
+#		src/cotonic.mqtt.js \
+#		src/cotonic.broker.js \
+#		src/cotonic.mqtt_packet.js \
+#		src/cotonic.mqtt_transport.ws.js \
+#		src/cotonic.mqtt_session.js  \
+#		src/cotonic.mqtt_bridge.js \
+#		src/cotonic.model.*.js \
+#		src/cotonic.keyserver.js \
+#		src/cotonic.event.js \
+#		| grep -v '^//# sourceMappingURL=' \
+#		> dist/cotonic-bundle.js
+
 dist/cotonic-bundle.js: lib
-	cat lib/incremental-dom-min.js \
-		src/empty.js \
-		src/cotonic.js \
-		src/cotonic.idom.js \
-		src/cotonic.tokenizer.js \
-		src/cotonic.ui.js \
-		src/cotonic.mqtt.js \
-		src/cotonic.broker.js \
-		src/cotonic.mqtt_packet.js \
-		src/cotonic.mqtt_transport.ws.js \
-		src/cotonic.mqtt_session.js  \
-		src/cotonic.mqtt_bridge.js \
-		src/cotonic.model.*.js \
-		src/cotonic.keyserver.js \
-		src/cotonic.event.js \
-		| grep -v '^//# sourceMappingURL=' \
-		> dist/cotonic-bundle.js
+	--global-name='example.versions["1.0"]'
+	esbuild src/index-bundle.js --bundle --outfile=dist/cotonic-bundle.js
 
 dist/cotonic-worker-bundle.js: lib
-	cat src/cotonic.mqtt.js \
-		src/cotonic.worker.js \
-		> dist/cotonic-worker-bundle.js
+	esbuild src/index-worker-bundle.js --bundle --outfile=dist/cotonic-worker-bundle.js
 
 dist/cotonic-service-worker-bundle.js: lib
 	cat src/cotonic.service-worker.js \

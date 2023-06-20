@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { subscribe, publish } from "cotonic.broker";
+import { subscribe, publish } from "./cotonic.broker.js";
 
 subscribe("model/localStorage/get/+key",
     (msg, bindings) => {

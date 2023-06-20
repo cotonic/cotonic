@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { publish, subscribe } from "cotonic.broker";
+import { publish, subscribe } from "./cotonic.broker.js";
 
 // Direct key / value
 subscribe("model/sessionStorage/get/+key",

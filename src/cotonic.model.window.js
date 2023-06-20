@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { publish, subscribe } from "cotonic.broker"; 
+import { publish, subscribe } from "./cotonic.broker.js"; 
 
 function init() {
     publish("model/window/event/ping", "pong", { retain: true });

@@ -22,8 +22,8 @@ const WS_CONTROLLER_PATH = '/mqtt-transport'; // Default controller for websocke
 const WS_CONNECT_DELAY = 20;                  // Wait 20msec before connecting via ws
 const WS_PERIODIC_DELAY = 1000;               // Every second check the ws connection
 
-import { encode, decode } from "cotonic.mqtt_packet";
-import { subscribe, unsubscribe } from "cotonic.broker";
+import { encode, decode } from "./cotonic.mqtt_packet.js";
+import { subscribe, unsubscribe } from "./cotonic.broker.js";
 
 function newTransport( remote, mqttSession, options ) {
     return new ws(remote, mqttSession, options);

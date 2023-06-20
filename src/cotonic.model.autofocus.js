@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { subscribe, publish } from "cotonic.broker";
-import { fill } from "cotonic.mqtt";
+import { subscribe, publish } from "./cotonic.broker.js";
+import { fill } from "./cotonic.mqtt.js";
 
 function isInputElementActive() {
     if (!document.activeElement) {
