@@ -4810,10 +4810,10 @@
       return self.packetId;
     }
     function localPublish(topic, msg, opts) {
-      publish2(topic, msg, opts);
+      publish(topic, msg, opts);
     }
     function localSubscribe(topic, callback) {
-      subscribe2(topic, callback);
+      subscribe(topic, callback);
     }
     function publishStatus(isConnected) {
       localPublish(

@@ -20,7 +20,7 @@
 // TODO: Drop QoS 0 messages if sendQueue gets too large
 // TODO: add support for WebRTC and SSE+post
 
-import { publish, subscribe, call } from "./cotonic.broker.js";
+import { publish as brokerPublish, subscribe as brokerSubscribe, call as brokerCall } from "./cotonic.broker.js";
 import { UTF8ToString } from "./cotonic.mqtt_packet.js";
 import { newTransport as newWSTransport } from "./cotonic.mqtt_transport.ws.js";
 
@@ -39,7 +39,7 @@ const console = globalThis.console;
 
 // Lookup list of all remotes with their connections
 // One of them is 'origin' (which is a special case)
-var sessions = {};
+const sessions = {};
 
 const MQTT_KEEP_ALIVE = 300;                  // Default PINGREQ interval in seconds
 const MQTT_SESSION_EXPIRY = 1800;             // Expire the session if we couldn't reconnect in 30 minutes
@@ -56,7 +56,6 @@ var newSession = function( remote, bridgeTopics, options ) {
     if (sessions[remote]) {
         return sessions[remote];
     } else {
-        // console.log("new-session");
         let ch = new mqttSession(bridgeTopics);
         sessions[remote] = ch;
         ch.connect(remote, options);
@@ -79,7 +78,7 @@ function init() {
     /**
      * Called if the authentication on the origin connection is changing
      */
-    subscribe('model/auth/event/auth-changing', function(_msg) {
+    brokerSubscribe('model/auth/event/auth-changing', function(_msg) {
         if (sessions['origin']) {
             sessions['origin'].disconnect( MQTT_RC_DISCONNECT_WITH_WILL );
         }
@@ -88,7 +87,7 @@ function init() {
     /**
      * Called if a new origin identity has been established
      */
-    subscribe('model/auth/event/auth-user-id', function(_msg) {
+    brokerSubscribe('model/auth/event/auth-user-id', function(_msg) {
         if (sessions['origin']) {
             sessions['origin'].reconnect('origin');
         }
@@ -97,7 +96,7 @@ function init() {
     /**
      * Called if there are new language / timezone preferences
      */
-    subscribe("model/auth/event/auth", function(msg) {
+    brokerSubscribe("model/auth/event/auth", function(msg) {
         if (typeof msg.payload == 'object') {
             if (sessions['origin'] && sessions['origin'].isConnected()) {
                 let data = {
@@ -106,7 +105,7 @@ function init() {
                     preferences: msg.payload.preferences || {}
                 }
                 let topic = 'bridge/origin/$client/' + sessions['origin'].clientId + "/auth";
-                publish(topic, data, { qos: 0 });
+                brokerPublish(topic, data, { qos: 0 });
             }
         }
     });
@@ -115,14 +114,14 @@ function init() {
     /**
      * Called if the cotonic-sid changes.
      */
-    subscribe("model/sessionId/event", function(msg) {
+    brokerSubscribe("model/sessionId/event", function(msg) {
         if (typeof msg.payload == 'string') {
             if (sessions['origin'] && sessions['origin'].isConnected()) {
                 let data = {
                     options: { sid: msg.payload }
                 }
                 let topic = 'bridge/origin/$client/' + sessions['origin'].clientId + "/sid";
-                publish(topic, data, { qos: 0 });
+                brokerPublish(topic, data, { qos: 0 });
             }
         }
     });
@@ -263,7 +262,7 @@ function mqttSession( mqttBridgeTopics ) {
         // Connection established - try to send out 'connect'
         if (transportName == 'ws') {
             if (isStateNew()) {
-                call("model/sessionId/get")
+                brokerCall("model/sessionId/get")
                     .then(function(msg) {
                         let connectMessage = {
                             type: 'connect',
@@ -905,14 +904,14 @@ function mqttSession( mqttBridgeTopics ) {
      * Publish a message to the broker
      */
     function localPublish( topic, msg, opts ) {
-        publish(topic, msg, opts);
+        brokerPublish(topic, msg, opts);
     }
 
     /**
      * Subscribe to a topic on the broker
      */
     function localSubscribe( topic, callback ) {
-        subscribe(topic, callback);
+        brokerSubscribe(topic, callback);
     }
 
     /**
