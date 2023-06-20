@@ -6469,6 +6469,7 @@
   }
   cotonic2.VERSION = VERSION;
   cotonic2.ready = ready;
+  cotonic2.readyResolve = readyResolve;
   cotonic2.spawn = spawn;
   cotonic2.spawn_named = spawn_named;
   cotonic2.whereis = whereis;

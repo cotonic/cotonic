@@ -2,7 +2,7 @@
 // Broker Tests.
 //
 
-import * as broker from "cotonic.broker";
+import * as broker from "/src/cotonic.broker.js";
 
 QUnit.test("Subscribe and publish, no wildcards", function(assert) {
     let publishes = [];

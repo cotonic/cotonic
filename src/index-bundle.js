@@ -1,5 +1,5 @@
 
-import { VERSION, config, ready, spawn, spawn_named, whereis } from "./cotonic.js";
+import { VERSION, config, ready, readyResolve, spawn, spawn_named, whereis } from "./cotonic.js";
 
 import "./require_idom.js"; // Exports a global IncrementalDOM reference.
 
@@ -32,6 +32,7 @@ if(!globalThis.cotonic) {
 
 cotonic.VERSION = VERSION;
 cotonic.ready = ready;
+cotonic.readyResolve = readyResolve;
 cotonic.spawn = spawn;
 cotonic.spawn_named = spawn_named;
 cotonic.whereis = whereis;

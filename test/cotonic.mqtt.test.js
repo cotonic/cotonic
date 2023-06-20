@@ -2,9 +2,7 @@
 // mqtt topic match tests
 //
 
-"use strict";
-
-import * as mqtt from "cotonic.mqtt";
+import * as mqtt from "/src/cotonic.mqtt.js";
 
 QUnit.test("matches() supports patterns with no wildcards", function (assert) {
     assert.ok(mqtt.matches("foo/bar/baz", "foo/bar/baz"), "Matched topic");

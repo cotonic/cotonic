@@ -2,8 +2,8 @@
 // LocalStorage model tests
 //
 
-import * as localStorage from "cotonic.model.localStorage";
-import * as broker from "cotonic.broker";
+import * as localStorage from "/src/cotonic.model.localStorage.js";
+import * as broker from "/src/cotonic.broker.js";
 
 QUnit.test("test.model.localStorage - post, and post remove", function(assert) {
     broker.publish("model/localStorage/post/foo", "bar");

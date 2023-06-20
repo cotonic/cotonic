@@ -2,7 +2,7 @@
 // MQTT Packet Tests.
 //
 
-import * as mqtt_packet from "cotonic.mqtt_packet";
+import * as mqtt_packet from "/src/cotonic.mqtt_packet.js";
 
 function string2bin( s ) {
     return new TextEncoder("utf-8").encode(s);

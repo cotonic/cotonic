@@ -1,7 +1,5 @@
 
-"use strict";
-
-import * as broker from "cotonic.broker";
+import * as broker from "/src/cotonic.broker.js";
 
 QUnit.test("Basic render test", function(assert) {
     broker.publish("model/ui/insert/ui-test-1", {

@@ -1,6 +1,6 @@
 "use strict";
 
-import * as keyserver from "cotonic.keyserver";
+import * as keyserver from "/src/cotonic.keyserver.js";
 
 QUnit.test("Generate random nonces", function(assert) {
     let nonce1 = keyserver.randomNonce();

@@ -2,8 +2,8 @@
 // Event Tests.
 //
 
-import { ready } from "cotonic";
-import * as event from "cotonic.event";
+import { ready } from "/src/cotonic.js";
+import * as event from "/src/cotonic.event.js";
 
 QUnit.test("cotonic.event has resolved cotonic.ready promise", function(assert) {
     assert.timeout(1000);

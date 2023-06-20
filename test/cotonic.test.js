@@ -2,7 +2,7 @@
 // HTML Worker Tests.
 //
 
-import * as cotonic from "cotonic";
+import * as cotonic from "/src/cotonic.js";
 
 QUnit.test("Spawn workers", function(assert) {
     var worker_id1 = cotonic.spawn("http://localhost:6227/test/hello-page-worker.js", ["worker_id1"]);
