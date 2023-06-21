@@ -491,6 +491,14 @@ actions.import_done = function(e) {
     model.present({import_done:true});
 }
 
+actions.import_failed = function(e) {
+    // TODO should be reported to the main script.
+    // Note: Firefox does not display the filename nor the 
+    //       line number where the error occurred.
+    console.error("Spawn import failed:", e);
+}
+
+
 actions.disconnect = client_cmd.bind(null, "disconnect");
 actions.connect = client_cmd.bind(null, "connect");
 actions.subscribe = client_cmd.bind(null, "subscribe");
@@ -704,7 +712,9 @@ function handle_init(e) {
     model.is_importing = true;
 
     if(url) {
-        import(url).then(actions.import_done)
+        import(url)
+            .then(actions.import_done)
+            .catch(actions.import_failed)
     } else {
         setTimeout(actions.import_done, 0);
     } 

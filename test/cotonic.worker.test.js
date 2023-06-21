@@ -225,4 +225,33 @@ QUnit.test("on_init is called before connect.",
     }
 );
 
+QUnit.test("Start worker with a syntax error.",
+    (assert) => {
+        assert.timeout(1000);
+        var done = assert.async();
+        // There is currently no way to check if the error from the
+        // worker is handled.
+        setTimeout(() => {
+            assert.equal(true, true, "");
+            done()
+        }, 500);
 
+        spawn("/test/workers/syntax-error.js");
+    }
+);
+ 
+QUnit.test("Start worker with a runtime error.",
+    (assert) => {
+        assert.timeout(1000);
+        var done = assert.async();
+        // There is currently no way to check if the error from the
+        // worker is handled.
+        setTimeout(() => {
+            assert.equal(true, true, "");
+            done()
+        }, 500);
+
+        spawn("/test/workers/runtime-error.js");
+    }
+);
+ 
