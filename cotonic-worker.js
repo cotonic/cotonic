@@ -662,3 +662,8 @@
   cotonic.mqtt = cotonic_mqtt_exports;
   globalThis.cotonic = cotonic;
 })();
+/**
+ * @preserve
+ * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */

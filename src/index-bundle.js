@@ -1,6 +1,29 @@
+/**
+ * @preserve
+ * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+
+/**
+ * Copyright 2023 The Cotonic Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import { VERSION, config, ready, readyResolve, spawn, spawn_named, whereis } from "./cotonic.js";
 
+// Can be changed to normal esm import when IncrementalDOM supports this.
 import "./require_idom.js"; // Exports a global IncrementalDOM reference.
 
 import * as idom from "./cotonic.idom.js";
@@ -13,6 +36,7 @@ import * as mqtt_transport_ws from "./cotonic.mqtt_transport.ws.js";
 import * as mqtt_session from "./cotonic.mqtt_session.js";
 import * as mqtt_bridge from "./cotonic.mqtt_bridge.js";
 import * as keyserver from "./cotonic.keyserver.js";
+import { triggerCotonicReady }  from "./cotonic.event.js";
 
 import "./cotonic.model.autofocus.js";
 import "./cotonic.model.document.js";
@@ -32,7 +56,6 @@ if(!globalThis.cotonic) {
 
 cotonic.VERSION = VERSION;
 cotonic.ready = ready;
-cotonic.readyResolve = readyResolve;
 cotonic.spawn = spawn;
 cotonic.spawn_named = spawn_named;
 cotonic.whereis = whereis;
@@ -48,9 +71,4 @@ cotonic.mqtt_session = mqtt_session;
 cotonic.mqtt_bridge = mqtt_bridge;
 cotonic.keyserver = keyserver;
 
-cotonic.ready.then(() => {
-        window.dispatchEvent((new Event("cotonic-ready")));
-});
-
-// Resolve the cotonic.ready promise
-cotonic.readyResolve();
+triggerCotonicReady();

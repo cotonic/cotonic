@@ -16,9 +16,14 @@
 
 import { ready, readyResolve } from "./cotonic.js";
 
-ready.then(() => {
-    window.dispatchEvent((new Event("cotonic-ready")));
-});
+function triggerCotonicReady() {
+    ready.then(() => {
+            window.dispatchEvent((new Event("cotonic-ready")));
+    });
 
-// Resolve the cotonic.ready promise
-readyResolve();
+    // Resolve the cotonic.ready promise
+    readyResolve();
+}
+
+export { triggerCotonicReady };
+

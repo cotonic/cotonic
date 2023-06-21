@@ -5,6 +5,8 @@
 import { ready } from "/src/cotonic.js";
 import * as event from "/src/cotonic.event.js";
 
+event.triggerCotonicReady();
+
 QUnit.test("cotonic.event has resolved cotonic.ready promise", function(assert) {
     assert.timeout(1000);
     let done = assert.async();

@@ -5383,6 +5383,14 @@
     return r;
   }
 
+  // src/cotonic.event.js
+  function triggerCotonicReady() {
+    ready.then(() => {
+      window.dispatchEvent(new Event("cotonic-ready"));
+    });
+    readyResolve();
+  }
+
   // src/cotonic.model.autofocus.js
   function isInputElementActive() {
     if (!document.activeElement) {
@@ -6469,7 +6477,6 @@
   }
   cotonic2.VERSION = VERSION;
   cotonic2.ready = ready;
-  cotonic2.readyResolve = readyResolve;
   cotonic2.spawn = spawn;
   cotonic2.spawn_named = spawn_named;
   cotonic2.whereis = whereis;
@@ -6483,13 +6490,15 @@
   cotonic2.mqtt_session = cotonic_mqtt_session_exports;
   cotonic2.mqtt_bridge = cotonic_mqtt_bridge_exports;
   cotonic2.keyserver = cotonic_keyserver_exports;
-  cotonic2.ready.then(() => {
-    window.dispatchEvent(new Event("cotonic-ready"));
-  });
-  cotonic2.readyResolve();
+  triggerCotonicReady();
 })();
 /**
  * @preserve
  * Copyright 2015 The Incremental DOM Authors. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+/**
+ * @preserve
+ * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0.
  */
