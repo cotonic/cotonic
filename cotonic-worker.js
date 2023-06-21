@@ -481,6 +481,9 @@
   actions.import_done = function(e) {
     model.present({ import_done: true });
   };
+  actions.import_failed = function(e) {
+    console.error("Spawn import failed:", e);
+  };
   actions.disconnect = client_cmd.bind(null, "disconnect");
   actions.connect = client_cmd.bind(null, "connect");
   actions.subscribe = client_cmd.bind(null, "subscribe");
@@ -648,7 +651,7 @@
     const url = e.data[1].url;
     model.is_importing = true;
     if (url) {
-      import(url).then(actions.import_done);
+      import(url).then(actions.import_done).catch(actions.import_failed);
     } else {
       setTimeout(actions.import_done, 0);
     }
