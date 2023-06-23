@@ -317,7 +317,7 @@ var cotonic = cotonic || {};
         }
 
         function remoteClientTopic ( topic ) {
-            return "bridge/" + self.routingId + "/" + topic;
+            return "bridge/" + self.clientId + "/" + topic;
         }
 
         function localRoutingTopic ( topic ) {
