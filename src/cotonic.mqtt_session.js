@@ -260,7 +260,7 @@ function mqttSession( mqttBridgeTopics ) {
      */
     this.connected = function ( transportName ) {
         // Connection established - try to send out 'connect'
-        if (transportName == 'ws') {
+        if (transportName === 'ws') {
             if (isStateNew()) {
                 brokerCall("model/sessionId/get")
                     .then(function(msg) {

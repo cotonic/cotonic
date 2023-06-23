@@ -2747,10 +2747,14 @@
     return "reply/page-" + response_nr++ + "-" + Math.random();
   }
   function initialize(options) {
-    var _a;
+    var _a, _b, _c;
     retained_prefix = (_a = options == null ? void 0 : options.retained_prefix) != null ? _a : "c_retained$";
-    flush();
-    delete_all_retained();
+    if ((_b = options == null ? void 0 : options.flush) != null ? _b : true) {
+      flush();
+    }
+    if ((_c = options == null ? void 0 : options.delete_all_retained) != null ? _c : true) {
+      delete_all_retained();
+    }
   }
 
   // src/default_broker_init.js
