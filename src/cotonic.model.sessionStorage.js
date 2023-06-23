@@ -25,7 +25,7 @@ subscribe("model/sessionStorage/get/+key",
                 try { value = JSON.parse(value); }
                 catch (e) { }
             }
-            cotonic.broker.publish(msg.properties.response_topic, value);
+            publish(msg.properties.response_topic, value);
         }
     },
     {wid: "model.sessionStorage"}
@@ -35,9 +35,9 @@ subscribe("model/sessionStorage/post/+key",
     function(msg, bindings) {
         window.sessionStorage.setItem(bindings.key, JSON.stringify(msg.payload));
         if (msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, msg.payload);
+            publish(msg.properties.response_topic, msg.payload);
         }
-        cotonic.broker.publish("model/sessionStorage/event/" + bindings.key, msg.payload);
+        publish("model/sessionStorage/event/" + bindings.key, msg.payload);
     },
     {wid: "model.sessionStorage"}
 );
