@@ -811,158 +811,96 @@
     }
   });
 
-  // src/cotonic.js
-  var VERSION = "1.4.0";
-  var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
-  (function() {
-    const currentScript = document.currentScript;
-    if (currentScript && currentScript.getAttribute("data-base-worker-src")) {
-      load_config_defaults({ base_worker_src: currentScript.getAttribute("data-base-worker-src") });
-    } else {
-      load_config_defaults({ base_worker_src: "/lib/cotonic/cotonic-worker-bundle.js?v=1" });
-    }
-  })();
-  var next_worker_id = 1;
-  var workers = {};
-  var named_worker_ids = {};
-  var receive_handler = null;
-  function load_config_defaults(options) {
-    for (let key in options) {
-      if (!config.hasOwnProperty(key)) {
-        config[key] = options[key];
-      }
-    }
-  }
-  function message_from_worker(wid, msg) {
-    var data = msg.data;
-    if (receive_handler) {
-      receive_handler(data, wid);
-    } else {
-      console.log("Unhandled message from worker", wid, msg);
-    }
-  }
-  function error_from_worker(wid, e) {
-    console.log("Error from worker", wid, e);
-  }
-  function spawn(url, args) {
-    if (!config.base_worker_src) {
-      throw "Can't spawn worker, no data-base-worker-src attribute set.";
-    }
-    return spawn_named("", url, config.base_worker_src, args);
-  }
-  function spawn_named(name, url, base, args) {
-    if (name && named_worker_ids[name]) {
-      return named_worker_ids[name];
-    }
-    base = base || config.base_worker_src;
-    if (!base) {
-      throw "Can't spawn worker, no data-base-worker-src attribute set.";
-    }
-    const worker_id = next_worker_id++;
-    const worker = new Worker(base, {
-      name: name ? name : worker_id.toString(),
-      type: "module"
-    });
-    worker.postMessage(["init", {
-      url: ensure_hostname(url),
-      args,
-      wid: worker_id,
-      name,
-      location: {
-        origin: window.location.origin,
-        protocol: window.location.protocol,
-        hostname: window.location.hostname,
-        host: window.location.host,
-        pathname: window.location.pathname,
-        search: window.location.search,
-        hash: window.location.hash
-      }
-    }]);
-    worker.name = name;
-    worker.onmessage = message_from_worker.bind(this, worker_id);
-    worker.onerror = error_from_worker.bind(this, worker_id);
-    workers[worker_id] = worker;
-    if (name) {
-      named_worker_ids[name] = worker_id;
-    }
-    return worker_id;
-  }
-  function ensure_hostname(url) {
-    if (!url.startsWith("http:") && !url.startsWith("https:")) {
-      if (!url.startsWith("/")) {
-        url = "/" + url;
-      }
-      url = window.location.protocol + "//" + window.location.host + url;
-    }
-    return url;
-  }
-  function send(wid, message) {
-    if (wid === 0) {
-      setTimeout(() => {
-        handler(message, wid);
-      }, 0);
-      return;
-    }
-    const worker = workers[wid];
-    if (worker) {
-      worker.postMessage(message);
-    }
-  }
-  function whereis(name) {
-    if (name && named_worker_ids[name]) {
-      return named_worker_ids[name];
-    }
-    return void 0;
-  }
-  function receive(handler2) {
-    receive_handler = handler2;
-  }
-  function cleanupSessionStorage() {
-    if (!window.name || window.name == "null") {
-      window.name = makeid(32);
-    }
-    if (sessionStorage.getItem("windowName") != window.name) {
-      let keys = Object.keys(sessionStorage);
-      for (let i in keys) {
-        let k = keys[i];
-        if (!k.match(/^persist-/)) {
-          sessionStorage.removeItem(k);
-        }
-      }
-    }
-    sessionStorage.setItem("windowName", window.name);
-  }
-  function makeid(length) {
-    let result = "";
-    let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let len = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * len));
-    }
-    return result;
-  }
-  var ready;
-  var readyResolve;
-  if (globalThis.cotonic && globalThis.cotonic.ready) {
-    ready = cotonic.ready;
-    readyResolve = cotonic.readyResolve;
-  } else {
-    ready = new Promise((resolve) => {
-      readyResolve = resolve;
-    });
-  }
-  cleanupSessionStorage();
-
-  // src/require_idom.js
-  var IncrementalDOM2 = require_incremental_dom_cjs();
-  globalThis.IncrementalDOM = IncrementalDOM2;
-
-  // src/cotonic.idom.js
-  var cotonic_idom_exports = {};
-  __export(cotonic_idom_exports, {
-    patchInner: () => patchInner,
-    patchOuter: () => patchOuter
+  // src/cotonic.mqtt.js
+  var cotonic_mqtt_exports = {};
+  __export(cotonic_mqtt_exports, {
+    exec: () => exec,
+    extract: () => extract,
+    fill: () => fill,
+    matches: () => matches,
+    remove_named_wildcards: () => remove_named_wildcards
   });
+  var SEPARATOR = "/";
+  var SINGLE = "+";
+  var ALL = "#";
+  function exec(pattern, topic) {
+    return matches(pattern, topic) ? extract(pattern, topic) : null;
+  }
+  function matches(pattern, topic) {
+    var patternSegments = pattern.split(SEPARATOR);
+    var topicSegments = topic.split(SEPARATOR);
+    var patternLength = patternSegments.length;
+    var topicLength = topicSegments.length;
+    var lastIndex = patternLength - 1;
+    for (var i = 0; i < patternLength; i++) {
+      var currentPattern = patternSegments[i];
+      var patternChar = currentPattern[0];
+      var currentTopic = topicSegments[i];
+      if (!currentTopic && !currentPattern)
+        continue;
+      if (!currentTopic && currentPattern !== ALL)
+        return false;
+      if (patternChar === ALL)
+        return i === lastIndex;
+      if (patternChar !== SINGLE && currentPattern !== currentTopic)
+        return false;
+    }
+    return patternLength === topicLength;
+  }
+  function fill(pattern, params) {
+    var patternSegments = pattern.split(SEPARATOR);
+    var patternLength = patternSegments.length;
+    var result = [];
+    for (var i = 0; i < patternLength; i++) {
+      var currentPattern = patternSegments[i];
+      var patternChar = currentPattern[0];
+      var patternParam = currentPattern.slice(1);
+      var paramValue = params[patternParam];
+      if (patternChar === ALL) {
+        if (paramValue !== void 0)
+          result.push([].concat(paramValue).join(SEPARATOR));
+        break;
+      } else if (patternChar === SINGLE)
+        result.push("" + paramValue);
+      else
+        result.push(currentPattern);
+    }
+    return result.join(SEPARATOR);
+  }
+  function extract(pattern, topic) {
+    var params = {};
+    var patternSegments = pattern.split(SEPARATOR);
+    var topicSegments = topic.split(SEPARATOR);
+    var patternLength = patternSegments.length;
+    for (var i = 0; i < patternLength; i++) {
+      var currentPattern = patternSegments[i];
+      var patternChar = currentPattern[0];
+      if (currentPattern.length === 1)
+        continue;
+      if (patternChar === ALL) {
+        params[currentPattern.slice(1)] = topicSegments.slice(i);
+        break;
+      } else if (patternChar === SINGLE) {
+        params[currentPattern.slice(1)] = topicSegments[i];
+      }
+    }
+    return params;
+  }
+  function remove_named_wildcards(pattern) {
+    var patternSegments = pattern.split(SEPARATOR);
+    var patternLength = patternSegments.length;
+    var mqttPattern = [];
+    for (var i = 0; i < patternLength; i++) {
+      var currentPattern = patternSegments[i];
+      var patternChar = currentPattern[0];
+      if (patternChar === ALL || patternChar == SINGLE) {
+        mqttPattern.push(patternChar);
+      } else {
+        mqttPattern.push(currentPattern);
+      }
+    }
+    return mqttPattern.join(SEPARATOR);
+  }
 
   // src/cotonic.tokenizer.js
   var cotonic_tokenizer_exports = {};
@@ -1843,7 +1781,427 @@
     };
   }();
 
+  // src/cotonic.keyserver.js
+  var cotonic_keyserver_exports = {};
+  __export(cotonic_keyserver_exports, {
+    DIRECT: () => DIRECT,
+    PUBLISH: () => PUBLISH,
+    SESSION_KEY: () => SESSION_KEY,
+    SUBSCRIBE: () => SUBSCRIBE,
+    TICKETS: () => TICKETS,
+    decodeSecurePublish: () => decodeSecurePublish,
+    decryptResponse: () => decryptResponse,
+    decryptSecurePublish: () => decryptSecurePublish,
+    encodeSecurePublish: () => encodeSecurePublish,
+    encryptConnectMessage: () => encryptConnectMessage,
+    encryptRequest: () => encryptRequest,
+    encryptSecurePublish: () => encryptSecurePublish,
+    generateKey: () => generateKey,
+    publicEncKey: () => publicEncKey,
+    randomIV: () => randomIV,
+    randomNonce: () => randomNonce,
+    toBigUnsignedInt: () => toBigUnsignedInt
+  });
+  var KEY_BYTES = 32;
+  var IV_BYTES = 16;
+  var KEY_ID_BYTES = 4;
+  var NONCE_BYTES = 8;
+  var AES_GCM_TAG_SIZE = 16;
+  var V1 = 49;
+  var HELLO = 72;
+  var PUBLISH = 80;
+  var SUBSCRIBE = 83;
+  var DIRECT = 68;
+  var TICKETS = 84;
+  var SESSION_KEY = 75;
+  var SECURE_PUBLISH = 69;
+  var textEncoder = new TextEncoder("utf-8");
+  var textDecoder = new TextDecoder("utf-8");
+  function randomNonce() {
+    let nonce = new Uint8Array(NONCE_BYTES);
+    crypto.getRandomValues(nonce);
+    return nonce;
+  }
+  function randomIV() {
+    let iv = new Uint8Array(IV_BYTES);
+    crypto.getRandomValues(iv);
+    return iv;
+  }
+  function generateKey() {
+    return crypto.subtle.generateKey(
+      { name: "AES-GCM", length: KEY_BYTES * 8 },
+      true,
+      ["encrypt", "decrypt"]
+    );
+  }
+  function publicEncKey() {
+    return crypto.subtle.importKey(
+      "jwk",
+      keyserver_public_encrypt_key,
+      { name: "RSA-OAEP", hash: { name: "SHA-256" } },
+      false,
+      ["encrypt"]
+    );
+  }
+  function exportKey(key) {
+    return crypto.subtle.exportKey("raw", key);
+  }
+  function encodeHelloMessage(id, encodedKey, encodedNonce) {
+    const encodedId = textEncoder.encode(id);
+    const eKey = new Uint8Array(encodedKey);
+    let msg = new Uint8Array(2 + KEY_BYTES + NONCE_BYTES + encodedId.length);
+    msg[0] = V1;
+    msg[1] = HELLO;
+    msg.set(encodedKey, 2);
+    msg.set(encodedNonce, 2 + KEY_BYTES);
+    msg.set(encodedId, 2 + KEY_BYTES + NONCE_BYTES);
+    return msg;
+  }
+  function encryptConnectMessage(id, key, nonce, pubServerEncKey) {
+    return exportKey(key).then(function(encodedKey) {
+      const msg = encodeHelloMessage(id, encodedKey, nonce);
+      return crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubServerEncKey, msg);
+    });
+  }
+  function encodePublish(request) {
+    const topic = textEncoder.encode(request.topic);
+    let msg = new Uint8Array(1 + topic.length);
+    msg[0] = PUBLISH;
+    msg.set(topic, 1);
+    return msg;
+  }
+  function encodeSubscribe(request) {
+    const topic = textEncoder.encode(request.topic);
+    let msg = new Uint8Array(1 + KEY_ID_BYTES + topic.length);
+    msg[0] = SUBSCRIBE;
+    msg.set(request.keyId, 1);
+    msg.set(topic, 1 + KEY_ID_BYTES);
+    return msg;
+  }
+  function encodeDirect(request) {
+    const otherId = textEncoder.encode(request.otherId);
+    let msg = new Uint8Array(1 + otherId.length);
+    msg[0] = DIRECT;
+    msg.set(otherId, 1);
+    return msg;
+  }
+  function encodeRequest(request) {
+    switch (request.type) {
+      case PUBLISH:
+        return encodePublish(request);
+      case SUBSCRIBE:
+        return encodeSubscribe(request);
+      case DIRECT:
+        return encodeDirect(request);
+      default:
+        throw new Error("Unknown request");
+    }
+  }
+  function encryptRequest(id, nonce, request, key, iv) {
+    const encId = textEncoder.encode(id);
+    let req = encodeRequest(request);
+    let msg = new Uint8Array(1 + NONCE_BYTES + req.length);
+    msg[0] = V1;
+    msg.set(nonce, 1);
+    msg.set(req, 1 + NONCE_BYTES);
+    return crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv,
+        additionalData: encId,
+        tagLength: AES_GCM_TAG_SIZE * 8
+      },
+      key,
+      msg
+    );
+  }
+  function decryptResponse(id, nonce, response, key, iv) {
+    const encId = textEncoder.encode(id);
+    return crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv,
+        additionalData: encId,
+        tagLength: AES_GCM_TAG_SIZE * 8
+      },
+      key,
+      response
+    ).then(function(plain) {
+      return decodeResponse(plain);
+    });
+  }
+  function decodeResponse(data) {
+    const d = new Uint8Array(data);
+    if (d[0] != V1)
+      throw new Error("Unexpected message");
+    const nonce = d.slice(1, NONCE_BYTES + 1);
+    let result = { nonce };
+    const PAYLOAD = NONCE_BYTES + 1;
+    switch (d[PAYLOAD]) {
+      case PUBLISH:
+        result.payload = {
+          type: PUBLISH,
+          topic: textDecoder.decode(d.slice(PAYLOAD + 1))
+        };
+        break;
+      case DIRECT:
+        result.payload = {
+          type: DIRECT,
+          otherId: textDecoder.decode(d.slice(PAYLOAD + 1))
+        };
+        break;
+      case SUBSCRIBE:
+        result.payload = {
+          type: SUBSCRIBE,
+          keyId: d.slice(PAYLOAD + 1, PAYLOAD + KEY_ID_BYTES + 1),
+          topic: textDecoder.decode(d.slice(PAYLOAD + KEY_ID_BYTES + 1))
+        };
+        break;
+      case TICKETS:
+        const ticketASize = payload[PAYLOAD + 1];
+        const ticketBSize = payload[ticketASize + PAYLOAD + 2];
+        const ticketA = payload.slice(PAYLOAD + 2, ticketASize + PAYLOAD + 2);
+        const ticketB = payload.slice(ticketASize + PAYLOAD + 3, ticketASize + PAYLOAD + 3 + ticketBSize);
+        result.payload = { type: TICKETS, ticketA, ticketB };
+        break;
+      case SESSION_KEY:
+        const key_id = payload.slice(PAYLOAD + 1, PAYLOAD + KEY_ID_BYTES + 1);
+        const key_data = payload.slice(
+          PAYLOAD + KEY_ID_BYTES + 1,
+          PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1
+        );
+        const timestamp = toBigUnsignedInt(
+          64,
+          payload.slice(
+            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1,
+            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1 + 8
+          )
+        );
+        const lifetime = toBigUnsignedInt(
+          16,
+          payload.slice(
+            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1 + 8,
+            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1 + 8 + 2
+          )
+        );
+        result.payload = { type: SESSION_KEY, keyId: key_id, timestamp: toDate(timestamp), lifetime };
+        break;
+      default:
+        throw new Error("Unknown payload type");
+    }
+    return result;
+  }
+  function encryptSecurePublish(message, keyId, key) {
+    const iv = randomIV();
+    const alg = {
+      name: "AES-GCM",
+      iv,
+      additionalData: keyId,
+      tagLength: AES_GCM_TAG_SIZE * 8
+    };
+    return crypto.subtle.encrypt(alg, key, message).then(function(cipherText) {
+      return encodeSecurePublish(iv, new Uint8Array(cipherText));
+    });
+  }
+  function encodeSecurePublish(iv, cipherText) {
+    let msg = new Uint8Array(2 + iv.length + cipherText.length);
+    msg[0] = V1;
+    msg[1] = SECURE_PUBLISH;
+    msg.set(iv, 2);
+    msg.set(cipherText, 2 + iv.length);
+    return msg;
+  }
+  function decodeSecurePublish(data) {
+    if (data[0] != V1)
+      throw new Error("Unknown message");
+    if (data[1] != SECURE_PUBLISH)
+      throw new Error("Wrong message type");
+    let iv = data.slice(2, IV_BYTES + 2);
+    let message = data.slice(IV_BYTES + 2);
+    return { type: SECURE_PUBLISH, iv, message };
+  }
+  function decryptSecurePublish(message, keyId, key) {
+    const d = decodeSecurePublish(message);
+    const alg = {
+      name: "AES-GCM",
+      iv: d.iv,
+      additionalData: keyId,
+      tagLength: AES_GCM_TAG_SIZE * 8
+    };
+    return crypto.subtle.decrypt(alg, key, d.message);
+  }
+  function toDate(t) {
+    let d = /* @__PURE__ */ new Date();
+    d.setTime(t);
+    return d;
+  }
+  function toBigUnsignedInt(bits, buf) {
+    if (bits % 8 != 0)
+      throw new Error("Bits must be a multiple of 8");
+    const nrBytes = bits / 8;
+    let lshift = bits - 8;
+    let r = 0;
+    if (buf.length < nrBytes)
+      throw new Error("Buffer too small to convert.");
+    for (let i = 0; i < nrBytes; i++) {
+      r += buf[i] * Math.pow(2, lshift);
+      lshift -= 8;
+    }
+    return r;
+  }
+
+  // src/cotonic.js
+  var VERSION = "1.4.0";
+  var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
+  (function() {
+    const currentScript = document.currentScript;
+    if (currentScript && currentScript.getAttribute("data-base-worker-src")) {
+      load_config_defaults({ base_worker_src: currentScript.getAttribute("data-base-worker-src") });
+    } else {
+      load_config_defaults({ base_worker_src: "/lib/cotonic/cotonic-worker-bundle.js?v=1" });
+    }
+  })();
+  var next_worker_id = 1;
+  var workers = {};
+  var named_worker_ids = {};
+  var receive_handler = null;
+  function load_config_defaults(options) {
+    for (let key in options) {
+      if (!config.hasOwnProperty(key)) {
+        config[key] = options[key];
+      }
+    }
+  }
+  function message_from_worker(wid, msg) {
+    var data = msg.data;
+    if (receive_handler) {
+      receive_handler(data, wid);
+    } else {
+      console.log("Unhandled message from worker", wid, msg);
+    }
+  }
+  function error_from_worker(wid, e) {
+    console.log("Error from worker", wid, e);
+  }
+  function spawn(url, args) {
+    if (!config.base_worker_src) {
+      throw "Can't spawn worker, no data-base-worker-src attribute set.";
+    }
+    return spawn_named("", url, config.base_worker_src, args);
+  }
+  function spawn_named(name, url, base, args) {
+    if (name && named_worker_ids[name]) {
+      return named_worker_ids[name];
+    }
+    base = base || config.base_worker_src;
+    if (!base) {
+      throw "Can't spawn worker, no data-base-worker-src attribute set.";
+    }
+    const worker_id = next_worker_id++;
+    const worker = new Worker(base, {
+      name: name ? name : worker_id.toString(),
+      type: "module"
+    });
+    worker.postMessage(["init", {
+      url: ensure_hostname(url),
+      args,
+      wid: worker_id,
+      name,
+      location: {
+        origin: window.location.origin,
+        protocol: window.location.protocol,
+        hostname: window.location.hostname,
+        host: window.location.host,
+        pathname: window.location.pathname,
+        search: window.location.search,
+        hash: window.location.hash
+      }
+    }]);
+    worker.name = name;
+    worker.onmessage = message_from_worker.bind(this, worker_id);
+    worker.onerror = error_from_worker.bind(this, worker_id);
+    workers[worker_id] = worker;
+    if (name) {
+      named_worker_ids[name] = worker_id;
+    }
+    return worker_id;
+  }
+  function ensure_hostname(url) {
+    if (!url.startsWith("http:") && !url.startsWith("https:")) {
+      if (!url.startsWith("/")) {
+        url = "/" + url;
+      }
+      url = window.location.protocol + "//" + window.location.host + url;
+    }
+    return url;
+  }
+  function send(wid, message) {
+    if (wid === 0) {
+      setTimeout(() => {
+        handler(message, wid);
+      }, 0);
+      return;
+    }
+    const worker = workers[wid];
+    if (worker) {
+      worker.postMessage(message);
+    }
+  }
+  function whereis(name) {
+    if (name && named_worker_ids[name]) {
+      return named_worker_ids[name];
+    }
+    return void 0;
+  }
+  function receive(handler2) {
+    receive_handler = handler2;
+  }
+  function cleanupSessionStorage() {
+    if (!window.name || window.name == "null") {
+      window.name = makeid(32);
+    }
+    if (sessionStorage.getItem("windowName") != window.name) {
+      let keys = Object.keys(sessionStorage);
+      for (let i in keys) {
+        let k = keys[i];
+        if (!k.match(/^persist-/)) {
+          sessionStorage.removeItem(k);
+        }
+      }
+    }
+    sessionStorage.setItem("windowName", window.name);
+  }
+  function makeid(length) {
+    let result = "";
+    let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let len = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * len));
+    }
+    return result;
+  }
+  var ready;
+  var readyResolve;
+  if (globalThis.cotonic && globalThis.cotonic.ready) {
+    ready = cotonic.ready;
+    readyResolve = cotonic.readyResolve;
+  } else {
+    ready = new Promise((resolve) => {
+      readyResolve = resolve;
+    });
+  }
+  cleanupSessionStorage();
+
+  // src/require_idom.js
+  var IncrementalDOM2 = require_incremental_dom_cjs();
+  globalThis.IncrementalDOM = IncrementalDOM2;
+
   // src/cotonic.idom.js
+  var cotonic_idom_exports = {};
+  __export(cotonic_idom_exports, {
+    patchInner: () => patchInner,
+    patchOuter: () => patchOuter
+  });
   var idom = IncrementalDOM;
   function render(tokens2) {
     function renderToken(token) {
@@ -1915,136 +2273,25 @@
   var patchInner = patch.bind(void 0, idom.patch);
   var patchOuter = patch.bind(void 0, idom.patchOuter);
 
-  // src/cotonic.ui.js
-  var cotonic_ui_exports = {};
-  __export(cotonic_ui_exports, {
-    get: () => get,
-    insert: () => insert,
-    on: () => on,
-    remove: () => remove2,
-    render: () => render2,
-    renderId: () => renderId,
-    update: () => update,
-    updateStateClass: () => updateStateClass,
-    updateStateData: () => updateStateData
-  });
-
   // src/cotonic.broker.js
   var cotonic_broker_exports = {};
   __export(cotonic_broker_exports, {
-    _add: () => add,
-    _delete_all_retained: () => delete_all_retained,
-    _flush: () => flush,
-    _remove: () => remove,
-    _root: () => root,
     call: () => call,
     find_subscriptions_below: () => find_subscriptions_below,
+    initialize: () => initialize,
     match: () => match,
     publish: () => publish,
     publish_mqtt_message: () => publish_mqtt_message,
     subscribe: () => subscribe,
     unsubscribe: () => unsubscribe
   });
-
-  // src/cotonic.mqtt.js
-  var cotonic_mqtt_exports = {};
-  __export(cotonic_mqtt_exports, {
-    exec: () => exec,
-    extract: () => extract,
-    fill: () => fill,
-    matches: () => matches,
-    remove_named_wildcards: () => remove_named_wildcards
-  });
-  var SEPARATOR = "/";
-  var SINGLE = "+";
-  var ALL = "#";
-  function exec(pattern, topic) {
-    return matches(pattern, topic) ? extract(pattern, topic) : null;
-  }
-  function matches(pattern, topic) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var topicLength = topicSegments.length;
-    var lastIndex = patternLength - 1;
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      var currentTopic = topicSegments[i];
-      if (!currentTopic && !currentPattern)
-        continue;
-      if (!currentTopic && currentPattern !== ALL)
-        return false;
-      if (patternChar === ALL)
-        return i === lastIndex;
-      if (patternChar !== SINGLE && currentPattern !== currentTopic)
-        return false;
-    }
-    return patternLength === topicLength;
-  }
-  function fill(pattern, params) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var result = [];
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      var patternParam = currentPattern.slice(1);
-      var paramValue = params[patternParam];
-      if (patternChar === ALL) {
-        if (paramValue !== void 0)
-          result.push([].concat(paramValue).join(SEPARATOR));
-        break;
-      } else if (patternChar === SINGLE)
-        result.push("" + paramValue);
-      else
-        result.push(currentPattern);
-    }
-    return result.join(SEPARATOR);
-  }
-  function extract(pattern, topic) {
-    var params = {};
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      if (currentPattern.length === 1)
-        continue;
-      if (patternChar === ALL) {
-        params[currentPattern.slice(1)] = topicSegments.slice(i);
-        break;
-      } else if (patternChar === SINGLE) {
-        params[currentPattern.slice(1)] = topicSegments[i];
-      }
-    }
-    return params;
-  }
-  function remove_named_wildcards(pattern) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var mqttPattern = [];
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      if (patternChar === ALL || patternChar == SINGLE) {
-        mqttPattern.push(patternChar);
-      } else {
-        mqttPattern.push(currentPattern);
-      }
-    }
-    return mqttPattern.join(SEPARATOR);
-  }
-
-  // src/cotonic.broker.js
   var clients;
   var root;
   var response_nr = 0;
   var promised = {};
   var CHILDREN = 0;
   var VALUE = 1;
-  var RETAINED_PREFIX = "c_retained$";
+  var retained_prefix;
   function new_node(value2) {
     return [null, value2];
   }
@@ -2418,7 +2665,7 @@
     }
   }
   function retain_key(topic) {
-    return RETAINED_PREFIX + topic;
+    return `${retained_prefix}${topic}`;
   }
   function retain(message) {
     const key = retain_key(message.topic);
@@ -2434,10 +2681,10 @@
     let matching = [];
     for (let i = 0; i < sessionStorage.length; i++) {
       let key = sessionStorage.key(i);
-      if (key.substring(0, RETAINED_PREFIX.length) !== RETAINED_PREFIX) {
+      if (key.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
-      const retained_topic = key.substring(RETAINED_PREFIX.length);
+      const retained_topic = key.substring(retained_prefix.length);
       if (!matches(topic, retained_topic)) {
         continue;
       }
@@ -2463,7 +2710,7 @@
   function delete_all_retained() {
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
-      if (key.substring(0, RETAINED_PREFIX.length) !== RETAINED_PREFIX) {
+      if (key.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
       sessionStorage.removeItem(key);
@@ -2499,10 +2746,29 @@
   function response_topic() {
     return "reply/page-" + response_nr++ + "-" + Math.random();
   }
-  flush();
-  delete_all_retained();
+  function initialize(options) {
+    var _a;
+    retained_prefix = (_a = options == null ? void 0 : options.retained_prefix) != null ? _a : "c_retained$";
+    flush();
+    delete_all_retained();
+  }
+
+  // src/default_broker_init.js
+  initialize();
 
   // src/cotonic.ui.js
+  var cotonic_ui_exports = {};
+  __export(cotonic_ui_exports, {
+    get: () => get,
+    insert: () => insert,
+    on: () => on,
+    remove: () => remove2,
+    render: () => render2,
+    renderId: () => renderId,
+    update: () => update,
+    updateStateClass: () => updateStateClass,
+    updateStateData: () => updateStateData
+  });
   var state = {};
   var order = [];
   var stateData = {};
@@ -2919,14 +3185,14 @@
       case "connack":
         return encodeConnack(msg);
       case "publish":
-        return encodePublish(msg);
+        return encodePublish2(msg);
       case "puback":
       case "pubrec":
       case "pubrel":
       case "pubcomp":
         return encodePubackEtAl(msg);
       case "subscribe":
-        return encodeSubscribe(msg);
+        return encodeSubscribe2(msg);
       case "suback":
         return encodeSuback(msg);
       case "unsubscribe":
@@ -2993,7 +3259,7 @@
     v.appendProperties(msg.properties || {});
     return packet(first, v);
   }
-  function encodePublish(msg) {
+  function encodePublish2(msg) {
     var first = MESSAGE_TYPE.PUBLISH << 4;
     var v = new binary();
     var qos = msg.qos || 0;
@@ -3038,7 +3304,7 @@
     }
     return packet(first, v);
   }
-  function encodeSubscribe(msg) {
+  function encodeSubscribe2(msg) {
     var first = MESSAGE_TYPE.SUBSCRIBE << 4;
     var v = new binary();
     first |= 1 << 1;
@@ -5112,275 +5378,6 @@
         publish("model/bridge/event/ui-status", ui);
       }
     }
-  }
-
-  // src/cotonic.keyserver.js
-  var cotonic_keyserver_exports = {};
-  __export(cotonic_keyserver_exports, {
-    DIRECT: () => DIRECT,
-    PUBLISH: () => PUBLISH,
-    SESSION_KEY: () => SESSION_KEY,
-    SUBSCRIBE: () => SUBSCRIBE,
-    TICKETS: () => TICKETS,
-    decodeSecurePublish: () => decodeSecurePublish,
-    decryptResponse: () => decryptResponse,
-    decryptSecurePublish: () => decryptSecurePublish,
-    encodeSecurePublish: () => encodeSecurePublish,
-    encryptConnectMessage: () => encryptConnectMessage,
-    encryptRequest: () => encryptRequest,
-    encryptSecurePublish: () => encryptSecurePublish,
-    generateKey: () => generateKey,
-    publicEncKey: () => publicEncKey,
-    randomIV: () => randomIV,
-    randomNonce: () => randomNonce,
-    toBigUnsignedInt: () => toBigUnsignedInt
-  });
-  var KEY_BYTES = 32;
-  var IV_BYTES = 16;
-  var KEY_ID_BYTES = 4;
-  var NONCE_BYTES = 8;
-  var AES_GCM_TAG_SIZE = 16;
-  var V1 = 49;
-  var HELLO = 72;
-  var PUBLISH = 80;
-  var SUBSCRIBE = 83;
-  var DIRECT = 68;
-  var TICKETS = 84;
-  var SESSION_KEY = 75;
-  var SECURE_PUBLISH = 69;
-  var textEncoder = new TextEncoder("utf-8");
-  var textDecoder = new TextDecoder("utf-8");
-  function randomNonce() {
-    let nonce = new Uint8Array(NONCE_BYTES);
-    crypto.getRandomValues(nonce);
-    return nonce;
-  }
-  function randomIV() {
-    let iv = new Uint8Array(IV_BYTES);
-    crypto.getRandomValues(iv);
-    return iv;
-  }
-  function generateKey() {
-    return crypto.subtle.generateKey(
-      { name: "AES-GCM", length: KEY_BYTES * 8 },
-      true,
-      ["encrypt", "decrypt"]
-    );
-  }
-  function publicEncKey() {
-    return crypto.subtle.importKey(
-      "jwk",
-      keyserver_public_encrypt_key,
-      { name: "RSA-OAEP", hash: { name: "SHA-256" } },
-      false,
-      ["encrypt"]
-    );
-  }
-  function exportKey(key) {
-    return crypto.subtle.exportKey("raw", key);
-  }
-  function encodeHelloMessage(id, encodedKey, encodedNonce) {
-    const encodedId = textEncoder.encode(id);
-    const eKey = new Uint8Array(encodedKey);
-    let msg = new Uint8Array(2 + KEY_BYTES + NONCE_BYTES + encodedId.length);
-    msg[0] = V1;
-    msg[1] = HELLO;
-    msg.set(encodedKey, 2);
-    msg.set(encodedNonce, 2 + KEY_BYTES);
-    msg.set(encodedId, 2 + KEY_BYTES + NONCE_BYTES);
-    return msg;
-  }
-  function encryptConnectMessage(id, key, nonce, pubServerEncKey) {
-    return exportKey(key).then(function(encodedKey) {
-      const msg = encodeHelloMessage(id, encodedKey, nonce);
-      return crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubServerEncKey, msg);
-    });
-  }
-  function encodePublish2(request) {
-    const topic = textEncoder.encode(request.topic);
-    let msg = new Uint8Array(1 + topic.length);
-    msg[0] = PUBLISH;
-    msg.set(topic, 1);
-    return msg;
-  }
-  function encodeSubscribe2(request) {
-    const topic = textEncoder.encode(request.topic);
-    let msg = new Uint8Array(1 + KEY_ID_BYTES + topic.length);
-    msg[0] = SUBSCRIBE;
-    msg.set(request.keyId, 1);
-    msg.set(topic, 1 + KEY_ID_BYTES);
-    return msg;
-  }
-  function encodeDirect(request) {
-    const otherId = textEncoder.encode(request.otherId);
-    let msg = new Uint8Array(1 + otherId.length);
-    msg[0] = DIRECT;
-    msg.set(otherId, 1);
-    return msg;
-  }
-  function encodeRequest(request) {
-    switch (request.type) {
-      case PUBLISH:
-        return encodePublish2(request);
-      case SUBSCRIBE:
-        return encodeSubscribe2(request);
-      case DIRECT:
-        return encodeDirect(request);
-      default:
-        throw new Error("Unknown request");
-    }
-  }
-  function encryptRequest(id, nonce, request, key, iv) {
-    const encId = textEncoder.encode(id);
-    let req = encodeRequest(request);
-    let msg = new Uint8Array(1 + NONCE_BYTES + req.length);
-    msg[0] = V1;
-    msg.set(nonce, 1);
-    msg.set(req, 1 + NONCE_BYTES);
-    return crypto.subtle.encrypt(
-      {
-        name: "AES-GCM",
-        iv,
-        additionalData: encId,
-        tagLength: AES_GCM_TAG_SIZE * 8
-      },
-      key,
-      msg
-    );
-  }
-  function decryptResponse(id, nonce, response, key, iv) {
-    const encId = textEncoder.encode(id);
-    return crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv,
-        additionalData: encId,
-        tagLength: AES_GCM_TAG_SIZE * 8
-      },
-      key,
-      response
-    ).then(function(plain) {
-      return decodeResponse(plain);
-    });
-  }
-  function decodeResponse(data) {
-    const d = new Uint8Array(data);
-    if (d[0] != V1)
-      throw new Error("Unexpected message");
-    const nonce = d.slice(1, NONCE_BYTES + 1);
-    let result = { nonce };
-    const PAYLOAD = NONCE_BYTES + 1;
-    switch (d[PAYLOAD]) {
-      case PUBLISH:
-        result.payload = {
-          type: PUBLISH,
-          topic: textDecoder.decode(d.slice(PAYLOAD + 1))
-        };
-        break;
-      case DIRECT:
-        result.payload = {
-          type: DIRECT,
-          otherId: textDecoder.decode(d.slice(PAYLOAD + 1))
-        };
-        break;
-      case SUBSCRIBE:
-        result.payload = {
-          type: SUBSCRIBE,
-          keyId: d.slice(PAYLOAD + 1, PAYLOAD + KEY_ID_BYTES + 1),
-          topic: textDecoder.decode(d.slice(PAYLOAD + KEY_ID_BYTES + 1))
-        };
-        break;
-      case TICKETS:
-        const ticketASize = payload[PAYLOAD + 1];
-        const ticketBSize = payload[ticketASize + PAYLOAD + 2];
-        const ticketA = payload.slice(PAYLOAD + 2, ticketASize + PAYLOAD + 2);
-        const ticketB = payload.slice(ticketASize + PAYLOAD + 3, ticketASize + PAYLOAD + 3 + ticketBSize);
-        result.payload = { type: TICKETS, ticketA, ticketB };
-        break;
-      case SESSION_KEY:
-        const key_id = payload.slice(PAYLOAD + 1, PAYLOAD + KEY_ID_BYTES + 1);
-        const key_data = payload.slice(
-          PAYLOAD + KEY_ID_BYTES + 1,
-          PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1
-        );
-        const timestamp = toBigUnsignedInt(
-          64,
-          payload.slice(
-            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1,
-            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1 + 8
-          )
-        );
-        const lifetime = toBigUnsignedInt(
-          16,
-          payload.slice(
-            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1 + 8,
-            PAYLOAD + KEY_ID_BYTES + KEY_BYTES + 1 + 8 + 2
-          )
-        );
-        result.payload = { type: SESSION_KEY, keyId: key_id, timestamp: toDate(timestamp), lifetime };
-        break;
-      default:
-        throw new Error("Unknown payload type");
-    }
-    return result;
-  }
-  function encryptSecurePublish(message, keyId, key) {
-    const iv = randomIV();
-    const alg = {
-      name: "AES-GCM",
-      iv,
-      additionalData: keyId,
-      tagLength: AES_GCM_TAG_SIZE * 8
-    };
-    return crypto.subtle.encrypt(alg, key, message).then(function(cipherText) {
-      return encodeSecurePublish(iv, new Uint8Array(cipherText));
-    });
-  }
-  function encodeSecurePublish(iv, cipherText) {
-    let msg = new Uint8Array(2 + iv.length + cipherText.length);
-    msg[0] = V1;
-    msg[1] = SECURE_PUBLISH;
-    msg.set(iv, 2);
-    msg.set(cipherText, 2 + iv.length);
-    return msg;
-  }
-  function decodeSecurePublish(data) {
-    if (data[0] != V1)
-      throw new Error("Unknown message");
-    if (data[1] != SECURE_PUBLISH)
-      throw new Error("Wrong message type");
-    let iv = data.slice(2, IV_BYTES + 2);
-    let message = data.slice(IV_BYTES + 2);
-    return { type: SECURE_PUBLISH, iv, message };
-  }
-  function decryptSecurePublish(message, keyId, key) {
-    const d = decodeSecurePublish(message);
-    const alg = {
-      name: "AES-GCM",
-      iv: d.iv,
-      additionalData: keyId,
-      tagLength: AES_GCM_TAG_SIZE * 8
-    };
-    return crypto.subtle.decrypt(alg, key, d.message);
-  }
-  function toDate(t) {
-    let d = /* @__PURE__ */ new Date();
-    d.setTime(t);
-    return d;
-  }
-  function toBigUnsignedInt(bits, buf) {
-    if (bits % 8 != 0)
-      throw new Error("Bits must be a multiple of 8");
-    const nrBytes = bits / 8;
-    let lshift = bits - 8;
-    let r = 0;
-    if (buf.length < nrBytes)
-      throw new Error("Buffer too small to convert.");
-    for (let i = 0; i < nrBytes; i++) {
-      r += buf[i] * Math.pow(2, lshift);
-      lshift -= 8;
-    }
-    return r;
   }
 
   // src/cotonic.event.js

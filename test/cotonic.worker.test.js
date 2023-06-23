@@ -1,6 +1,8 @@
 
 import { spawn } from "/src/cotonic.js"
-import { publish, subscribe, find_subscriptions_below } from "/src/cotonic.broker.js"
+import { publish, subscribe, find_subscriptions_below, initialize } from "/src/cotonic.broker.js"
+
+initialize();
 
 //
 // HTML Worker Tests.

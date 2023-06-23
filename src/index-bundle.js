@@ -21,21 +21,24 @@
  * limitations under the License.
  */
 
+import * as mqtt from "./cotonic.mqtt.js";
+import * as tokenizer from "./cotonic.tokenizer.js";
+import * as keyserver from "./cotonic.keyserver.js";
+
 import { VERSION, config, ready, readyResolve, spawn, spawn_named, whereis } from "./cotonic.js";
 
 // Can be changed to normal esm import when IncrementalDOM supports this.
 import "./require_idom.js"; // Exports a global IncrementalDOM reference.
-
 import * as idom from "./cotonic.idom.js";
-import * as tokenizer from "./cotonic.tokenizer.js";
-import * as ui from "./cotonic.ui.js";
-import * as mqtt from "./cotonic.mqtt.js";
+
 import * as broker from "./cotonic.broker.js";
+import "./default_broker_init.js";
+
+import * as ui from "./cotonic.ui.js";
 import * as mqtt_packet from "./cotonic.mqtt_packet.js";
 import * as mqtt_transport_ws from "./cotonic.mqtt_transport.ws.js";
 import * as mqtt_session from "./cotonic.mqtt_session.js";
 import * as mqtt_bridge from "./cotonic.mqtt_bridge.js";
-import * as keyserver from "./cotonic.keyserver.js";
 import { triggerCotonicReady }  from "./cotonic.event.js";
 
 import "./cotonic.model.autofocus.js";

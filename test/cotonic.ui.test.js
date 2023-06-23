@@ -2,6 +2,7 @@
 // HTML Idom Tests.
 //
 
+import "/src/default_broker_init.js";
 import * as ui from "/src/cotonic.ui.js";
 
 QUnit.test("Basic render test", function(assert) {

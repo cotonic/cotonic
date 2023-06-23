@@ -2,8 +2,9 @@
 // Bridge Tests.
 //
 
-import * as mqtt_bridge from "/src/cotonic.mqtt_bridge.js";
 import * as broker from "/src/cotonic.broker.js";
+import "/src/default_broker_init.js";
+import * as mqtt_bridge from "/src/cotonic.mqtt_bridge.js";
 
 QUnit.test("Create default mqtt_bridge", function(assert) {
     let bridge = mqtt_bridge.newBridge();

@@ -4,9 +4,11 @@
 
 import * as broker from "/src/cotonic.broker.js";
 
+
 QUnit.test("Subscribe and publish, no wildcards", function(assert) {
     let publishes = [];
 
+    broker.initialize();
     broker.publish("a/b/c", "Hello nobody!");
 
     broker.subscribe("a/b/c", function(message, prop) {
@@ -16,13 +18,12 @@ QUnit.test("Subscribe and publish, no wildcards", function(assert) {
     broker.publish("a/b/c", "Hello world!");
 
     assert.deepEqual(["Hello world!"], publishes, "Publish hello world");
-
-    broker._flush();
 });
 
 QUnit.test("Subscribe and publish, with wildcards", function(assert) {
     let publishes = [];
 
+    broker.initialize();
     broker.publish("foo/bar", "Hello nobody!");
 
     broker.subscribe("foo/#", function(message, prop) {
@@ -40,13 +41,12 @@ QUnit.test("Subscribe and publish, with wildcards", function(assert) {
     assert.deepEqual([{payload: "One", prop: {}},
                       {payload: "Two", prop: {}},
                       {payload: "Three", prop: {}}], publishes, "Three matches");
-
-    broker._flush();
 });
 
 QUnit.test("Subscribe and publish, with named wildcards", function(assert) {
     let publishes = [];
 
+    broker.initialize();
     broker.publish("foo/bar", "Hello nobody!");
 
     broker.subscribe("foo/#a", function(message, prop) {
@@ -64,15 +64,12 @@ QUnit.test("Subscribe and publish, with named wildcards", function(assert) {
     assert.deepEqual([{payload: "One", prop: {a: ["bar"]}},
                       {payload: "Two", prop: {a: ["bar", "baz"]}},
                       {payload: "Three", prop: {a: "this"}}], publishes, "Three matches");
-
-    broker._flush();
 });
 
 QUnit.test("Subscribe and publish, retained messages", function(assert) {
     let publishes = [];
 
-    broker._delete_all_retained();
-
+    broker.initialize();
     broker.publish("retained/bar",
         "Hello I'm retained!",
         {retain: true}
@@ -95,15 +92,12 @@ QUnit.test("Subscribe and publish, retained messages", function(assert) {
     });
 
     assert.equal(publishes.length, 3, "There are three messages");
-     
-    broker._delete_all_retained();
 });
 
 QUnit.test("Subscribe, publish, unsubscribe, publish", function(assert) {
     let publishes = [];
 
-    broker._delete_all_retained();
-
+    broker.initialize();
     broker.subscribe("plop", function(message, prop) {
         publishes.push({payload: message.payload, prop: prop});
     }, {wid: "x"});
@@ -117,15 +111,14 @@ QUnit.test("Subscribe, publish, unsubscribe, publish", function(assert) {
     assert.deepEqual([
             {payload: "First", prop: {}}
         ], publishes, "Single match");
-
-    broker._flush();
 });
 
 
 QUnit.test("Delete retained messages", function(assert) {
     let publishes = [];
 
-    broker._delete_all_retained();
+    broker.initialize();
+
     broker.publish("retained/bar", "Hello I'm retained!", {retain: true});
     broker.publish("retained/bar", "", {retain: true});
 
@@ -139,6 +132,8 @@ QUnit.test("Delete retained messages", function(assert) {
 
 QUnit.test("Look for subscribers with match", function(assert) {
     const test_topics = ["a/a", "a/+", "a/#", "b/b"];
+
+    broker.initialize();
     broker.subscribe(test_topics, function() { }, { wid: "qunit" } );
     try {
         let a_a_match = broker.match("a/a");

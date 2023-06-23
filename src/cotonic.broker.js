@@ -27,9 +27,11 @@ const CHILDREN = 0;
 const VALUE = 1;
 
 /* The key prefix used to store retained messages in sessionStorage */
-const RETAINED_PREFIX = "c_retained$";
+let retained_prefix;
 
-function new_node(value) { return [null, value]; }
+function new_node(value) {
+    return [null, value];
+}
 
 function flush() {
     clients = {};
@@ -483,7 +485,7 @@ function publish_subscriber(sub, mqttmsg, wid) {
 }
 
 function retain_key(topic) {
-    return RETAINED_PREFIX + topic;
+    return `${ retained_prefix }${ topic }`;
 }
 
 function retain(message) {
@@ -504,11 +506,11 @@ function get_matching_retained(topic) {
     for(let i = 0; i < sessionStorage.length; i++) {
         let key = sessionStorage.key(i);
 
-        if(key.substring(0, RETAINED_PREFIX.length) !== RETAINED_PREFIX) {
+        if(key.substring(0, retained_prefix.length) !== retained_prefix) {
             continue;
         }
 
-        const retained_topic = key.substring(RETAINED_PREFIX.length);
+        const retained_topic = key.substring(retained_prefix.length);
         if(!matches(topic, retained_topic)) {
             continue;
         }
@@ -540,7 +542,7 @@ function get_retained(topic) {
 function delete_all_retained() {
     for(let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
-        if(key.substring(0, RETAINED_PREFIX.length) !== RETAINED_PREFIX) {
+        if(key.substring(0, retained_prefix.length) !== retained_prefix) {
             continue;
         }
         sessionStorage.removeItem(key);
@@ -581,12 +583,16 @@ function response_topic() {
     return "reply/page-" + (response_nr++) + "-" + Math.random();
 }
 
-// Start fresh
-flush();
-delete_all_retained();
+function initialize(options) {
+    retained_prefix = options?.retained_prefix ?? "c_retained$";
 
+    if(options?.flush ?? true) {
+        flush();
+    }
 
-// For testing
-export { root as _root, add as _add, remove as _remove, flush as _flush, delete_all_retained as _delete_all_retained };
+    if(options?.delete_all_retained ?? true) {
+        delete_all_retained();
+    }
+}
 
-export { find_subscriptions_below, match, publish, subscribe, unsubscribe, call, publish_mqtt_message };
+export { initialize, find_subscriptions_below, match, publish, subscribe, unsubscribe, call, publish_mqtt_message };

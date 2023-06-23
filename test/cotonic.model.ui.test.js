@@ -1,5 +1,9 @@
 
+
 import * as broker from "/src/cotonic.broker.js";
+import "/src/default_broker_init.js";
+import "/src/cotonic.model.ui.js";
+
 
 QUnit.test("Basic render test", function(assert) {
     broker.publish("model/ui/insert/ui-test-1", {

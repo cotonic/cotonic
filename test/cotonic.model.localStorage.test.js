@@ -2,8 +2,10 @@
 // LocalStorage model tests
 //
 
-import * as localStorage from "/src/cotonic.model.localStorage.js";
 import * as broker from "/src/cotonic.broker.js";
+import "/src/default_broker_init.js";
+import * as localStorage from "/src/cotonic.model.localStorage.js";
+
 
 QUnit.test("test.model.localStorage - post, and post remove", function(assert) {
     broker.publish("model/localStorage/post/foo", "bar");
@@ -43,6 +45,11 @@ QUnit.test("test.model.localStorage - get", function(assert) {
 });
 
 QUnit.test("test.model.localStorage - delete", function(assert) {
+    broker.initialize({
+        delete_all_retained: true,
+        flush: false
+    });
+
     window.localStorage.setItem("foo", "get - test");
 
     broker.publish("model/localStorage/delete/foo", undefined);
@@ -55,7 +62,10 @@ QUnit.test("test.model.localStorage - delete", function(assert) {
 QUnit.test("test.model.localStorage - events", function(assert, bindings) {
     let events = [];
 
-    broker._delete_all_retained();
+    broker.initialize({
+        delete_all_retained: true,
+        flush: false
+    });
 
     broker.subscribe("model/localStorage/event/+key",
         function(msg, bindings) {
