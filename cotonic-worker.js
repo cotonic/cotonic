@@ -584,10 +584,10 @@
     actions.publish({ topic, payload, options });
   };
   self.pingreq = function() {
-    actions.pingreq();
+    actions.pingreq({});
   };
   self.disconnect = function() {
-    actions.disconnect();
+    actions.disconnect({});
   };
   self.call = function(topic, payload, options) {
     options = options || {};

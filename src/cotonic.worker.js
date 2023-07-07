@@ -628,11 +628,11 @@ self.publish = function(topic, payload, options) {
 };
 
 self.pingreq = function() {
-    actions.pingreq();
+    actions.pingreq({});
 };
 
 self.disconnect = function() {
-    actions.disconnect();
+    actions.disconnect({});
 };
 
 // Publish to a topic, return a promise for the response_topic publication
