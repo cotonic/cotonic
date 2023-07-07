@@ -131,9 +131,8 @@
     // List with resolved dependencies. 
     waiting_on_dependency: {},
     // name -> list of waiting promises. 
-    waiting_on_dependency_count: 0,
+    waiting_on_dependency_count: 0
     // number of waiting promises. 
-    selfClose: self.close
   };
   model.handleImportDone = function(isImportDone) {
     if (!isImportDone)
@@ -533,9 +532,6 @@
   };
   self.is_connected = function() {
     return state.connected(model);
-  };
-  self.close = function() {
-    actions.close();
   };
   self.connect = function(options) {
     options = options || {};

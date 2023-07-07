@@ -2057,8 +2057,6 @@
     const currentScript = document.currentScript;
     if (currentScript && currentScript.getAttribute("data-base-worker-src")) {
       load_config_defaults({ base_worker_src: currentScript.getAttribute("data-base-worker-src") });
-    } else {
-      load_config_defaults({ base_worker_src: "/lib/cotonic/cotonic-worker-bundle.js?v=1" });
     }
   })();
   var next_worker_id = 1;

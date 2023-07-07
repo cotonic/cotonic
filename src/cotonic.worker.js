@@ -51,9 +51,7 @@ const model = {
     is_tracking_dependencies: false, // Flag to indicate the worker is subscribed to the dep tracking topics.
     resolved_dependencies: [],       // List with resolved dependencies. 
     waiting_on_dependency: {},       // name -> list of waiting promises. 
-    waiting_on_dependency_count: 0,  // number of waiting promises. 
-
-    selfClose: self.close
+    waiting_on_dependency_count: 0  // number of waiting promises. 
 };
 
 model.handleImportDone = function(isImportDone) {
@@ -558,10 +556,6 @@ actions.provides = function(provides) {
 /** External api */
 self.is_connected = function() {
     return state.connected(model);
-};
-
-self.close = function() {
-    actions.close();
 };
 
 self.connect = function(options) {
