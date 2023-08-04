@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,47 +16,47 @@
 
 /* Starts the service worker and adds message relay topics */
 
-var cotonic = cotonic || {};
+import { config, load_config_defaults } from "./cotonic.js";
+import { publish, subscribe, publish_mqtt_message } from "./cotonic.broker.js";
 
-(function(cotonic) {
-"use strict";
-    const console = window.console;
+const console = globalThis.console;
 
-    cotonic.load_config_defaults(
-        {start_service_worker: true,
-         service_worker_src: "/cotonic-service-worker.js"});
+load_config_defaults(
+    {start_service_worker: true,
+        service_worker_src: "/cotonic-service-worker.js"});
 
-    if (cotonic.config.start_service_worker && navigator.serviceWorker) {
-        navigator.serviceWorker
-            .register(cotonic.config.service_worker_src)
-            .catch(
-                function(error) {
-                    switch (error.name) {
-                        case 'SecurityError':
-                            console.log("Could not start serviceWorker due to a SecurityError.");
-                            console.log("See https://cotonic.org/#model.serviceWorker for more information.");
-                            break;
-                        default:
-                            console.log("Could not start serviceWorker: ", error.message);
-                            break;
-                    }
-                });
+if (config.start_service_worker && navigator.serviceWorker) {
+    navigator.serviceWorker
+        .register(config.service_worker_src)
+        .catch(
+            function(error) {
+                switch (error.name) {
+                    case 'SecurityError':
+                        console.log("Could not start serviceWorker due to a SecurityError.");
+                        console.log("See https://cotonic.org/#model.serviceWorker for more information.");
+                        break;
+                    default:
+                        console.log("Could not start serviceWorker: ", error.message);
+                        break;
+                }
+            });
 
-        navigator.serviceWorker.addEventListener('message', function(event) {
-            switch (event.data.type) {
-                case "broadcast":
-                    let message = event.data.message;
-                    message.topic = "model/serviceWorker/event/broadcast/" + event.data.channel;
-                    cotonic.broker.publish_mqtt_message(message);
-                    break;
-                default:
-                    console.log("Unknown event from service worker", event);
-                    break;
-            }
-        });
-    }
+    navigator.serviceWorker.addEventListener('message', function(event) {
+        switch (event.data.type) {
+            case "broadcast":
+                let message = event.data.message;
+                message.topic = "model/serviceWorker/event/broadcast/" + event.data.channel;
+                publish_mqtt_message(message);
+                break;
+            default:
+                console.log("Unknown event from service worker", event);
+                break;
+        }
+    });
+}
 
-    cotonic.broker.subscribe("model/serviceWorker/post/broadcast/+channel", function(msg, bindings) {
+subscribe("model/serviceWorker/post/broadcast/+channel",
+    function(msg, bindings) {
         if (navigator.serviceWorker && navigator.serviceWorker.controller) {
             let data = {
                 type: "broadcast",
@@ -66,10 +66,11 @@ var cotonic = cotonic || {};
             navigator.serviceWorker.controller.postMessage(data);
         } else {
             msg.topic = "model/serviceWorker/event/broadcast/" + bindings.channel;
-            cotonic.broker.publish_mqtt_message(msg);
+            publish_mqtt_message(msg);
         }
-    });
+    }, 
+    {wid: "model.serviceWorker"}
+);
 
-    cotonic.broker.publish("model/serviceWorker/event/ping", "pong", { retain: true });
+publish("model/serviceWorker/event/ping", "pong", { retain: true });
 
-}(cotonic));

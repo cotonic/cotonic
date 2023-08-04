@@ -1,4 +1,3 @@
-importScripts("/src/cotonic.mqtt.js");
 
 function init() {
     self.publish("connect-wait-deps/done", true);

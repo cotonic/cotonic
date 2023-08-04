@@ -1,5 +1,4 @@
 
-importScripts("/src/cotonic.mqtt.js");
 
 function initialize() {
     self.provides(["model/provides-after-connect"]);

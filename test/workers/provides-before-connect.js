@@ -1,6 +1,4 @@
 
-importScripts("/src/cotonic.mqtt.js");
-
 function initialize() {
     self.publish("provides-before-connect/done", true);
 }

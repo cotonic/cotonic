@@ -2,8 +2,8 @@
 // Transport Tests.
 //
 
-"use strict";
+import * as mqtt_transport_ws from "/src/cotonic.mqtt_transport.ws.js"
 
-QUnit.test("cotonic.mqtt_transport is defined", function(assert) {
-    assert.equal(cotonic.hasOwnProperty('mqtt_transport'), true, "mqtt_transport not defined in cotonic");
+QUnit.test("cotonic.mqtt_transport_ws is defined", function(assert) {
+    assert.equal(!!mqtt_transport_ws.newTransport, true);
 });

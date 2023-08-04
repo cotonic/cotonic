@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2022 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,184 +14,180 @@
  * limitations under the License.
  */
 
-var cotonic = cotonic || {};
+import { config } from "./cotonic.js";
+import { subscribe, publish } from "./cotonic.broker.js";
 
-(function(cotonic) {
-"use strict";
+let location = {};
+let isNavigating = false;
 
-    let location = {};
-    let isNavigating = false;
+function init() {
+    publish("model/location/event/ping", "pong", { retain: true });
 
-    function init() {
-        cotonic.broker.publish("model/location/event/ping", "pong", { retain: true });
+    publishLocation( true );
+    // Track navigation
+    window.addEventListener("hashchange", publishLocation, false);
+}
 
-        publishLocation( true );
-        // Track navigation
-        window.addEventListener("hashchange", publishLocation, false);
+// Publish all info about our current location
+function publishLocation() {
+    const oldhash = location.hash;
+    const oldpathname = location.pathname;
+    const oldsearch = location.search;
+    const oldpathname_search = location.pathname_search;
+    const pathname_search = config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
+
+    location.protocol = window.location.protocol;
+    location.port = window.location.port;
+    location.host = window.location.host;
+    location.hostname = window.location.hostname;
+    location.href = window.location.href;
+    location.pathname = window.location.pathname;
+    location.origin = window.location.origin;
+    location.hash = window.location.hash;
+    location.search = window.location.search;
+    location.pathname_search = pathname_search;
+
+    if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
+        // Merge query args from the dispatcher and the query string
+        // The dispatcher's query args are derived from the pathname.
+        let q = parseQs(window.location.search);
+        const pathq = parseQs("?" + pathname_search);
+        for (let k in pathq) {
+            q[k] = pathq[k];
+        }
+        location.q = q;
     }
 
-    // Publish all info about our current location
-    function publishLocation() {
-        const oldhash = location.hash;
-        const oldpathname = location.pathname;
-        const oldsearch = location.search;
-        const oldpathname_search = location.pathname_search;
-        const pathname_search = cotonic.config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
+    publish(
+        "model/location/event",
+        location,
+        { retain: true });
 
-        location.protocol = window.location.protocol;
-        location.port = window.location.port;
-        location.host = window.location.host;
-        location.hostname = window.location.hostname;
-        location.href = window.location.href;
-        location.pathname = window.location.pathname;
-        location.origin = window.location.origin;
-        location.hash = window.location.hash;
-        location.search = window.location.search;
-        location.pathname_search = pathname_search;
-
-        if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
-            // Merge query args from the dispatcher and the query string
-            // The dispatcher's query args are derived from the pathname.
-            let q = parseQs(window.location.search);
-            const pathq = parseQs("?" + pathname_search);
-            for (let k in pathq) {
-                q[k] = pathq[k];
-            }
-            location.q = q;
-        }
-
-        cotonic.broker.publish(
-            "model/location/event",
-            location,
+    if (oldpathname !== location.pathname) {
+        publish(
+            "model/location/event/pathname",
+            location.pathname,
             { retain: true });
-
-        if (oldpathname !== location.pathname) {
-            cotonic.broker.publish(
-                "model/location/event/pathname",
-                location.pathname,
-                { retain: true });
-        }
-
-        if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
-            cotonic.broker.publish(
-                "model/location/event/q",
-                location.q,
-                { retain: true });
-        }
-
-        if (oldhash !== location.hash) {
-            cotonic.broker.publish(
-                "model/location/event/hash",
-                location.hash === "" ? "#" : location.hash,
-                { retain: true });
-        }
     }
 
-    // Parse the query string, keys with "[]" are appended as an array.
-    function parseQs ( qs ) {
-        let q = {};
-        let ps = [];
+    if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
+        publish(
+            "model/location/event/q",
+            location.q,
+            { retain: true });
+    }
 
-        const searchParams = new URLSearchParams(qs);
-        searchParams.forEach(function(value, key) {
-            ps.push([ key, value ]);
-        });
+    if (oldhash !== location.hash) {
+        publish(
+            "model/location/event/hash",
+            location.hash === "" ? "#" : location.hash,
+            { retain: true });
+    }
+}
 
-        for (let i = 0; i < ps.length; i++) {
-            const name = ps[i][0];
-            const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
-            if (indexed) {
-                const iname = indexed[1] + '[]';
-                if (typeof q[iname] === 'undefined') {
-                    q[iname] = [];
-                }
-                if (indexed[2].length > 0) {
-                    q[iname][indexed[2]] = ps[i][1];
-                } else {
-                    q[iname].push(ps[i][1]);
-                }
+// Parse the query string, keys with "[]" are appended as an array.
+function parseQs ( qs ) {
+    let q = {};
+    let ps = [];
+
+    const searchParams = new URLSearchParams(qs);
+    searchParams.forEach(function(value, key) {
+        ps.push([ key, value ]);
+    });
+
+    for (let i = 0; i < ps.length; i++) {
+        const name = ps[i][0];
+        const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
+        if (indexed) {
+            const iname = indexed[1] + '[]';
+            if (typeof q[iname] === 'undefined') {
+                q[iname] = [];
+            }
+            if (indexed[2].length > 0) {
+                q[iname][indexed[2]] = ps[i][1];
             } else {
-                q[name] = ps[i][1];
+                q[iname].push(ps[i][1]);
             }
-        }
-        return q;
-    }
-
-    // Bind to the authentication change events
-
-    cotonic.broker.subscribe("model/auth/event/auth-changing",
-        function(msg) {
-            if (!isNavigating) {
-                // Authentication is changing, possible actions:
-                // - Reload page
-                // - Redirect to other page (from the 'p' query argument, passed via 'onauth')
-                // - Do nothing (the ui will adapt itself)
-                let onauth = msg.payload.onauth || document.body.parentNode.getAttribute("data-onauth");
-
-                if (onauth === null || onauth !== "#") {
-                    setTimeout(function() {
-                       if (onauth === null || onauth === '#reload') {
-                            window.location.reload(true);
-                        } else if (onauth.charAt(0) == '/') {
-                            window.location.href = onauth;
-                        } else if (onauth.charAt(0) == '#') {
-                            window.location.hash = onauth;
-                        }
-                    }, 0);
-                }
-            }
-        }
-    );
-
-    // Model functions
-
-    cotonic.broker.subscribe("model/location/get/+what", function(msg, bindings) {
-        var resp = location[bindings.what];
-        maybeRespond(resp, msg);
-    });
-
-    cotonic.broker.subscribe("model/location/post/redirect", function(msg) {
-        if (msg.payload.url) {
-            window.location = msg.payload.url;
-            willNavigate();
-        }
-    });
-
-    cotonic.broker.subscribe("model/location/post/redirect-local", function(msg) {
-        if (msg.payload.url) {
-            let url = new URL(msg.payload.url, window.location);
-            window.location = url.pathname + url.search + url.hash;
-            willNavigate();
-        }
-    });
-
-    cotonic.broker.subscribe("model/location/post/reload", function(msg) {
-        window.location.reload(true);
-        willNavigate();
-    });
-
-    cotonic.broker.subscribe("model/location/post/redirect/back", function() {
-        if ('referrer' in document) {
-            window.location = document.referrer;
         } else {
-            window.history.back();
-        }
-    });
-
-    function maybeRespond(result, msg) {
-        if(msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, result);
+            q[name] = ps[i][1];
         }
     }
+    return q;
+}
 
-    function willNavigate() {
-        // Set the isNavigate flag to trigger we are currently
-        // busy navigating. When an auth change message is received
-        // this will not trigger extra reloads.
-        isNavigating = true;
-        setTimeout(function() { isNavigating = false; }, 1000);
+// Bind to the authentication change events
+
+subscribe("model/auth/event/auth-changing",
+    function(msg) {
+        if (!isNavigating) {
+            // Authentication is changing, possible actions:
+            // - Reload page
+            // - Redirect to other page (from the 'p' query argument, passed via 'onauth')
+            // - Do nothing (the ui will adapt itself)
+            let onauth = msg.payload.onauth || document.body.parentNode.getAttribute("data-onauth");
+
+            if (onauth === null || onauth !== "#") {
+                setTimeout(function() {
+                    if (onauth === null || onauth === '#reload') {
+                        window.location.reload(true);
+                    } else if (onauth.charAt(0) == '/') {
+                        window.location.href = onauth;
+                    } else if (onauth.charAt(0) == '#') {
+                        window.location.hash = onauth;
+                    }
+                }, 0);
+            }
+        }
+    },
+    {wid: "model.location"}
+);
+
+// Model functions
+subscribe("model/location/get/+what", function(msg, bindings) {
+    var resp = location[bindings.what];
+    maybeRespond(resp, msg);
+}, {wid: "model.location"});
+
+subscribe("model/location/post/redirect", function(msg) {
+    if (msg.payload.url) {
+        window.location = msg.payload.url;
+        willNavigate();
     }
+}, {wid: "model.location"});
 
-    init();
+subscribe("model/location/post/redirect-local", function(msg) {
+    if (msg.payload.url) {
+        let url = new URL(msg.payload.url, window.location);
+        window.location = url.pathname + url.search + url.hash;
+        willNavigate();
+    }
+}, {wid: "model.location"});
 
-}(cotonic));
+subscribe("model/location/post/reload", function(msg) {
+    window.location.reload(true);
+    willNavigate();
+}, {wid: "model.location"});
+
+subscribe("model/location/post/redirect/back", function() {
+    if ('referrer' in document) {
+        window.location = document.referrer;
+    } else {
+        window.history.back();
+    }
+}, {wid: "model.location"});
+
+function maybeRespond(result, msg) {
+    if(msg.properties.response_topic) {
+        publish(msg.properties.response_topic, result);
+    }
+}
+
+function willNavigate() {
+    // Set the isNavigate flag to trigger we are currently
+    // busy navigating. When an auth change message is received
+    // this will not trigger extra reloads.
+    isNavigating = true;
+    setTimeout(function() { isNavigating = false; }, 1000);
+}
+
+init();

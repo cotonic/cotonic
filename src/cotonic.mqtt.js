@@ -16,126 +16,113 @@
 
 /* Originial code from https://github.com/RangerMauve/mqtt-pattern */
 
-var cotonic = cotonic || {};
+const SEPARATOR = "/";
+const SINGLE = "+";
+const ALL = "#";
 
-(function(cotonic) {
-"use strict";
-    
-    const SEPARATOR = "/";
-    const SINGLE = "+";
-    const ALL = "#";
+function exec(pattern, topic) {
+    return matches(pattern, topic) ? extract(pattern, topic) : null;
+}
 
+function matches(pattern, topic) {
+    var patternSegments = pattern.split(SEPARATOR);
+    var topicSegments = topic.split(SEPARATOR);
 
-    function exec(pattern, topic) {
-	return matches(pattern, topic) ? extract(pattern, topic) : null;
+    var patternLength = patternSegments.length;
+    var topicLength = topicSegments.length;
+    var lastIndex = patternLength - 1;
+
+    for(var i = 0; i < patternLength; i++){
+        var currentPattern = patternSegments[i];
+        var patternChar = currentPattern[0];
+        var currentTopic = topicSegments[i];
+
+        if(!currentTopic && !currentPattern)
+            continue;
+
+        if(!currentTopic && currentPattern !== ALL)
+            return false;
+
+        // Only allow # at end
+        if(patternChar === ALL)
+            return i === lastIndex;
+        if(patternChar !== SINGLE && currentPattern !== currentTopic)
+            return false;
     }
 
-    function matches(pattern, topic) {
-	var patternSegments = pattern.split(SEPARATOR);
-	var topicSegments = topic.split(SEPARATOR);
+    return patternLength === topicLength;
+}
 
-	var patternLength = patternSegments.length;
-	var topicLength = topicSegments.length;
-	var lastIndex = patternLength - 1;
+function fill(pattern, params){
+    var patternSegments = pattern.split(SEPARATOR);
+    var patternLength = patternSegments.length;
 
-	for(var i = 0; i < patternLength; i++){
-	    var currentPattern = patternSegments[i];
-	    var patternChar = currentPattern[0];
-	    var currentTopic = topicSegments[i];
+    var result = [];
 
-            if(!currentTopic && !currentPattern)
-                continue;
+    for (var i = 0; i < patternLength; i++) {
+        var currentPattern = patternSegments[i];
+        var patternChar = currentPattern[0];
+        var patternParam = currentPattern.slice(1);
+        var paramValue = params[patternParam];
 
-	    if(!currentTopic && currentPattern !== ALL) return false;
+        if(patternChar === ALL){
+            // Check that it isn't undefined
+            if(paramValue !== void 0)
+                result.push([].concat(paramValue).join(SEPARATOR)); // Ensure it's an array
 
-	    // Only allow # at end
-	    if(patternChar === ALL)
-		return i === lastIndex;
-	    if(patternChar !== SINGLE && currentPattern !== currentTopic)
-		return false;
-	}
-
-	return patternLength === topicLength;
+            // Since # wildcards are always at the end, break out of the loop
+            break;
+        } else if (patternChar === SINGLE)
+            // Coerce param into a string, missing params will be undefined
+            result.push("" + paramValue);
+        else result.push(currentPattern);
     }
 
-    function fill(pattern, params){
-	var patternSegments = pattern.split(SEPARATOR);
-	var patternLength = patternSegments.length;
+    return result.join(SEPARATOR);
+}
 
-	var result = [];
+function extract(pattern, topic) {
+    var params = {};
+    var patternSegments = pattern.split(SEPARATOR);
+    var topicSegments = topic.split(SEPARATOR);
 
-	for (var i = 0; i < patternLength; i++) {
-	    var currentPattern = patternSegments[i];
-	    var patternChar = currentPattern[0];
-	    var patternParam = currentPattern.slice(1);
-	    var paramValue = params[patternParam];
+    var patternLength = patternSegments.length;
 
-	    if(patternChar === ALL){
-		// Check that it isn't undefined
-		if(paramValue !== void 0)
-		    result.push([].concat(paramValue).join(SEPARATOR)); // Ensure it's an array
+    for(var i = 0; i < patternLength; i++){
+        var currentPattern = patternSegments[i];
+        var patternChar = currentPattern[0];
 
-		// Since # wildcards are always at the end, break out of the loop
-		break;
-	    } else if (patternChar === SINGLE)
-		// Coerce param into a string, missing params will be undefined
-		result.push("" + paramValue);
-	    else result.push(currentPattern);
-	}
+        if(currentPattern.length === 1)
+            continue;
 
-	return result.join(SEPARATOR);
-    }
-
-
-    function extract(pattern, topic) {
-	var params = {};
-	var patternSegments = pattern.split(SEPARATOR);
-	var topicSegments = topic.split(SEPARATOR);
-
-	var patternLength = patternSegments.length;
-
-	for(var i = 0; i < patternLength; i++){
-	    var currentPattern = patternSegments[i];
-	    var patternChar = currentPattern[0];
-
-	    if(currentPattern.length === 1)
-		continue;
-
-	    if(patternChar === ALL){
-		params[currentPattern.slice(1)] = topicSegments.slice(i);
-		break;
-	    } else if(patternChar === SINGLE){
-		params[currentPattern.slice(1)] = topicSegments[i];
-	    }
-	}
-
-	return params;
-    }
-
-    function remove_named_wildcards(pattern) {
-	var patternSegments = pattern.split(SEPARATOR);
-	var patternLength = patternSegments.length;
-        var mqttPattern = [];
-
-	for(var i = 0; i < patternLength; i++) {
-	    var currentPattern = patternSegments[i];
-	    var patternChar = currentPattern[0];
-
-            if(patternChar === ALL || patternChar == SINGLE) {
-                mqttPattern.push(patternChar);
-            } else {
-                mqttPattern.push(currentPattern);
-            }
+        if(patternChar === ALL){
+            params[currentPattern.slice(1)] = topicSegments.slice(i);
+            break;
+        } else if(patternChar === SINGLE){
+            params[currentPattern.slice(1)] = topicSegments[i];
         }
-
-        return mqttPattern.join(SEPARATOR);
     }
 
-    cotonic.mqtt = cotonic.mqtt || {};
-    cotonic.mqtt.matches = matches;
-    cotonic.mqtt.extract = extract;
-    cotonic.mqtt.exec = exec;
-    cotonic.mqtt.fill = fill;
-    cotonic.mqtt.remove_named_wildcards = remove_named_wildcards;
- 
-})(cotonic);
+    return params;
+}
+
+function remove_named_wildcards(pattern) {
+    var patternSegments = pattern.split(SEPARATOR);
+    var patternLength = patternSegments.length;
+    var mqttPattern = [];
+
+    for(var i = 0; i < patternLength; i++) {
+        var currentPattern = patternSegments[i];
+        var patternChar = currentPattern[0];
+
+        if(patternChar === ALL || patternChar == SINGLE) {
+            mqttPattern.push(patternChar);
+        } else {
+            mqttPattern.push(currentPattern);
+        }
+    }
+
+    return mqttPattern.join(SEPARATOR);
+}
+
+export { matches, extract, exec, fill, remove_named_wildcards };

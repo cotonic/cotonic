@@ -1,5 +1,12 @@
 /**
- * Copyright 2019-2021 The Cotonic Authors. All Rights Reserved.
+ * @preserve
+ * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
+
+
+/**
+ * Copyright 2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +21,11 @@
  * limitations under the License.
  */
 
-import { ready, readyResolve } from "./cotonic.js";
+const cotonic = {};
 
-function triggerCotonicReady() {
-    ready.then(() => {
-            window.dispatchEvent((new Event("cotonic-ready")));
-    });
+import * as mqtt from "./cotonic.mqtt.js";
+cotonic.mqtt = mqtt;
 
-    // Resolve the cotonic.ready promise
-    readyResolve();
-}
+import "./cotonic.worker.js";
 
-export { triggerCotonicReady };
-
+globalThis.cotonic = cotonic;

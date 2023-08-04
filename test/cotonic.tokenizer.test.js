@@ -2,9 +2,7 @@
 // HTML Tokenizer Tests.
 //
 
-"use strict";
-
-var tokenizer = cotonic.tokenizer;
+import * as tokenizer from "/src/cotonic.tokenizer.js";
 
 QUnit.test("Tokenize empty strings", function(assert) {
     assert.deepEqual(tokenizer.tokens(""), [], "Parsing nothing");

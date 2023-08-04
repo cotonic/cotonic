@@ -1,10 +1,16 @@
+
+import { spawn } from "/src/cotonic.js"
+import { publish, subscribe, find_subscriptions_below, initialize } from "/src/cotonic.broker.js"
+
+initialize();
+
 //
 // HTML Worker Tests.
 //
 "use strict"; QUnit.test("Receive connect from worker", function(assert) { assert.timeout(1000);
     var done = assert.async();
 
-    var worker = new Worker("connect-worker.js");
+    var worker = new Worker("connect-worker.js", {type: "module"});
     worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
@@ -21,7 +27,7 @@ QUnit.test("Connect and subscribe worker", function(assert) {
 
     var connected = false;
     var subscribed = false;
-    var worker = new Worker("subscribe-worker.js");
+    var worker = new Worker("subscribe-worker.js", {type: "module"});
     worker.postMessage(["init", {}]);
 
     worker.onmessage = function(e) {
@@ -54,12 +60,12 @@ QUnit.test("Subscribe and unsubscribe worker",
             let subs; 
 
             if(bindings.what === "sub") {
-                subs = cotonic.broker.find_subscriptions_below("test/a/b")
+                subs = find_subscriptions_below("test/a/b")
                 assert.equal(subs.length, 1, "The worker should be subscribed.");
             } 
 
             if(bindings.what === "unsub") {
-                subs = cotonic.broker.find_subscriptions_below("test/a/b")
+                subs = find_subscriptions_below("test/a/b")
                 assert.equal(subs.length, 0, "The worker should be unsubscribed.");
             }
 
@@ -68,8 +74,8 @@ QUnit.test("Subscribe and unsubscribe worker",
             }
         }
 
-        cotonic.broker.subscribe("subscribe-unsubscribe-worker/+what", handler);
-        cotonic.spawn("/test/subscribe-unsubscribe-worker.js");
+        subscribe("subscribe-unsubscribe-worker/+what", handler);
+        spawn("/test/subscribe-unsubscribe-worker.js");
     }
 );
 
@@ -85,8 +91,8 @@ QUnit.test("Connect resolves",
             }
         }
 
-        cotonic.broker.subscribe("connect-resolve/+what", handler);
-        cotonic.spawn("/test/workers/connect-resolve.js");
+        subscribe("connect-resolve/+what", handler);
+        spawn("/test/workers/connect-resolve.js");
     }
 );
 
@@ -108,8 +114,8 @@ QUnit.test("Connect deps provided with no dependencies.",
             }
         }
 
-        cotonic.broker.subscribe("connect-deps/+what", handler);
-        cotonic.spawn("/test/workers/connect-deps.js");
+        subscribe("connect-deps/+what", handler);
+        spawn("/test/workers/connect-deps.js");
     }
 );
 
@@ -120,8 +126,8 @@ QUnit.test("Connect deps provided with model/foo and model/bar deps.",
 
         function handler(msg, bindings) {
             if(bindings.what === "init") {
-                cotonic.broker.publish("model/foo/event/ping", "pong", { retain: true });
-                cotonic.broker.publish("model/bar/event/ping", "pong", { retain: true });
+                publish("model/foo/event/ping", "pong", { retain: true });
+                publish("model/bar/event/ping", "pong", { retain: true });
             }
 
             if(bindings.what === "done") {
@@ -130,8 +136,8 @@ QUnit.test("Connect deps provided with model/foo and model/bar deps.",
             }
         }
 
-        cotonic.broker.subscribe("connect-deps-foo-bar/+what", handler);
-        cotonic.spawn("/test/workers/connect-deps-foo-bar.js");
+        subscribe("connect-deps-foo-bar/+what", handler);
+        spawn("/test/workers/connect-deps-foo-bar.js");
     }
 );
 
@@ -142,7 +148,7 @@ QUnit.test("Connect provides before connect.",
 
         function handler(msg, bindings) {
             if(bindings.what === "done") {
-                cotonic.broker.subscribe("model/provides-before-connect/event/ping",
+                subscribe("model/provides-before-connect/event/ping",
                     function(m, a) {
                         assert.equal(m.payload, "pong", "We should have a pong");
                         done();
@@ -151,8 +157,8 @@ QUnit.test("Connect provides before connect.",
             }
         }
 
-        cotonic.broker.subscribe("provides-before-connect/+what", handler);
-        cotonic.spawn("/test/workers/provides-before-connect.js");
+        subscribe("provides-before-connect/+what", handler);
+        spawn("/test/workers/provides-before-connect.js");
     }
 );
 
@@ -163,7 +169,7 @@ QUnit.test("Connect provides after connect.",
 
         function handler(msg, bindings) {
             if(bindings.what === "done") {
-                cotonic.broker.subscribe("model/provides-after-connect/event/ping",
+                subscribe("model/provides-after-connect/event/ping",
                     function(m, a) {
                         assert.equal(m.payload, "pong", "We should have a pong");
                         done();
@@ -172,8 +178,8 @@ QUnit.test("Connect provides after connect.",
             }
         }
 
-        cotonic.broker.subscribe("provides-after-connect/+what", handler);
-        cotonic.spawn("/test/workers/provides-after-connect.js");
+        subscribe("provides-after-connect/+what", handler);
+        spawn("/test/workers/provides-after-connect.js");
     }
 );
 
@@ -186,7 +192,7 @@ QUnit.test("Connect with provides and deps.",
         function handler(msg, bindings) {
             if(bindings.what === "done") {
 
-                cotonic.broker.subscribe("model/connect-wait-deps/event/ping",
+                subscribe("model/connect-wait-deps/event/ping",
                     function(m, a) {
                         assert.equal(m.payload, "pong", "Check if we got a provides pong.");
                         done();
@@ -195,11 +201,11 @@ QUnit.test("Connect with provides and deps.",
             }
         }
 
-        cotonic.broker.publish("model/a/event/ping", "pong", { retain: true });
-        cotonic.broker.publish("model/b/event/ping", "pong", { retain: true });
+        publish("model/a/event/ping", "pong", { retain: true });
+        publish("model/b/event/ping", "pong", { retain: true });
 
-        cotonic.broker.subscribe("connect-wait-deps/+what", handler);
-        cotonic.spawn("/test/workers/connect-wait-deps.js");
+        subscribe("connect-wait-deps/+what", handler);
+        spawn("/test/workers/connect-wait-deps.js");
     }
 );
 
@@ -216,9 +222,38 @@ QUnit.test("on_init is called before connect.",
             }
         }
 
-        cotonic.broker.subscribe("on-init-before-connect/+what", handler);
-        cotonic.spawn("/test/workers/on-init-before-connect.js");
+        subscribe("on-init-before-connect/+what", handler);
+        spawn("/test/workers/on-init-before-connect.js");
     }
 );
 
+QUnit.test("Start worker with a syntax error.",
+    (assert) => {
+        assert.timeout(1000);
+        var done = assert.async();
+        // There is currently no way to check if the error from the
+        // worker is handled.
+        setTimeout(() => {
+            assert.equal(true, true, "");
+            done()
+        }, 500);
 
+        spawn("/test/workers/syntax-error.js");
+    }
+);
+ 
+QUnit.test("Start worker with a runtime error.",
+    (assert) => {
+        assert.timeout(1000);
+        var done = assert.async();
+        // There is currently no way to check if the error from the
+        // worker is handled.
+        setTimeout(() => {
+            assert.equal(true, true, "");
+            done()
+        }, 500);
+
+        spawn("/test/workers/runtime-error.js");
+    }
+);
+ 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2021-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,30 @@
  * limitations under the License.
  */
 
+import { publish, subscribe } from "./cotonic.broker.js";
 
-var cotonic = cotonic || {};
+function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+}
 
-(function(cotonic) {
-"use strict";
+function setcookie(value) {
+    publish("model/document/post/cookie/cotonic-sid",
+        { value: value, exdays: 14 });
+}
 
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-            .toString(16)
-            .substring(1);
-    }
+function generate() {
+    let value = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    window.localStorage.setItem("cotonic-sid", JSON.stringify(value));
+    publish("model/document/post/cookie/cotonic-sid",
+        { value: value, exdays: 4 });
+    publish("model/sessionId/event", value);
+    return value;
+}
 
-    function setcookie(value) {
-        cotonic.broker.publish("model/document/post/cookie/cotonic-sid",
-                { value: value, exdays: 14 });
-    }
-
-    function generate() {
-        let value = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-        window.localStorage.setItem("cotonic-sid", JSON.stringify(value));
-        cotonic.broker.publish("model/document/post/cookie/cotonic-sid",
-                { value: value, exdays: 4 });
-        cotonic.broker.publish("model/sessionId/event", value);
-        return value;
-    }
-
-    cotonic.broker.subscribe("model/sessionId/get", function(msg, bindings) {
+subscribe("model/sessionId/get",
+    function(msg, bindings) {
         if (msg.properties.response_topic) {
             let value = window.localStorage.getItem("cotonic-sid");
             if (typeof value == "string") {
@@ -51,53 +48,63 @@ var cotonic = cotonic || {};
             } else {
                 value = generate();
             }
-            cotonic.broker.publish(msg.properties.response_topic, value);
+            publish(msg.properties.response_topic, value);
         }
-    });
+    },
+    {wid: "model.sessionId"}
+);
 
-    cotonic.broker.subscribe("model/sessionId/post/reset", function(msg, bindings) {
+subscribe("model/sessionId/post/reset",
+    function(msg, bindings) {
         let value = generate();
         if (msg.properties.response_topic) {
             cotonic.broker.publish(msg.properties.response_topic, value);
         }
-    });
+    },
+    {wid: "model.sessionId"}
+);
 
-    cotonic.broker.subscribe("model/sessionId/delete", function(msg, bindings) {
+subscribe("model/sessionId/delete",
+    function(msg, bindings) {
         window.localStorage.removeItem("cotonic-sid");
         if (msg.properties.response_topic) {
-            cotonic.broker.publish(msg.properties.response_topic, null);
+            publish(msg.properties.response_topic, null);
         }
-        cotonic.broker.publish("model/document/post/cookie/cotonic-sid",
-                { value: "", exdays: 0 });
-        cotonic.broker.publish("model/sessionId/event", null);
-    });
+        publish("model/document/post/cookie/cotonic-sid",
+            { value: "", exdays: 0 });
+        publish("model/sessionId/event", null);
+    },
+    {wid: "model.sessionId"}
 
-    cotonic.broker.subscribe("model/localStorage/event/cotonic-sid", function(value) {
-        cotonic.broker.publish("model/sessionId/event", value);
-    });
+);
+
+subscribe("model/localStorage/event/cotonic-sid",
+    (value) => {
+        publish("model/sessionId/event", value);
+    },
+    {wid: "model.sessionId"}
+);
 
 
-    function init() {
-        let value = window.localStorage.getItem("cotonic-sid");
-        if (typeof value == "string") {
-            try {
-                value = JSON.parse(value);
-                if (typeof value == "string" && value !== "") {
-                    setcookie(value);
-                } else {
-                    generate();
-                }
+function init() {
+    let value = window.localStorage.getItem("cotonic-sid");
+    if (typeof value == "string") {
+        try {
+            value = JSON.parse(value);
+            if (typeof value == "string" && value !== "") {
+                setcookie(value);
+            } else {
+                generate();
             }
-            catch (e) {
-                value = generate();
-            }
-        } else {
+        }
+        catch (e) {
             value = generate();
         }
+    } else {
+        value = generate();
     }
+}
 
-    init();
+init();
 
-    cotonic.broker.publish("model/sessionId/event/ping", "pong", { retain: true });
-
-}(cotonic));
+publish("model/sessionId/event/ping", "pong", { retain: true });
