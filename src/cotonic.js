@@ -28,6 +28,7 @@ const config = (globalThis.cotonic && globalThis.cotonic.config) ? globalThis.co
     if(currentScript && currentScript.getAttribute("data-base-worker-src")) {
         load_config_defaults({base_worker_src:
             currentScript.getAttribute("data-base-worker-src")});
+
     }
 })();
 

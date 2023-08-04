@@ -38,6 +38,7 @@
       function assertNoUnclosedTags(openElement, root2) {
         if (openElement === root2) {
           return;
+
         }
         let currentElement2 = openElement;
         const openTags = [];
