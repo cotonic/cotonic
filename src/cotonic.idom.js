@@ -19,36 +19,78 @@ const idom = IncrementalDOM;
 
 import { tokens as getTokens } from "./cotonic.tokenizer.js";
 
+const RENDER_OPS = {
+    text: textNode,
+    open: openNode,
+    void: voidNode,
+    close: closeNode
+}
+
 function render(tokens) {
     function renderToken(token) {
-        switch(token.type) {
-            case "text":
-                return idom.text(token.data);
-            case "open":
-                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
-            case "void":
-                return voidNode(token);
-            case "close":
-                return closeNode(token);
-        }
+        RENDER_OPS[token.type]?.(token, tokens);
     }
 
-    for(let i=0; i < tokens.length; i++) {
-        renderToken(tokens[i]);
+    while(tokens.length > 0) {
+        if(tokens[0].type === "close" && tokens[0].tag === "cotonic-idom-iframe") {
+            if(idom.currentElement().nodeType === Node.DOCUMENT_NODE) {
+                // We reached the end of a special idom iframe
+                break;
+            }
+        }
+
+        renderToken(tokens.shift());
     }
 }
 
-function closeNode(token) {
-    const currentTag = idom.currentElement().tagName;
+function textNode(token) {
+    idom.text(token.data);
+}
 
-    /* Safety measure. If the tag of the current element does not match, doc
-     * not close the element via IncrementalDOM
-     */
-    if (currentTag.toLowerCase() != token.tag.toLowerCase()) {
+function openNode(token, tokens) {
+    if(token.tag === "cotonic-idom-iframe") {
+        // Insert an iframe, and continue rendering the tokens from this point.
+        idom.elementOpen.apply(null,  ["iframe", token?.key, null].concat(token.attributes));
+
+        const frame = idom.currentElement();
+        const frameContentDoc = frame.contentDocument;
+
+        // When the frame is uninitialized and new, there is no doctype, 
+        // Wait a while (there is no event for this) and retry to update the frame.
+        if(frameContentDoc.readyState === "uninitialized" || frameContentDoc.doctype === null) {
+            frameContentDoc.open();
+            frameContentDoc.write("<!DOCTYPE html><html></html>");
+            frameContentDoc.close();
+        }
+
+        // Update the content of the frame with the supplied tokens.
+        patchOuter(frameContentDoc.documentElement, tokens);
+        
         return;
     }
 
-    return idom.elementClose(token.tag);
+    idom.elementOpen.apply(null,  [token.tag, token?.key, null].concat(token.attributes));
+}
+
+function closeNode(token) {
+    const currentElement = idom.currentElement();
+    const currentTag = currentElement?.tagName;
+    let tag = token.tag;
+
+    if(tag === "cotonic-idom-iframe") {
+        tag = "iframe";
+    }
+
+    /*
+     * Safety measure. If the tag of the current element does not match, doc
+     * not close the element via IncrementalDOM
+     */
+
+    if (currentTag !== undefined && (currentTag.toLowerCase() !== tag.toLowerCase())) {
+        return;
+    }
+
+    idom.elementClose(tag);
 }
 
 function voidNode(token) {
@@ -56,7 +98,7 @@ function voidNode(token) {
         return skipNode(token);
     }
 
-    return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+    idom.elementVoid.apply(null,  [token.tag, token?.key, null].concat(token.attributes));
 }
 
 function skipNode(token) {
@@ -86,8 +128,8 @@ function skipNode(token) {
             }
         }
 
-        return idom.elementVoid.apply(null,  [tag, token.hasOwnProperty("key")?token.key:null, null].concat(attributes));
-    } 
+        return idom.elementVoid.apply(null,  [tag, token?.key, null].concat(attributes));
+    }
 
     idom.skipNode();
 }
@@ -101,10 +143,10 @@ function patch(patch, element, HTMLorTokens) {
         tokens = getTokens(HTMLorTokens);
     }
 
-    patch(element, function() { render(tokens); });
+    patch(element, render.bind(null, tokens));
 }
 
-const patchInner = patch.bind(this, idom.patch);
-const patchOuter = patch.bind(this, idom.patchOuter);
+const patchInner = patch.bind(null, idom.patch);
+const patchOuter = patch.bind(null, idom.patchOuter);
 
 export { patchInner, patchOuter };

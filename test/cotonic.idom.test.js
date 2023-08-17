@@ -99,3 +99,32 @@ QUnit.test("Idom skip node", function(assert) {
 
     
 });
+
+QUnit.test("Idom iframe node", function(assert) {
+    let element = document.getElementById("iframe-test");
+
+    idom.patchInner(element, [
+        {type: "open", tag: "div", attributes: []},
+
+        {type: "open", tag: "span", attributes: ["id", "before-iframe"]},
+            {type: "text", data: "Before frame!"},
+        {type: "close", tag: "span"},
+
+        {type: "open", tag: "cotonic-idom-iframe", attributes: []},
+            {type: "open", tag: "html"},
+            {type: "open", tag: "body"},
+                {type: "text", data: "Hela hola, tijd voor chips en cola!\n"},
+            {type: "close", tag: "body"},
+            {type: "close", tag: "html"},
+        {type: "close", tag: "cotonic-idom-iframe"},
+
+        {type: "open", tag: "span", attributes: ["id", "after-iframe"]},
+            {type: "text", data: "After frame!"},
+        {type: "close", tag: "span"},
+
+        {type: "close", tag: "div"}
+    ]);
+
+    assert.ok(true);
+});
+
