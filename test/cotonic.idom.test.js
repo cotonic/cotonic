@@ -111,6 +111,7 @@ QUnit.test("Idom iframe node", function(assert) {
         {type: "close", tag: "span"},
 
         {type: "open", tag: "cotonic-idom-iframe", attributes: ["id", "the-iframe"]},
+            {type: "text", data: "\n"}, // Should be skipped.
             {type: "open", tag: "html"},
             {type: "open", tag: "body", attributes: ["id", "body-in-iframe"]},
                 {type: "text", data: "Hela hola, tijd voor chips en cola!"},
@@ -133,7 +134,6 @@ QUnit.test("Idom iframe node", function(assert) {
 
     const doc = iframe.contentDocument;
     assert.equal("Hela hola, tijd voor chips en cola!", doc.body.innerHTML);
-
 });
 
 QUnit.test("Idom nested iframe nodes", function(assert) {

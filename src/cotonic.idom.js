@@ -67,11 +67,23 @@ function openNode(token, tokens) {
             frameDoc.close();
         }
 
+        // When rendered from a template, the tokens often include leading text nodes before the 
+        // the first node reached. These nodes should be skipped.
+        skipTextNodes(tokens);
         patchOuter(frameDoc.documentElement, tokens);
+
         return;
     }
 
     idom.elementOpen.apply(null,  [token.tag, token?.key, null].concat(token.attributes));
+}
+
+function skipTextNodes(tokens) {
+    while(tokens.length > 0) {
+        let t = tokens[0];
+        if(t.type !== "text") break;
+        tokens.shift();
+    }
 }
 
 function closeNode(token) {
