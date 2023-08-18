@@ -19,6 +19,9 @@ const idom = IncrementalDOM;
 
 import { tokens as getTokens } from "./cotonic.tokenizer.js";
 
+const SKIP_TAG = "cotonic-idom-skip";
+const FRAME_TAG = "cotonic-idom-iframe";
+
 const RENDER_OPS = {
     text: textNode,
     open: openNode,
@@ -27,20 +30,21 @@ const RENDER_OPS = {
 }
 
 function render(tokens) {
-    function renderToken(token) {
+    while(tokens.length > 0 && !isEndOfFrame(tokens)) {
+        const token = tokens.shift();
         RENDER_OPS[token.type]?.(token, tokens);
     }
+}
 
-    while(tokens.length > 0) {
-        if(tokens[0].type === "close" && tokens[0].tag === "cotonic-idom-iframe") {
-            if(idom.currentElement().nodeType === Node.DOCUMENT_NODE) {
-                // We reached the end of a special idom iframe
-                break;
-            }
-        }
+function isEndOfFrame(tokens) {
+    if(tokens[0].type !== "close")
+        return false;
+    if(tokens[0].tag !== FRAME_TAG)
+        return false;
+    if(idom.currentElement().nodeType !== Node.DOCUMENT_NODE)
+        return false;
 
-        renderToken(tokens.shift());
-    }
+    return true;
 }
 
 function textNode(token) {
@@ -48,24 +52,22 @@ function textNode(token) {
 }
 
 function openNode(token, tokens) {
-    if(token.tag === "cotonic-idom-iframe") {
-        // Insert an iframe, and continue rendering the tokens from this point.
+    if(token.tag === FRAME_TAG) {
+        // Insert an iframe, and continue rendering the rest tokens from this point.
         idom.elementOpen.apply(null,  ["iframe", token?.key, null].concat(token.attributes));
 
-        const frame = idom.currentElement();
-        const frameContentDoc = frame.contentDocument;
+        const frameDoc = idom.currentElement().contentDocument;
 
-        // When the frame is uninitialized and new, there is no doctype, 
-        // Wait a while (there is no event for this) and retry to update the frame.
-        if(frameContentDoc.readyState === "uninitialized" || frameContentDoc.doctype === null) {
-            frameContentDoc.open();
-            frameContentDoc.write("<!DOCTYPE html><html></html>");
-            frameContentDoc.close();
+        // When the frame is uninitialized and new, there is no doctype, or it is not
+        // initialized. Write the html5 doctype. After this, the frame is ready to be
+        // updated.
+        if(frameDoc.readyState === "uninitialized" || frameDoc.doctype === null) {
+            frameDoc.open();
+            frameDoc.write("<!DOCTYPE html>\n"); // We could make this configurable via the attributes.
+            frameDoc.close();
         }
 
-        // Update the content of the frame with the supplied tokens.
-        patchOuter(frameContentDoc.documentElement, tokens);
-        
+        patchOuter(frameDoc.documentElement, tokens);
         return;
     }
 
@@ -77,7 +79,7 @@ function closeNode(token) {
     const currentTag = currentElement?.tagName;
     let tag = token.tag;
 
-    if(tag === "cotonic-idom-iframe") {
+    if(tag === FRAME_TAG) {
         tag = "iframe";
     }
 
@@ -94,7 +96,7 @@ function closeNode(token) {
 }
 
 function voidNode(token) {
-    if(token.tag === "cotonic-idom-skip") {
+    if(token.tag === SKIP_TAG) {
         return skipNode(token);
     }
 
@@ -113,7 +115,7 @@ function skipNode(token) {
     }
 
     if(!id) {
-        throw("No id attribute found in cotonic-idom-skip node");
+        throw(`No id attribute found in ${ SKIP_TAG }`);
     }
 
     if(!currentPointer || currentPointer.id !== id) {
