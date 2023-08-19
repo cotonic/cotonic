@@ -30,21 +30,15 @@ const RENDER_OPS = {
 }
 
 function render(tokens) {
-    while(tokens.length > 0 && !isEndOfFrame(tokens)) {
+    while(tokens.length > 0) {
         const token = tokens.shift();
         RENDER_OPS[token.type]?.(token, tokens);
+
+        if(idom.currentElement().nodeType === Node.DOCUMENT_NODE) {
+            skipTextNodes(tokens);
+            break;
+        }
     }
-}
-
-function isEndOfFrame(tokens) {
-    if(tokens[0].type !== "close")
-        return false;
-    if(tokens[0].tag !== FRAME_TAG)
-        return false;
-    if(idom.currentElement().nodeType !== Node.DOCUMENT_NODE)
-        return false;
-
-    return true;
 }
 
 function textNode(token) {

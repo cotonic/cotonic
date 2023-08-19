@@ -117,6 +117,7 @@ QUnit.test("Idom iframe node", function(assert) {
                 {type: "text", data: "Hela hola, tijd voor chips en cola!"},
             {type: "close", tag: "body"},
             {type: "close", tag: "html"},
+            {type: "text", data: "\n"}, // Trailing things should be skipped.
         {type: "close", tag: "cotonic-idom-iframe"},
 
         {type: "open", tag: "span", attributes: ["id", "after-iframe"]},
