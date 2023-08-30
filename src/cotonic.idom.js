@@ -34,6 +34,7 @@ function render(tokens) {
         const token = tokens.shift();
         RENDER_OPS[token.type]?.(token, tokens);
 
+        // This happens when we reached the end of the document of an iframe.
         if(idom.currentElement().nodeType === Node.DOCUMENT_NODE) {
             skipTextNodes(tokens);
             break;
