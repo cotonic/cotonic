@@ -162,8 +162,10 @@ function listenToLifecycleEvents() {
     window.addEventListener("resume", actions.handleEvent, opts);
     window.addEventListener("pageshow", actions.handleEvent, opts);
 
-    window.addEventListener("pagehide", actions.terminatedOrFrozen, opts);
-    window.addEventListener("unload", actions.terminatedOrFrozen, opts);
+    // On modern browsers it is not advised to use unload. 
+    // See: https://developer.chrome.com/articles/page-lifecycle-api/
+    const terminationEvent = 'onpagehide' in globalThis ? 'pagehide' : 'unload';
+    window.addEventListener(terminationEvent, actions.terminatedOrFrozen, opts);
 
     window.addEventListener("online", actions.handleOnlineStatus, opts);
     window.addEventListener("offline", actions.handleOnlineStatus, opts);
