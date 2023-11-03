@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2023 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@ import { on, get, insert, remove, update, render,
 let is_activity_event = false;
 let render_serial = 1;
 const render_cache = {};
+
+const oninput_delay = [];
+const ONINPUT_DELAY = 500;
 
 function maybeRespond(result, properties) {
     if(properties.response_topic) {
@@ -62,7 +65,7 @@ function init() {
         }
     };
 
-    /* 
+    /*
      * Check if there are buffered events which are triggered before
      * the cotonic library was loaded. When there are, publish the
      * events.
@@ -79,6 +82,7 @@ function init() {
 function initTopicEvents(elt) {
     elt.addEventListener("submit", topic_event);
     elt.addEventListener("click", topic_event);
+    elt.addEventListener("input", topic_event);
 }
 
 // The topic 'model/ui/event/recent-activity' is periodically pinged with a flag
@@ -104,8 +108,7 @@ function topic_event( event, isBuffered ) {
         if(topicName in elt.dataset) {
             topicTarget = elt;
             break;
-        } 
-
+        }
         elt = elt.parentElement;
     }
 
@@ -153,10 +156,32 @@ function topic_event( event, isBuffered ) {
         options.response_topic = responseTopic;
     }
 
-    on(topic, msg, event, options);
+    if (event.type == 'input') {
+        // Delay event, dedups inputs during 500 msec, this helps when someone
+        // is typing or changing the form rapidly.
+        for (let i = 0; i < oninput_delay.length; i++) {
+            if (oninput_delay[i].element === topicTarget) {
+                clearTimeout(oninput_delay[i].timer);
+                oninput_delay.splice(i, 1);
+            }
+        }
+        const index = oninput_delay.length;
+        const timer = setTimeout(
+            () => {
+                clearTimeout(oninput_delay[index].timer);
+                oninput_delay.splice(index, 1);
+                on(topic, msg, event, topicTarget, options);
+            }, ONINPUT_DELAY);
+        oninput_delay.push({
+            element: topicTarget,
+            timer: timer
+        });
+    } else {
+        on(topic, msg, event, topicTarget, options);
 
-    if(event.type === "submit" && "onsubmitReset" in topicTarget.dataset) {
-        topicTarget.reset();
+        if(event.type === "submit" && "onsubmitReset" in topicTarget.dataset) {
+            topicTarget.reset();
+        }
     }
 }
 
@@ -168,7 +193,7 @@ function getFromDataset(startElt, endElt, name) {
             return elt.dataset[name];
         }
 
-        if(elt === endElt) 
+        if(elt === endElt)
             break;
 
         elt = elt.parentElement;

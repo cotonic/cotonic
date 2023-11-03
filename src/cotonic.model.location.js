@@ -29,12 +29,11 @@ function init() {
 }
 
 // Publish all info about our current location
-function publishLocation() {
+function publishLocation( isInit ) {
     const oldhash = location.hash;
     const oldpathname = location.pathname;
     const oldsearch = location.search;
     const oldpathname_search = location.pathname_search;
-    const pathname_search = config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
 
     location.protocol = window.location.protocol;
     location.port = window.location.port;
@@ -45,17 +44,27 @@ function publishLocation() {
     location.origin = window.location.origin;
     location.hash = window.location.hash;
     location.search = window.location.search;
-    location.pathname_search = pathname_search;
+
+    if (isInit) {
+        const pathname_search = config.pathname_search || (document.body && document.body.getAttribute("data-cotonic-pathname-search")) || "";
+        location.pathname_search = pathname_search;
+    }
 
     if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
         // Merge query args from the dispatcher and the query string
         // The dispatcher's query args are derived from the pathname.
-        let q = parseQs(window.location.search);
-        const pathq = parseQs("?" + pathname_search);
-        for (let k in pathq) {
-            q[k] = pathq[k];
+        let qlist = searchParamsList(window.location.search);
+        const q = searchParamsIndexed(qlist);
+        if (isInit && location.pathname_search) {
+            const qps = searchParamsList(location.pathname_search);
+            const pathq = searchParamsIndexed(qps);
+            for (let k in pathq) {
+                q[k] = pathq[k];
+            }
+            qlist = qlist.concat(qps);
         }
         location.q = q;
+        location.qlist = qlist;
     }
 
     publish(
@@ -75,6 +84,10 @@ function publishLocation() {
             "model/location/event/q",
             location.q,
             { retain: true });
+        publish(
+            "model/location/event/qlist",
+            location.qlist,
+            { retain: true });
     }
 
     if (oldhash !== location.hash) {
@@ -86,14 +99,8 @@ function publishLocation() {
 }
 
 // Parse the query string, keys with "[]" are appended as an array.
-function parseQs ( qs ) {
+function searchParamsIndexed ( ps ) {
     let q = {};
-    let ps = [];
-
-    const searchParams = new URLSearchParams(qs);
-    searchParams.forEach(function(value, key) {
-        ps.push([ key, value ]);
-    });
 
     for (let i = 0; i < ps.length; i++) {
         const name = ps[i][0];
@@ -113,6 +120,16 @@ function parseQs ( qs ) {
         }
     }
     return q;
+}
+
+function searchParamsList( qs ) {
+    let ps = [];
+
+    const searchParams = new URLSearchParams(qs);
+    searchParams.forEach((value, key) => {
+        ps.push([key, value]);
+    });
+    return ps;
 }
 
 // Bind to the authentication change events
@@ -175,6 +192,68 @@ subscribe("model/location/post/redirect/back", function() {
         window.history.back();
     }
 }, {wid: "model.location"});
+
+subscribe("model/location/post/q", function(msg) {
+    let args = msg.payload;
+
+    if (typeof args == "object") {
+        let s = new URLSearchParams();
+        for (const p in args) {
+            const v = args[p];
+
+            if (Array.isArray(v)) {
+                for (let k = 0; k < v.length; k++) {
+                    s.append(p, "" + v[k]);
+                }
+            } else {
+                s.append(p, ""+v);
+            }
+        }
+        window.history.replaceState({}, '', "?" + s.toString());
+    } else {
+        window.history.replaceState({}, '', "?");
+    }
+    publishLocation();
+}, {wid: "model.location"});
+
+subscribe("model/location/post/qlist", function(msg) {
+    const args = msg.payload;
+    if (Array.isArray(args) && args.length > 0) {
+        let s = new URLSearchParams();
+        for (let i = 0; i < args.length; i++) {
+            s.append(args[i][0], "" + args[i][1]);
+        }
+        window.history.replaceState({}, '', "?" + s.toString());
+    } else {
+        window.history.replaceState({}, '', "?");
+    }
+    publishLocation();
+}, {wid: "model.location"});
+
+subscribe("model/location/post/qlist/submit", function(msg) {
+    const args = msg.payload.valueList ?? [];
+    if (Array.isArray(args) && args.length > 0) {
+        let s = new URLSearchParams();
+        for (let i = 0; i < args.length; i++) {
+            s.append(args[i][0], "" + args[i][1]);
+        }
+        window.history.replaceState({}, '', "?" + s.toString());
+    } else {
+        window.history.replaceState({}, '', "?");
+    }
+    publishLocation();
+}, {wid: "model.location"});
+
+subscribe("model/location/post/hash", function(msg) {
+    const hash = msg.payload;
+    if (hash) {
+        window.history.replaceState({}, '', "#" + hash);
+    } else {
+        window.history.replaceState({}, '', "#");
+    }
+    publishLocation();
+}, {wid: "model.location"});
+
 
 function maybeRespond(result, msg) {
     if(msg.properties.response_topic) {
