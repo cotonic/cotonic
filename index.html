@@ -270,10 +270,14 @@ pre {
                     <li> - <a href="#model.location.get.port">get/port</a>
                     <li> - <a href="#model.location.post.redirect">post/redirect</a>
                     <li> - <a href="#model.location.post.reload">post/reload</a>
+                    <li> - <a href="#model.location.post.q">post/q</a>
+                    <li> - <a href="#model.location.post.qlist">post/qlist</a>
                     <li> - <a href="#model.location.event.search">event/search</a>
                     <li> - <a href="#model.location.event.pathname">event/pathname</a>
                     <li> - <a href="#model.location.event.hash">event/hash</a>
                     <li> - <a href="#model.location.event.ping">event/ping</a>
+                    <li> - <a href="#model.location.event.q">event/q</a>
+                    <li> - <a href="#model.location.event.qlist">event/qlist</a>
                     <li> - <a href="#model.location.config"><em>Configuration</em></a>
                 </ul>
 
@@ -1566,6 +1570,49 @@ cotonic.broker.call("model/location/post/reload")
 When the xyz model on the server responds, the page will be reloaded
             </pre>
 
+            <!-- post/q -->
+
+ <p id="model.location.post.q">
+            <strong class="header">post/q</strong>
+            <br>
+            Updates the current location’s search (query) arguments with the given object of
+            <tt>{ "key": value }</tt> keys. The browsers location is modified using <tt>replaceState</tt>
+            and the new arguments are posted to <tt>model/location/event/q</tt> and <tt>model/location/event/qlist</tt>
+            </p>
+            <p>If you need to have multiple keys with the same name, or the order of the keys is significant then use <a href="model.location.post.qlist">post/qlist</a>.</p>
+            <pre>
+cotonic.broker.call("model/location/post/q", {"a":"1", "b":"2"} ])
+=> // The browser location will be updated, the page is not reloaded
+</pre>
+
+<pre>
+&lt;form data-onsubmit-topic="model/location/post/q"&gt;
+   &lt;input type="text" value=""&gt;
+   &lt;input type="submit" value="Submit"&gt;
+&lt;/form&gt;
+            </pre>
+
+            <!-- post/qlist -->
+
+ <p id="model.location.post.qlist">
+            <strong class="header">post/qlist</strong>
+            <br>
+            Updates the current location’s search (query) arguments with the given list of
+            <tt>[Key, Value]</tt> pairs. The browsers location is modified using <tt>replaceState</tt>
+            and the new arguments are posted to <tt>model/location/event/q</tt> and <tt>model/location/event/qlist</tt>
+            </p>
+            <pre>
+cotonic.broker.call("model/location/post/qlist", [ ["a", "1"], ["b", "2"] ])
+=> // The browser location will be updated, the page is not reloaded
+</pre>
+
+<pre>
+&lt;form data-onsubmit-topic="model/location/post/qlist"&gt;
+   &lt;input type="text" value=""&gt;
+   &lt;input type="submit" value="Submit"&gt;
+&lt;/form&gt;
+            </pre>
+
             <!-- event/search -->
             <p id="model.location.event.search">
             <strong class="header">event/search</strong>
@@ -1620,6 +1667,39 @@ cotonic.broker.subscribe("model/location/event/ping",
     })
 => Logs a message on the console when the location model is enabled.</pre>
 
+            <!-- event/q -->
+            <p id="model.location.event.q">
+            <strong class="header">event/q</strong>
+            <br>
+            A message with the current query arguments is published on this
+            topic. By subscribing to this topic it is possible to see when the query arguments
+            change. The payload of the message is an object with <tt>{ "key": "value" }</tt>
+            entries. <em>Note: the message is retained</em>
+            </p>
+            <pre>
+cotonic.broker.subscribe("model/location/event/q",
+    function(m) {
+        console.log("New query arguments", m.payload)
+    })
+=> Logs a message on the console when the query arguments change.</pre>
+
+            <!-- event/qlist -->
+            <p id="model.location.event.qlist">
+            <strong class="header">event/qlist</strong>
+            <br>
+            A message with the current query arguments is published on this
+            topic. By subscribing to this topic it is possible to see when the query arguments
+            change. The payload of the message is an array with <tt>[ "key", "value" ]</tt> pairs.
+            <em>Note: the message is retained</em>
+            </p>
+            <pre>
+cotonic.broker.subscribe("model/location/event/qlist",
+    function(m) {
+        console.log("New query arguments", m.payload)
+    })
+=> Logs a message on the console when the query arguments change.</pre>
+
+            <!-- config -->
             <p id="model.location.config">
             <strong class="header"><em>Configuration</em></strong>
             <br>
@@ -1627,7 +1707,7 @@ cotonic.broker.subscribe("model/location/event/ping",
             <dl>
                 <dt><tt>pathname_search</tt></dt>
                 <dd>Set to the current search parameters of the page. Alternatively this setting
-                can can be done as <tt>data-cotonic-pathname-search</tt> attribute on the body tag. dd>
+                can can be done as <tt>data-cotonic-pathname-search</tt> attribute on the body tag.</dd>
             </dl>
 
             </p>
