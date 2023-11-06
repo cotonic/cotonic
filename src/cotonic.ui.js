@@ -37,7 +37,7 @@ function insert(id, mode, initialData, priority) {
 
     state[id] = {
         id: id,
-        mode: mode,
+        mode: mode ?? "inner",
         data: initialData,
         dirty: true
     };
@@ -144,7 +144,7 @@ function renderElement(elt, id) {
 
     /* Patch the element */
     switch(s.mode) {
-        case "inner": 
+        case "inner":
             patchInner(elt, s.data);
             break;
         case "outer":
@@ -184,14 +184,22 @@ function render() {
         0);
 }
 
-function on(topic, msg, event, options) {
+function on(topic, msg, event, topicTarget, options) {
     options = options || {};
-    const payload = {
+    let payload = {
         message: msg,
         event: event ? cloneableEvent(event) : undefined,
-        value: event ? eventTargetValue(event) : undefined,
-        data: event ? eventDataAttributes(event) : undefined
+        value: topicTarget ? topicTargetValue(topicTarget) : undefined,
+        data: topicTarget ? topicTargetDataAttributes(topicTarget) : undefined
     };
+
+    if (topicTarget) {
+        const valueList = topicTargetValueList(topicTarget);
+        if (Array.isArray(valueList)) {
+            payload.valueList = valueList;
+        }
+    }
+
     const pubopts = {
         qos: typeof(options.qos) == 'number' ? options.qos : 0
     };
@@ -273,14 +281,14 @@ function cloneableEvent(e) {
     };
 }
 
-function eventDataAttributes(event) {
+function topicTargetDataAttributes(topicTarget) {
     const d = {};
 
-    if(!event.target)
+    if(!topicTarget)
         return d;
 
-    if(event.target.hasOwnProperty("attributes")) {
-        const attrs = event.target.attributes;
+    if(topicTarget.hasOwnProperty("attributes")) {
+        const attrs = topicTarget.attributes;
 
         for (let i=0; i < attrs.length; i++) {
             if (attrs[i].name.startsWith("data-")) {
@@ -292,33 +300,32 @@ function eventDataAttributes(event) {
     return d;
 }
 
-function eventTargetValue(event) {
-    if (event.target && !event.target.disabled) {
-        const elt = event.target;
-        switch (event.target.nodeName) {
+function topicTargetValue(topicTarget) {
+    if (topicTarget && !topicTarget.disabled) {
+        switch (topicTarget.nodeName) {
             case 'FORM':
-                return serializeForm(elt);
+                return serializeFormToObject(topicTarget);
             case 'INPUT':
             case 'SELECT':
-                if (elt.type == 'select-multiple') {
-                    const l = elt.options.length;
+                if (topicTarget.type == 'select-multiple') {
+                    const l = topicTarget.options.length;
                     const v = [];
                     for (let j=0; j<l; j++) {
-                        if(elt.options[j].selected) {
-                            v[v.length] = elt.options[j].value;
+                        if(topicTarget.options[j].selected) {
+                            v[v.length] = topicTarget.options[j].value;
                         }
                     }
                     return v;
-                } else if (elt.type == 'checkbox' || elt.type == 'radio') {
-                    if (elt.checked) {
-                        return elt.value;
+                } else if (topicTarget.type == 'checkbox' || topicTarget.type == 'radio') {
+                    if (topicTarget.checked) {
+                        return topicTarget.value;
                     } else {
                         return false;
                     }
-                } 
-                return elt.value;
+                }
+                return topicTarget.value;
             case 'TEXTAREA':
-                return elt.value;
+                return topicTarget.value;
             default:
                 return undefined;
         }
@@ -327,8 +334,18 @@ function eventTargetValue(event) {
     }
 }
 
+function topicTargetValueList(topicTarget) {
+    if (topicTarget && !topicTarget.disabled) {
+        if (topicTarget.nodeName === 'FORM') {
+            return serializeFormToList(topicTarget);
+        } else {
+            return undefined;
+        }
+    }
+}
+
 // From https://plainjs.com/javascript/ajax/serialize-form-data-into-an-array-46/
-function serializeForm(form) {
+function serializeFormToObject(form) {
     let field, l, v, s = {};
     if (typeof form == 'object' && form.nodeName == "FORM") {
         const len = form.elements.length;
@@ -336,6 +353,7 @@ function serializeForm(form) {
             field = form.elements[i];
             if ( field.name
                 && !field.disabled
+                && !field.classList.contains("nosubmit")
                 && field.type != 'file'
                 && field.type != 'reset'
                 && field.type != 'submit'
@@ -350,9 +368,50 @@ function serializeForm(form) {
                         }
                     }
                     s[field.name] = v;
-                } else if ((field.type != 'checkbox' && field.type != 'radio') || field.checked) {
+
+                } else if (field.type == 'checkbox') {
+                    if (field.checked) {
+                        s[field.name] = field.value;
+                    } else {
+                        s[field.name] = "";
+                    }
+                } else if (field.type != 'radio' || field.checked) {
                     s[field.name] = field.value;
                 }
+            }
+        }
+    }
+    return s;
+}
+
+function serializeFormToList(form) {
+    let field, l, v, s = [];
+    const len = form.elements.length;
+    for (let i=0; i<len; i++) {
+        field = form.elements[i];
+        if ( field.name
+            && !field.disabled
+            && !field.classList.contains("nosubmit")
+            && field.type != 'file'
+            && field.type != 'reset'
+            && field.type != 'submit'
+            && field.type != 'button')
+        {
+            if (field.type == 'select-multiple') {
+                l = form.elements[i].options.length;
+                for (let j=0; j<l; j++) {
+                    if(field.options[j].selected) {
+                        s.push([field.name, field.options[j].value]);
+                    }
+                }
+            } else if (field.type == 'checkbox') {
+                if (field.checked) {
+                    s.push([field.name, field.value]);
+                } else {
+                    s.push([field.name, ""]);
+                }
+            } else if (field.type != 'radio' || field.checked) {
+                s.push([field.name, field.value]);
             }
         }
     }
