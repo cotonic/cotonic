@@ -2051,7 +2051,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.4.1";
+  var VERSION = "1.5.0";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -2784,7 +2784,7 @@
     }
     state[id] = {
       id,
-      mode,
+      mode: mode != null ? mode : "inner",
       data: initialData,
       dirty: true
     };
@@ -2891,14 +2891,20 @@
       0
     );
   }
-  function on(topic, msg, event, options) {
+  function on(topic, msg, event, topicTarget, options) {
     options = options || {};
-    const payload2 = {
+    let payload2 = {
       message: msg,
       event: event ? cloneableEvent(event) : void 0,
-      value: event ? eventTargetValue(event) : void 0,
-      data: event ? eventDataAttributes(event) : void 0
+      value: topicTarget ? topicTargetValue(topicTarget) : void 0,
+      data: topicTarget ? topicTargetDataAttributes(topicTarget) : void 0
     };
+    if (topicTarget) {
+      const valueList = topicTargetValueList(topicTarget);
+      if (Array.isArray(valueList)) {
+        payload2.valueList = valueList;
+      }
+    }
     const pubopts = {
       qos: typeof options.qos == "number" ? options.qos : 0
     };
@@ -2975,12 +2981,12 @@
       y: e.y
     };
   }
-  function eventDataAttributes(event) {
+  function topicTargetDataAttributes(topicTarget) {
     const d = {};
-    if (!event.target)
+    if (!topicTarget)
       return d;
-    if (event.target.hasOwnProperty("attributes")) {
-      const attrs = event.target.attributes;
+    if (topicTarget.hasOwnProperty("attributes")) {
+      const attrs = topicTarget.attributes;
       for (let i = 0; i < attrs.length; i++) {
         if (attrs[i].name.startsWith("data-")) {
           d[attrs[i].name.substr(5)] = attrs[i].value;
@@ -2989,33 +2995,32 @@
     }
     return d;
   }
-  function eventTargetValue(event) {
-    if (event.target && !event.target.disabled) {
-      const elt = event.target;
-      switch (event.target.nodeName) {
+  function topicTargetValue(topicTarget) {
+    if (topicTarget && !topicTarget.disabled) {
+      switch (topicTarget.nodeName) {
         case "FORM":
-          return serializeForm(elt);
+          return serializeFormToObject(topicTarget);
         case "INPUT":
         case "SELECT":
-          if (elt.type == "select-multiple") {
-            const l = elt.options.length;
+          if (topicTarget.type == "select-multiple") {
+            const l = topicTarget.options.length;
             const v = [];
             for (let j = 0; j < l; j++) {
-              if (elt.options[j].selected) {
-                v[v.length] = elt.options[j].value;
+              if (topicTarget.options[j].selected) {
+                v[v.length] = topicTarget.options[j].value;
               }
             }
             return v;
-          } else if (elt.type == "checkbox" || elt.type == "radio") {
-            if (elt.checked) {
-              return elt.value;
+          } else if (topicTarget.type == "checkbox" || topicTarget.type == "radio") {
+            if (topicTarget.checked) {
+              return topicTarget.value;
             } else {
               return false;
             }
           }
-          return elt.value;
+          return topicTarget.value;
         case "TEXTAREA":
-          return elt.value;
+          return topicTarget.value;
         default:
           return void 0;
       }
@@ -3023,13 +3028,22 @@
       return void 0;
     }
   }
-  function serializeForm(form) {
+  function topicTargetValueList(topicTarget) {
+    if (topicTarget && !topicTarget.disabled) {
+      if (topicTarget.nodeName === "FORM") {
+        return serializeFormToList(topicTarget);
+      } else {
+        return void 0;
+      }
+    }
+  }
+  function serializeFormToObject(form) {
     let field, l, v, s = {};
     if (typeof form == "object" && form.nodeName == "FORM") {
       const len = form.elements.length;
       for (let i = 0; i < len; i++) {
         field = form.elements[i];
-        if (field.name && !field.disabled && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
+        if (field.name && !field.disabled && !field.classList.contains("nosubmit") && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
           if (field.type == "select-multiple") {
             v = [];
             l = form.elements[i].options.length;
@@ -3039,9 +3053,41 @@
               }
             }
             s[field.name] = v;
-          } else if (field.type != "checkbox" && field.type != "radio" || field.checked) {
+          } else if (field.type == "checkbox") {
+            if (field.checked) {
+              s[field.name] = field.value;
+            } else {
+              s[field.name] = "";
+            }
+          } else if (field.type != "radio" || field.checked) {
             s[field.name] = field.value;
           }
+        }
+      }
+    }
+    return s;
+  }
+  function serializeFormToList(form) {
+    let field, l, v, s = [];
+    const len = form.elements.length;
+    for (let i = 0; i < len; i++) {
+      field = form.elements[i];
+      if (field.name && !field.disabled && !field.classList.contains("nosubmit") && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
+        if (field.type == "select-multiple") {
+          l = form.elements[i].options.length;
+          for (let j = 0; j < l; j++) {
+            if (field.options[j].selected) {
+              s.push([field.name, field.options[j].value]);
+            }
+          }
+        } else if (field.type == "checkbox") {
+          if (field.checked) {
+            s.push([field.name, field.value]);
+          } else {
+            s.push([field.name, ""]);
+          }
+        } else if (field.type != "radio" || field.checked) {
+          s.push([field.name, field.value]);
         }
       }
     }
@@ -5833,12 +5879,11 @@
     publishLocation(true);
     window.addEventListener("hashchange", publishLocation, false);
   }
-  function publishLocation() {
+  function publishLocation(isInit) {
     const oldhash = location.hash;
     const oldpathname = location.pathname;
     const oldsearch = location.search;
     const oldpathname_search = location.pathname_search;
-    const pathname_search = config.pathname_search || document.body && document.body.getAttribute("data-cotonic-pathname-search") || "";
     location.protocol = window.location.protocol;
     location.port = window.location.port;
     location.host = window.location.host;
@@ -5848,14 +5893,23 @@
     location.origin = window.location.origin;
     location.hash = window.location.hash;
     location.search = window.location.search;
-    location.pathname_search = pathname_search;
+    if (isInit) {
+      const pathname_search = config.pathname_search || document.body && document.body.getAttribute("data-cotonic-pathname-search") || "";
+      location.pathname_search = pathname_search;
+    }
     if (oldsearch !== location.search || oldpathname_search !== location.pathname_search) {
-      let q = parseQs(window.location.search);
-      const pathq = parseQs("?" + pathname_search);
-      for (let k in pathq) {
-        q[k] = pathq[k];
+      let qlist = searchParamsList(window.location.search);
+      const q = searchParamsIndexed(qlist);
+      if (isInit && location.pathname_search) {
+        const qps = searchParamsList(location.pathname_search);
+        const pathq = searchParamsIndexed(qps);
+        for (let k in pathq) {
+          q[k] = pathq[k];
+        }
+        qlist = qlist.concat(qps);
       }
       location.q = q;
+      location.qlist = qlist;
     }
     publish(
       "model/location/event",
@@ -5875,6 +5929,11 @@
         location.q,
         { retain: true }
       );
+      publish(
+        "model/location/event/qlist",
+        location.qlist,
+        { retain: true }
+      );
     }
     if (oldhash !== location.hash) {
       publish(
@@ -5884,13 +5943,8 @@
       );
     }
   }
-  function parseQs(qs) {
+  function searchParamsIndexed(ps) {
     let q = {};
-    let ps = [];
-    const searchParams = new URLSearchParams(qs);
-    searchParams.forEach(function(value2, key) {
-      ps.push([key, value2]);
-    });
     for (let i = 0; i < ps.length; i++) {
       const name = ps[i][0];
       const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
@@ -5909,6 +5963,14 @@
       }
     }
     return q;
+  }
+  function searchParamsList(qs) {
+    let ps = [];
+    const searchParams = new URLSearchParams(qs);
+    searchParams.forEach((value2, key) => {
+      ps.push([key, value2]);
+    });
+    return ps;
   }
   subscribe(
     "model/auth/event/auth-changing",
@@ -5957,6 +6019,62 @@
     } else {
       window.history.back();
     }
+  }, { wid: "model.location" });
+  subscribe("model/location/post/q", function(msg) {
+    let args = msg.payload;
+    if (typeof args == "object") {
+      let s = new URLSearchParams();
+      for (const p in args) {
+        const v = args[p];
+        if (Array.isArray(v)) {
+          for (let k = 0; k < v.length; k++) {
+            s.append(p, "" + v[k]);
+          }
+        } else {
+          s.append(p, "" + v);
+        }
+      }
+      window.history.replaceState({}, "", "?" + s.toString());
+    } else {
+      window.history.replaceState({}, "", "?");
+    }
+    publishLocation();
+  }, { wid: "model.location" });
+  subscribe("model/location/post/qlist", function(msg) {
+    const args = msg.payload;
+    if (Array.isArray(args) && args.length > 0) {
+      let s = new URLSearchParams();
+      for (let i = 0; i < args.length; i++) {
+        s.append(args[i][0], "" + args[i][1]);
+      }
+      window.history.replaceState({}, "", "?" + s.toString());
+    } else {
+      window.history.replaceState({}, "", "?");
+    }
+    publishLocation();
+  }, { wid: "model.location" });
+  subscribe("model/location/post/qlist/submit", function(msg) {
+    var _a;
+    const args = (_a = msg.payload.valueList) != null ? _a : [];
+    if (Array.isArray(args) && args.length > 0) {
+      let s = new URLSearchParams();
+      for (let i = 0; i < args.length; i++) {
+        s.append(args[i][0], "" + args[i][1]);
+      }
+      window.history.replaceState({}, "", "?" + s.toString());
+    } else {
+      window.history.replaceState({}, "", "?");
+    }
+    publishLocation();
+  }, { wid: "model.location" });
+  subscribe("model/location/post/hash", function(msg) {
+    const hash = msg.payload;
+    if (hash) {
+      window.history.replaceState({}, "", "#" + hash);
+    } else {
+      window.history.replaceState({}, "", "#");
+    }
+    publishLocation();
   }, { wid: "model.location" });
   function maybeRespond(result, msg) {
     if (msg.properties.response_topic) {
@@ -6120,6 +6238,8 @@
   var is_activity_event = false;
   var render_serial = 1;
   var render_cache = {};
+  var oninput_delay = [];
+  var ONINPUT_DELAY = 500;
   function maybeRespond2(result, properties) {
     if (properties.response_topic) {
       publish(properties.response_topic, result);
@@ -6165,6 +6285,7 @@
   function initTopicEvents(elt) {
     elt.addEventListener("submit", topic_event);
     elt.addEventListener("click", topic_event);
+    elt.addEventListener("input", topic_event);
   }
   function activity_event() {
     is_activity_event = true;
@@ -6220,9 +6341,31 @@
     if (responseTopic) {
       options.response_topic = responseTopic;
     }
-    on(topic, msg, event, options);
-    if (event.type === "submit" && "onsubmitReset" in topicTarget.dataset) {
-      topicTarget.reset();
+    if (event.type == "input") {
+      for (let i = 0; i < oninput_delay.length; i++) {
+        if (oninput_delay[i].element === topicTarget) {
+          clearTimeout(oninput_delay[i].timer);
+          oninput_delay.splice(i, 1);
+        }
+      }
+      const index = oninput_delay.length;
+      const timer = setTimeout(
+        () => {
+          clearTimeout(oninput_delay[index].timer);
+          oninput_delay.splice(index, 1);
+          on(topic, msg, event, topicTarget, options);
+        },
+        ONINPUT_DELAY
+      );
+      oninput_delay.push({
+        element: topicTarget,
+        timer
+      });
+    } else {
+      on(topic, msg, event, topicTarget, options);
+      if (event.type === "submit" && "onsubmitReset" in topicTarget.dataset) {
+        topicTarget.reset();
+      }
     }
   }
   function getFromDataset(startElt, endElt, name) {
