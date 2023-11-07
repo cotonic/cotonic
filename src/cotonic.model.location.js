@@ -95,6 +95,13 @@ function publishLocation( isInit ) {
             "model/location/event/hash",
             location.hash === "" ? "#" : location.hash,
             { retain: true });
+
+        if (location.hash) {
+            const hashTarget = document.getElementById(location.hash.substring(1));
+            if (hashTarget) {
+                hashTarget.scrollIntoView({ behavior: "smooth" });
+            }
+        }
     }
 }
 
@@ -165,15 +172,64 @@ subscribe("model/location/get/+what", function(msg, bindings) {
     maybeRespond(resp, msg);
 }, {wid: "model.location"});
 
+function payload_url(msg) {
+    let url;
+
+    if (msg.payload?.url) {
+        url = msg.payload.url;
+    } else if (msg.payload?.message?.href) {
+        url = msg.payload.message.href;
+    } else if (typeof msg.payload == 'string' && msg.payload) {
+        url = msg.payload;
+    }
+    return url;
+}
+
+subscribe("model/location/post/push", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+        url = new URL(url, window.location);
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+        publishLocation();
+    }
+}, {wid: "model.location"});
+
+subscribe("model/location/post/replace", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+        url = new URL(url, window.location);
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+        publishLocation();
+    }
+}, {wid: "model.location"});
+
+subscribe("model/location/post/push-silent", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+        url = new URL(url, window.location);
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+    }
+}, {wid: "model.location"});
+
+subscribe("model/location/post/replace-silent", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+        url = new URL(url, window.location);
+        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+    }
+}, {wid: "model.location"});
+
 subscribe("model/location/post/redirect", function(msg) {
-    if (msg.payload.url) {
+    let url = payload_url(msg);
+    if (url) {
         window.location = msg.payload.url;
         willNavigate();
     }
 }, {wid: "model.location"});
 
 subscribe("model/location/post/redirect-local", function(msg) {
-    if (msg.payload.url) {
+    let url = payload_url(msg);
+    if (url) {
         let url = new URL(msg.payload.url, window.location);
         window.location = url.pathname + url.search + url.hash;
         willNavigate();
@@ -231,7 +287,7 @@ subscribe("model/location/post/qlist", function(msg) {
 }, {wid: "model.location"});
 
 subscribe("model/location/post/qlist/submit", function(msg) {
-    const args = msg.payload.valueList ?? [];
+    const args = msg.payload?.valueList ?? [];
     if (Array.isArray(args) && args.length > 0) {
         let s = new URLSearchParams();
         for (let i = 0; i < args.length; i++) {

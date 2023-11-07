@@ -109,6 +109,34 @@ function update(id, htmlOrTokens) {
     requestRender();
 }
 
+/**
+ * Replace the element with the new representation.
+ * This is a one-time actions, no state should be
+ * retained after this update.
+ */
+function replace(id, htmlOrTokens) {
+    let currentState = state[id];
+    const priority = undefined;
+
+    if (currentState) {
+        currentState.data = htmlOrTokens;
+    } else {
+        state[id] = {
+            id: id,
+            data: htmlOrTokens,
+            dirty: true,
+            mode: "outer",
+            onetime: true
+        };
+        insertSorted(order,
+            {id: id, priority: priority},
+            function(a, b) {
+                return a.priority < b.priority;
+            });
+    }
+    requestRender();
+}
+
 function renderId(id) {
     /* Lookup the element we want to update */
     const elt = document.getElementById(id);
@@ -136,10 +164,16 @@ function initializeShadowRoot(elt, mode) {
 
 function renderElement(elt, id) {
     const s = state[id];
+    let is_patch_replace = false;
 
     if(s === undefined || s.data === undefined || s.dirty === false) {
         /* The element is not here anymore or does not have data yet */
         return;
+    }
+
+    if (s.onetime && s.mode == "outer" && typeof s.data == "string") {
+        s.data = '<cotonic-tmp-outer id="-tmp-patch-outer-">' + s.data + "</cotonic-tmp-outer>";
+        is_patch_replace = true;
     }
 
     /* Patch the element */
@@ -162,6 +196,15 @@ function renderElement(elt, id) {
     }
 
     s.dirty = false;
+
+    if (is_patch_replace) {
+        elt = document.getElementById("-tmp-patch-outer-")
+        elt.replaceWith(...elt.children);
+    }
+
+    if (s.onetime) {
+        remove(id);
+    }
 
     return true;
 }
@@ -514,6 +557,6 @@ function requestRender() {
     animationFrameRequestId = window.requestAnimationFrame(renderUpdate);
 }
 
-export { insert, get, update, remove,
+export { insert, get, update, replace, remove,
     render, renderId,
     updateStateData, updateStateClass, on };
