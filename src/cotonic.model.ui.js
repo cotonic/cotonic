@@ -15,7 +15,7 @@
  */
 
 import { publish, subscribe, call } from "./cotonic.broker.js";
-import { on, get, insert, remove, update, render,
+import { on, get, insert, remove, update, replace, render,
     updateStateClass, updateStateData } from "./cotonic.ui.js";
 
 let is_activity_event = false;
@@ -51,17 +51,30 @@ function init() {
 
     initTopicEvents(document);
 
+    const prevNodesCreated = IncrementalDOM.notifications.nodesCreated;
     IncrementalDOM.notifications.nodesCreated = function(nodes) {
-        for(const n in nodes) {
-            if(!n.id) continue;
-            publish("model/ui/event/node-created/" + n.id, {id: n.id});
+        nodes.forEach((n) => {
+            if(n.hasAttribute && n.hasAttribute("data-onvisible-topic")) {
+                attachIntersectionObserver(n);
+            }
+            if(n.id) {
+                publish("model/ui/event/node-created/" + n.id, {id: n.id});
+            }
+        });
+        if (prevNodesCreated) {
+            prevNodesCreated(nodes);
         }
     };
 
+    const prevNodesDeleted = IncrementalDOM.notifications.nodesCreated;
     IncrementalDOM.notifications.nodesDeleted = function(nodes) {
-        for(const n in nodes) {
-            if(!n.id) continue;
-            publish("model/ui/event/node-deleted/" + n.id, {id: n.id});
+        nodes.forEach((n) => {
+            if(n.id) {
+                publish("model/ui/event/node-deleted/" + n.id, {id: n.id});
+            }
+        });
+        if (prevNodesDeleted) {
+            prevNodesDeleted(nodes);
         }
     };
 
@@ -76,6 +89,24 @@ function init() {
         }
         globalThis.cotonic.bufferedEvents = [];
     }
+}
+
+function attachIntersectionObserver(elt) {
+    let observer = new IntersectionObserver((changes) => {
+        changes.forEach((c) => {
+            if (c.isIntersecting) {
+                const event = {
+                    type: "visible",
+                    target: c.target,
+                    cancelable: false,
+                    stopPropagation: () => 0,
+                    preventDefault: () => 0
+                };
+                topic_event(event);
+            }
+        });
+    });
+    observer.observe(elt);
 }
 
 // Hook into topic-connected event handlers (submit, click, etc.)
@@ -270,6 +301,20 @@ subscribe("model/ui/update/+key",
             html = p;
         }
         maybeRespond(update(bindings.key, html), msg.properties);
+    },
+    {wid: "model.ui"}
+);
+
+subscribe("model/ui/replace/+key",
+    function(msg, bindings) {
+        const p = msg.payload || "";
+        let html;
+        if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
+            html = p.result;
+        } else {
+            html = p;
+        }
+        maybeRespond(replace(bindings.key, html), msg.properties);
     },
     {wid: "model.ui"}
 );

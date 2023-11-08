@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <meta name="HandheldFriendly" content="true"/>
 
-        <link rel="apple-touch-icon" sizes="180x180" href="./doc/favicon/apple-touch-icon.png">
+        <link rel="apple-touch-icon " sizes="180x180" href="./doc/favicon/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="./doc/favicon/32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="./doc/favicon/16x16.png">
         <link rel="manifest" href="./doc/favicon/site.webmanifest">
@@ -272,6 +272,10 @@ pre {
                     <li> - <a href="#model.location.post.reload">post/reload</a>
                     <li> - <a href="#model.location.post.q">post/q</a>
                     <li> - <a href="#model.location.post.qlist">post/qlist</a>
+                    <li> - <a href="#model.location.post.push">post/push</a>
+                    <li> - <a href="#model.location.post.replace">post/replace</a>
+                    <li> - <a href="#model.location.post.push-silent">post/push-silent</a>
+                    <li> - <a href="#model.location.post.replace-silent">post/replace-silent</a>
                     <li> - <a href="#model.location.event.search">event/search</a>
                     <li> - <a href="#model.location.event.pathname">event/pathname</a>
                     <li> - <a href="#model.location.event.hash">event/hash</a>
@@ -293,6 +297,8 @@ pre {
                     <li> - <a href="#model.ui.render">render</a>
                     <li> - <a href="#model.ui.render.key">render/+key</a>
                     <li> - <a href="#model.ui.render-template.key">render-template/+key</a>
+
+                    <li> - <a href="#model.ui.replace">replace/+key</a>
 
                     <li> - <a href="#model.ui.event.recent-activity">event/recent-activity</a>
                     <li> - <a href="#model.ui.event.dom-updated">event/dom-updated/+key</a>
@@ -350,6 +356,14 @@ pre {
                     <li> - <a href="#model.sessionStorage.event.key">event/+key</a>
                     <li> - <a href="#model.sessionStorage.event.key.subkey">event/+key/+subkey</a>
                     <li> - <a href="#model.sessionStorage.event.ping">event/ping</a>
+                </ul>
+
+                <a class="toc_title" href="#model.dedup">
+                    model/dedup
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.dedup.post.message">post/message</a>
+                    <li> - <a href="#model.dedup.post.message.key">post/message/+key</a>
                 </ul>
 
             </div>
@@ -1613,6 +1627,87 @@ cotonic.broker.call("model/location/post/qlist", [ ["a", "1"], ["b", "2"] ])
 &lt;/form&gt;
             </pre>
 
+            <!-- post/push -->
+
+ <p id="model.location.post.push">
+            <strong class="header">post/push</strong>
+            <br>
+            Updates the current location with the given url. The new location is set using
+            <tt>pushState</tt>, so the back button will work. The location is assumed to be
+            on the same hostname as the current page, so only the new path, search and hash are
+            pushed.<br>
+            If parts of the new location are changed then they are posted to <tt>model/location/event/pathname</tt>, <tt>model/location/event/q</tt>, <tt>model/location/event/qlist</tt> and <tt>model/location/event/hash</tt>.  If the hash is set and there is an element with an id corresponding to the hash, then that element is scrolled into view.
+            </p>
+<pre>
+cotonic.broker.call("model/location/post/push", { url: "/hello?w=world" });
+=> // The browser location will be updated, the page is not reloaded
+</pre>
+
+<pre>
+&lt;a data-onclick-topic="model/location/post/push" href="?a=1"&gt;
+</pre>
+
+            <!-- post/replace -->
+
+ <p id="model.location.post.replace">
+            <strong class="header">post/replace</strong>
+            <br>
+            Updates the current location with the given url. The new location is set using
+            <tt>replaceState</tt>, so the back button will NOT work. The location is assumed to be
+            on the same hostname as the current page, so only the new path, search and hash are
+            pushed.<br>
+            If parts of the new location are changed then they are posted to <tt>model/location/event/pathname</tt>, <tt>model/location/event/q</tt>, <tt>model/location/event/qlist</tt> and <tt>model/location/event/hash</tt>.  If the hash is set and there is an element with an id corresponding to the hash, then that element is scrolled into view.
+            </p>
+<pre>
+cotonic.broker.call("model/location/post/replace", { url: "/hello?w=world" });
+=> // The browser location will be updated, the page is not reloaded
+</pre>
+
+<pre>
+&lt;a data-onclick-topic="model/location/post/replace" href="?a=1"&gt;
+</pre>
+
+
+            <!-- post/push-silent -->
+
+ <p id="model.location.post.push-silent">
+            <strong class="header">post/push-silent</strong>
+            <br>
+            Updates the current location with the given url. The new location is set using
+            <tt>pushState</tt>, so the back button will work. The location is assumed to be
+            on the same hostname as the current page, so only the new path, search and hash are
+            pushed.<br>
+            The new location is silently changed, no location events are published.
+            </p>
+<pre>
+cotonic.broker.call("model/location/post/push-silent", { url: "/hello?w=world" });
+=> // The browser location will be updated, the page is not reloaded
+</pre>
+
+<pre>
+&lt;a data-onclick-topic="model/location/post/push-silent" href="?a=1"&gt;
+</pre>
+
+            <!-- post/replace-silent -->
+
+ <p id="model.location.post.replace-silent">
+            <strong class="header">post/replace-silent</strong>
+            <br>
+            Updates the current location with the given url. The new location is set using
+            <tt>replaceState</tt>, so the back button will NOT work. The location is assumed to be
+            on the same hostname as the current page, so only the new path, search and hash are
+            pushed.<br>
+            The new location is silently changed, no location events are published.
+            </p>
+<pre>
+cotonic.broker.call("model/location/post/replace-silent", { url: "/hello?w=world" });
+=> // The browser location will be updated, the page is not reloaded
+</pre>
+
+<pre>
+&lt;a data-onclick-topic="model/location/post/replace-silent" href="?a=1"&gt;
+</pre>
+
             <!-- event/search -->
             <p id="model.location.event.search">
             <strong class="header">event/search</strong>
@@ -1732,8 +1827,8 @@ cotonic.broker.subscribe("model/location/event/qlist",
 
             <p>
             The ui model can be used to update the dom by publishing messages on one of the
-            <tt>model/ui/#</tt> topics. Elements can be inserted, deleted and updated. When
-            elements in the dom-tree are updated, the a message
+            <tt>model/ui/#</tt> topics. Elements can be inserted, deleted and updated. If
+            elements in the dom-tree are updated, then a message
             <tt>model/ui/event/dom-updated/+key</tt> is published. This can be used to
             react to dom-changes when they happen.
             </p>
@@ -1753,7 +1848,7 @@ cotonic.broker.subscribe("model/location/event/qlist",
                 to <tt>false</tt>, the outer html</dd>
 
                 <dt><tt>priority</tt></dt>
-                <dd>An element with a high priority will be rendered before elements with a low
+                <dd>An element with a high priority will be rendered before elements with a lower
                 priority.
                 <!-- needs example -->
                 </dd>
@@ -1841,6 +1936,16 @@ self.publish("model/ui/render-template/root",
 ==> The render engine listening at bridge/origin/model/template receives
     a render request. The render result will be placed in element root.</pre>
 
+            <p id="model.ui.replace.key">
+            <strong class="header">replace/+key</strong>
+            <br>
+            Replace an element with id <tt>key</tt> with a new element or elements. If the
+            new HTML is passed as a string then the new DOM tree can have multiple elements.<br>
+            The replacement is done once and no further updates are registered.
+            </p>
+            <pre>
+self.publish("model/ui/replace/eltid", "Hello <b>and here we are</b>");
+            </pre>
 
             <p id="model.ui.event.recent-activity">
             <strong class="header">event/recent-activity</strong>
@@ -2228,7 +2333,7 @@ cotonic.broker.subscribe("model/localStorage/event/ping",
 
             <h3 id="model.sessionStorage">model.sessionStorage</h3>
             <p>
-            The sessionStorage model provids access to the <tt>sessionStorage</tt> of
+            The sessionStorage model provides access to the <tt>sessionStorage</tt> of
             the browser. It makes it possible to set and retrieve values via
             mqtt topics. For more information about the session storage see:
             </p>
@@ -2326,6 +2431,73 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
         ...
     });
 => When the storage is ready a pong message will be available</pre>
+
+            <h3 id="model.dedup">model.dedup</h3>
+            <p>The dedup model implements message deduplication. It works by sending a message to the dedup
+            model, the dedup model then relays the message to a topic with a response topic set to the
+            dedup model.</p>
+
+            <p>If a message is tried to be relayed before a message is received on the response topic then it will be
+            saved. Only the last saved message is stored. Any previously saved messages are overwritten.</p>
+
+            <p>If a message is received on the dedup response topic then that message will be relayed to the original
+            message's response topic (if any). If there is a saved message then that message will be relayed to
+            the saved message topic.</p>
+
+            <p id="model.dedup.post.message">
+            <strong class="header">post/message</strong>
+            <br>
+            Handles messages with the following payload:</p>
+<pre>
+{
+    topic: "some/topic",
+    payload: "the message payload",
+    timeout: optionalTimeoutInMsec
+}
+</pre>
+            <p>
+                The payload will be published to the given topic. The timeout is optional and defaults to 15000 msec.
+                If there is no response to the dedup reponse topic within the timeout then the message is assumed to
+                be lost and any queued message or new message is allowed to be relayed.
+                <br>
+                The de-duplication is done by generating a key. The key is the concatenation of the topic and the response topic
+                of the message.
+            </p>
+<pre>
+self.publish("model/dedup/post/message", { topic: "hello/there", payload: { a: 1 } })
+=> De-duplicates messages to the <tt>hello/there</tt> topic.
+</pre>
+
+            <p id="model.dedup.post.message.key">
+            <strong class="header">post/message/+key</strong>
+            <br>
+            Exactly like <a href="#model.dedup.post.message">post/message</a> except that the deduplication key is
+            not generated from the topics but predefined. This enables to use deduplication in calls, where the
+            response topic is always unique.
+            </p>
+<pre>
+self.call("model/dedup/post/message/one-at-a-time", { topic: "hello/there", payload: { a: 1 } })
+.then( (msh) => console.log(msg) );
+=> De-duplicates all messages using the <tt>one-at-a-time</tt> key.
+</pre>
+
+            <p id="model.dedup.event.ping">
+            <strong class="header">event/ping</strong>
+            <br>
+            When the dedup model is enabled a retained message is published
+            on the <tt>model/dedup/event/ping</tt> topic.
+            </p>
+            <pre>
+let dedupReady = false;
+cotonic.broker.subscribe("model/dedup/event/+key",
+    function(msg, args) {
+        switch(args.key)
+        case "pong":
+            dedupReady = true;
+            break;
+        ...
+    });
+=> When the dedup model is ready a pong message will be available</pre>
 
             <h3 id="links">Links</h3>
 
