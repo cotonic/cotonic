@@ -51,6 +51,7 @@ import "./cotonic.model.serviceWorker.js";
 import "./cotonic.model.sessionId.js";
 import "./cotonic.model.ui.js";
 import "./cotonic.model.window.js";
+import "./cotonic.model.dedup.js";
 
 let cotonic = globalThis.cotonic || {};
 if(!globalThis.cotonic) {
@@ -62,7 +63,7 @@ cotonic.ready = ready;
 cotonic.spawn = spawn;
 cotonic.spawn_named = spawn_named;
 cotonic.whereis = whereis;
-        
+
 cotonic.idom = idom;
 cotonic.tokenizer = tokenizer;
 cotonic.ui = ui;

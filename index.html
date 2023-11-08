@@ -358,6 +358,14 @@ pre {
                     <li> - <a href="#model.sessionStorage.event.ping">event/ping</a>
                 </ul>
 
+                <a class="toc_title" href="#model.dedup">
+                    model/dedup
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.dedup.post.message">post/message</a>
+                    <li> - <a href="#model.dedup.post.message.key">post/message/+key</a>
+                </ul>
+
             </div>
 
             <div>
@@ -2325,7 +2333,7 @@ cotonic.broker.subscribe("model/localStorage/event/ping",
 
             <h3 id="model.sessionStorage">model.sessionStorage</h3>
             <p>
-            The sessionStorage model provids access to the <tt>sessionStorage</tt> of
+            The sessionStorage model provides access to the <tt>sessionStorage</tt> of
             the browser. It makes it possible to set and retrieve values via
             mqtt topics. For more information about the session storage see:
             </p>
@@ -2423,6 +2431,73 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
         ...
     });
 => When the storage is ready a pong message will be available</pre>
+
+            <h3 id="model.dedup">model.dedup</h3>
+            <p>The dedup model implements message deduplication. It works by sending a message to the dedup
+            model, the dedup model then relays the message to a topic with a response topic set to the
+            dedup model.</p>
+
+            <p>If a message is tried to be relayed before a message is received on the response topic then it will be
+            saved. Only the last saved message is stored. Any previously saved messages are overwritten.</p>
+
+            <p>If a message is received on the dedup response topic then that message will be relayed to the original
+            message's response topic (if any). If there is a saved message then that message will be relayed to
+            the saved message topic.</p>
+
+            <p id="model.dedup.post.message">
+            <strong class="header">post/message</strong>
+            <br>
+            Handles messages with the following payload:</p>
+<pre>
+{
+    topic: "some/topic",
+    payload: "the message payload",
+    timeout: optionalTimeoutInMsec
+}
+</pre>
+            <p>
+                The payload will be published to the given topic. The timeout is optional and defaults to 15000 msec.
+                If there is no response to the dedup reponse topic within the timeout then the message is assumed to
+                be lost and any queued message or new message is allowed to be relayed.
+                <br>
+                The de-duplication is done by generating a key. The key is the concatenation of the topic and the response topic
+                of the message.
+            </p>
+<pre>
+self.publish("model/dedup/post/message", { topic: "hello/there", payload: { a: 1 } })
+=> De-duplicates messages to the <tt>hello/there</tt> topic.
+</pre>
+
+            <p id="model.dedup.post.message.key">
+            <strong class="header">post/message/+key</strong>
+            <br>
+            Exactly like <a href="#model.dedup.post.message">post/message</a> except that the deduplication key is
+            not generated from the topics but predefined. This enables to use deduplication in calls, where the
+            response topic is always unique.
+            </p>
+<pre>
+self.call("model/dedup/post/message/one-at-a-time", { topic: "hello/there", payload: { a: 1 } })
+.then( (msh) => console.log(msg) );
+=> De-duplicates all messages using the <tt>one-at-a-time</tt> key.
+</pre>
+
+            <p id="model.dedup.event.ping">
+            <strong class="header">event/ping</strong>
+            <br>
+            When the dedup model is enabled a retained message is published
+            on the <tt>model/dedup/event/ping</tt> topic.
+            </p>
+            <pre>
+let dedupReady = false;
+cotonic.broker.subscribe("model/dedup/event/+key",
+    function(msg, args) {
+        switch(args.key)
+        case "pong":
+            dedupReady = true;
+            break;
+        ...
+    });
+=> When the dedup model is ready a pong message will be available</pre>
 
             <h3 id="links">Links</h3>
 
