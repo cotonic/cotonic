@@ -261,11 +261,11 @@
         }
       }
       var NodeData = class {
-        constructor(nameOrCtor, key2, text2) {
+        constructor(nameOrCtor, key3, text2) {
           this._attrsArr = null;
           this.staticsApplied = false;
           this.nameOrCtor = nameOrCtor;
-          this.key = key2;
+          this.key = key3;
           this.text = text2;
         }
         hasEmptyAttrsArr() {
@@ -276,8 +276,8 @@
           return this._attrsArr || (this._attrsArr = createArray(length));
         }
       };
-      function initData(node, nameOrCtor, key2, text2) {
-        const data = new NodeData(nameOrCtor, key2, text2);
+      function initData(node, nameOrCtor, key3, text2) {
+        const data = new NodeData(nameOrCtor, key3, text2);
         node["__incrementalDOMData"] = data;
         return data;
       }
@@ -306,8 +306,8 @@
         const nodeName = isElement(node) ? node.localName : node.nodeName;
         const keyAttrName = getKeyAttributeName();
         const keyAttr = isElement(node) && keyAttrName != null ? node.getAttribute(keyAttrName) : null;
-        const key2 = isElement(node) ? keyAttr || fallbackKey : null;
-        const data = initData(node, nodeName, key2);
+        const key3 = isElement(node) ? keyAttr || fallbackKey : null;
+        const data = initData(node, nodeName, key3);
         if (isElement(node)) {
           recordAttributes(node, data);
         }
@@ -347,7 +347,7 @@
         }
         return parent.namespaceURI;
       }
-      function createElement(doc2, parent, nameOrCtor, key2) {
+      function createElement(doc2, parent, nameOrCtor, key3) {
         let el;
         if (typeof nameOrCtor === "function") {
           el = new nameOrCtor();
@@ -359,7 +359,7 @@
             el = doc2.createElement(nameOrCtor);
           }
         }
-        initData(el, nameOrCtor, key2);
+        initData(el, nameOrCtor, key3);
         return el;
       }
       function createText(doc2) {
@@ -367,8 +367,8 @@
         initData(node, "#text", null);
         return node;
       }
-      function defaultMatchFn(matchNode, nameOrCtor, expectedNameOrCtor, key2, expectedKey) {
-        return nameOrCtor == expectedNameOrCtor && key2 == expectedKey;
+      function defaultMatchFn(matchNode, nameOrCtor, expectedNameOrCtor, key3, expectedKey) {
+        return nameOrCtor == expectedNameOrCtor && key3 == expectedKey;
       }
       var context = null;
       var currentNode = null;
@@ -384,20 +384,20 @@
       function getAttrsBuilder() {
         return attrsBuilder;
       }
-      function matches2(matchNode, nameOrCtor, key2) {
-        const data = getData(matchNode, key2);
-        return matchFn(matchNode, nameOrCtor, data.nameOrCtor, key2, data.key);
+      function matches2(matchNode, nameOrCtor, key3) {
+        const data = getData(matchNode, key3);
+        return matchFn(matchNode, nameOrCtor, data.nameOrCtor, key3, data.key);
       }
-      function getMatchingNode(matchNode, nameOrCtor, key2) {
+      function getMatchingNode(matchNode, nameOrCtor, key3) {
         if (!matchNode) {
           return null;
         }
         let cur = matchNode;
         do {
-          if (matches2(cur, nameOrCtor, key2)) {
+          if (matches2(cur, nameOrCtor, key3)) {
             return cur;
           }
-        } while (key2 && (cur = cur.nextSibling));
+        } while (key3 && (cur = cur.nextSibling));
         return null;
       }
       function clearUnvisitedDOM(maybeParentNode, startNode, endNode) {
@@ -429,20 +429,20 @@
       function nextNode() {
         currentNode = getNextNode();
       }
-      function createNode(nameOrCtor, key2) {
+      function createNode(nameOrCtor, key3) {
         let node;
         if (nameOrCtor === "#text") {
           node = createText(doc);
         } else {
-          node = createElement(doc, currentParent, nameOrCtor, key2);
+          node = createElement(doc, currentParent, nameOrCtor, key3);
         }
         context.markCreated(node);
         return node;
       }
-      function alignWithDOM(nameOrCtor, key2) {
+      function alignWithDOM(nameOrCtor, key3) {
         nextNode();
-        const existingNode = getMatchingNode(currentNode, nameOrCtor, key2);
-        const node = existingNode || createNode(nameOrCtor, key2);
+        const existingNode = getMatchingNode(currentNode, nameOrCtor, key3);
+        const node = existingNode || createNode(nameOrCtor, key3);
         if (node === currentNode) {
           return;
         }
@@ -453,8 +453,8 @@
         }
         currentNode = node;
       }
-      function open(nameOrCtor, key2) {
-        alignWithDOM(nameOrCtor, key2);
+      function open(nameOrCtor, key3) {
+        alignWithDOM(nameOrCtor, key3);
         enterNode();
         return currentParent;
       }
@@ -682,23 +682,23 @@
           delete prevAttrsMap[name];
         }
       }
-      function elementOpenStart(nameOrCtor, key2, statics) {
+      function elementOpenStart(nameOrCtor, key3, statics) {
         const argsBuilder2 = getArgsBuilder();
         {
           assertNotInAttributes("elementOpenStart");
           setInAttributes(true);
         }
         argsBuilder2[0] = nameOrCtor;
-        argsBuilder2[1] = key2;
+        argsBuilder2[1] = key3;
         argsBuilder2[2] = statics;
       }
-      function key(key2) {
+      function key2(key3) {
         const argsBuilder2 = getArgsBuilder();
         {
           assertInAttributes("key");
           assert(argsBuilder2);
         }
-        argsBuilder2[1] = key2;
+        argsBuilder2[1] = key3;
       }
       function attr(name, value2) {
         const attrsBuilder2 = getAttrsBuilder();
@@ -721,12 +721,12 @@
         truncateArray(argsBuilder2, 0);
         return node;
       }
-      function elementOpen(nameOrCtor, key2, statics, ...varArgs) {
+      function elementOpen(nameOrCtor, key3, statics, ...varArgs) {
         {
           assertNotInAttributes("elementOpen");
           assertNotInSkip("elementOpen");
         }
-        elementOpenStart(nameOrCtor, key2, statics);
+        elementOpenStart(nameOrCtor, key3, statics);
         for (let i = ATTRIBUTES_OFFSET; i < arguments.length; i += 2) {
           attr(arguments[i], arguments[i + 1]);
         }
@@ -752,7 +752,7 @@
         }
         return node;
       }
-      function elementVoid(nameOrCtor, key2, statics, ...varArgs) {
+      function elementVoid(nameOrCtor, key3, statics, ...varArgs) {
         elementOpen.apply(null, arguments);
         return elementClose(nameOrCtor);
       }
@@ -806,7 +806,7 @@
       exports.elementOpenEnd = elementOpenEnd;
       exports.elementOpenStart = elementOpenStart;
       exports.elementVoid = elementVoid;
-      exports.key = key;
+      exports.key = key2;
       exports.text = text$1;
     }
   });
@@ -1346,14 +1346,14 @@
       throw "internal_error";
     }
   }
-  function tokenize_attr_value(key, data, d) {
+  function tokenize_attr_value(key2, data, d) {
     let c;
     skip_whitespace(data, d);
     c = data.codePointAt(d.offset);
     if (c === EQUALS) {
       return tokenize_quoted_or_unquoted_attr_value(data, d.inc_col());
     }
-    return value(key, d);
+    return value(key2, d);
   }
   function tokenize_quoted_or_unquoted_attr_value(data, d) {
     let c;
@@ -1843,8 +1843,8 @@
       ["encrypt"]
     );
   }
-  function exportKey(key) {
-    return crypto.subtle.exportKey("raw", key);
+  function exportKey(key2) {
+    return crypto.subtle.exportKey("raw", key2);
   }
   function encodeHelloMessage(id, encodedKey, encodedNonce) {
     const encodedId = textEncoder.encode(id);
@@ -1857,8 +1857,8 @@
     msg.set(encodedId, 2 + KEY_BYTES + NONCE_BYTES);
     return msg;
   }
-  function encryptConnectMessage(id, key, nonce, pubServerEncKey) {
-    return exportKey(key).then(function(encodedKey) {
+  function encryptConnectMessage(id, key2, nonce, pubServerEncKey) {
+    return exportKey(key2).then(function(encodedKey) {
       const msg = encodeHelloMessage(id, encodedKey, nonce);
       return crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubServerEncKey, msg);
     });
@@ -1897,7 +1897,7 @@
         throw new Error("Unknown request");
     }
   }
-  function encryptRequest(id, nonce, request, key, iv) {
+  function encryptRequest(id, nonce, request, key2, iv) {
     const encId = textEncoder.encode(id);
     let req = encodeRequest(request);
     let msg = new Uint8Array(1 + NONCE_BYTES + req.length);
@@ -1911,11 +1911,11 @@
         additionalData: encId,
         tagLength: AES_GCM_TAG_SIZE * 8
       },
-      key,
+      key2,
       msg
     );
   }
-  function decryptResponse(id, nonce, response, key, iv) {
+  function decryptResponse(id, nonce, response, key2, iv) {
     const encId = textEncoder.encode(id);
     return crypto.subtle.decrypt(
       {
@@ -1924,7 +1924,7 @@
         additionalData: encId,
         tagLength: AES_GCM_TAG_SIZE * 8
       },
-      key,
+      key2,
       response
     ).then(function(plain) {
       return decodeResponse(plain);
@@ -1991,7 +1991,7 @@
     }
     return result;
   }
-  function encryptSecurePublish(message, keyId, key) {
+  function encryptSecurePublish(message, keyId, key2) {
     const iv = randomIV();
     const alg = {
       name: "AES-GCM",
@@ -1999,7 +1999,7 @@
       additionalData: keyId,
       tagLength: AES_GCM_TAG_SIZE * 8
     };
-    return crypto.subtle.encrypt(alg, key, message).then(function(cipherText) {
+    return crypto.subtle.encrypt(alg, key2, message).then(function(cipherText) {
       return encodeSecurePublish(iv, new Uint8Array(cipherText));
     });
   }
@@ -2020,7 +2020,7 @@
     let message = data.slice(IV_BYTES + 2);
     return { type: SECURE_PUBLISH, iv, message };
   }
-  function decryptSecurePublish(message, keyId, key) {
+  function decryptSecurePublish(message, keyId, key2) {
     const d = decodeSecurePublish(message);
     const alg = {
       name: "AES-GCM",
@@ -2028,7 +2028,7 @@
       additionalData: keyId,
       tagLength: AES_GCM_TAG_SIZE * 8
     };
-    return crypto.subtle.decrypt(alg, key, d.message);
+    return crypto.subtle.decrypt(alg, key2, d.message);
   }
   function toDate(t) {
     let d = /* @__PURE__ */ new Date();
@@ -2051,7 +2051,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.5.0";
+  var VERSION = "1.5.1";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -2064,9 +2064,9 @@
   var named_worker_ids = {};
   var receive_handler = null;
   function load_config_defaults(options) {
-    for (let key in options) {
-      if (!config.hasOwnProperty(key)) {
-        config[key] = options[key];
+    for (let key2 in options) {
+      if (!config.hasOwnProperty(key2)) {
+        config[key2] = options[key2];
       }
     }
   }
@@ -2666,23 +2666,23 @@
     return `${retained_prefix}${topic}`;
   }
   function retain(message) {
-    const key = retain_key(message.topic);
+    const key2 = retain_key(message.topic);
     if (message.payload !== void 0 && message.payload !== null && message.payload !== "") {
-      sessionStorage.setItem(key, JSON.stringify({
+      sessionStorage.setItem(key2, JSON.stringify({
         message
       }));
     } else {
-      sessionStorage.removeItem(key);
+      sessionStorage.removeItem(key2);
     }
   }
   function get_matching_retained(topic) {
     let matching = [];
     for (let i = 0; i < sessionStorage.length; i++) {
-      let key = sessionStorage.key(i);
-      if (key.substring(0, retained_prefix.length) !== retained_prefix) {
+      let key2 = sessionStorage.key(i);
+      if (key2.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
-      const retained_topic = key.substring(retained_prefix.length);
+      const retained_topic = key2.substring(retained_prefix.length);
       if (!matches(topic, retained_topic)) {
         continue;
       }
@@ -2693,25 +2693,25 @@
     return matching;
   }
   function get_retained(topic) {
-    const key = retain_key(topic);
-    const item = sessionStorage.getItem(key);
+    const key2 = retain_key(topic);
+    const item = sessionStorage.getItem(key2);
     if (item === null) {
       return null;
     }
     const Obj = JSON.parse(item);
     if (!Obj.message) {
-      sessionStorage.removeItem(key);
+      sessionStorage.removeItem(key2);
       return null;
     }
     return Obj;
   }
   function delete_all_retained() {
     for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key.substring(0, retained_prefix.length) !== retained_prefix) {
+      const key2 = sessionStorage.key(i);
+      if (key2.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
-      sessionStorage.removeItem(key);
+      sessionStorage.removeItem(key2);
     }
   }
   function call(topic, payload2, options) {
@@ -2767,6 +2767,7 @@
     remove: () => remove2,
     render: () => render2,
     renderId: () => renderId,
+    replace: () => replace,
     update: () => update,
     updateStateClass: () => updateStateClass,
     updateStateData: () => updateStateData
@@ -2834,6 +2835,29 @@
     currentState.dirty = true;
     requestRender();
   }
+  function replace(id, htmlOrTokens) {
+    let currentState = state[id];
+    const priority = void 0;
+    if (currentState) {
+      currentState.data = htmlOrTokens;
+    } else {
+      state[id] = {
+        id,
+        data: htmlOrTokens,
+        dirty: true,
+        mode: "outer",
+        onetime: true
+      };
+      insertSorted(
+        order,
+        { id, priority },
+        function(a, b) {
+          return a.priority < b.priority;
+        }
+      );
+    }
+    requestRender();
+  }
   function renderId(id) {
     const elt = document.getElementById(id);
     if (elt === null) {
@@ -2853,8 +2877,13 @@
   }
   function renderElement(elt, id) {
     const s = state[id];
+    let is_patch_replace = false;
     if (s === void 0 || s.data === void 0 || s.dirty === false) {
       return;
+    }
+    if (s.onetime && s.mode == "outer" && typeof s.data == "string") {
+      s.data = '<cotonic-tmp-outer id="-tmp-patch-outer-">' + s.data + "</cotonic-tmp-outer>";
+      is_patch_replace = true;
     }
     switch (s.mode) {
       case "inner":
@@ -2873,6 +2902,13 @@
         patchInner(s.shadowRoot, s.data);
     }
     s.dirty = false;
+    if (is_patch_replace) {
+      elt = document.getElementById("-tmp-patch-outer-");
+      elt.replaceWith(...elt.children);
+    }
+    if (s.onetime) {
+      remove2(id);
+    }
     return true;
   }
   function render2() {
@@ -4384,7 +4420,7 @@
           break;
       }
     }
-    function init7() {
+    function init8() {
       if (remote == "origin") {
         self.remoteHost = document.location.host;
       } else {
@@ -4394,7 +4430,7 @@
       setTimeout(connect, connect_delay);
       setInterval(periodic, periodic_delay);
     }
-    init7();
+    init8();
   }
 
   // src/cotonic.mqtt_session.js
@@ -5139,12 +5175,12 @@
     function publishEvent(event) {
       localPublish(`${self.bridgeTopics.session_event}/${event}`, {});
     }
-    function init7() {
+    function init8() {
       publishStatus(false);
       localSubscribe(self.bridgeTopics.session_out, sessionToRemote);
       localSubscribe(self.bridgeTopics.session_control, sessionControl);
     }
-    init7();
+    init8();
   }
   init2();
 
@@ -5941,6 +5977,12 @@
         location.hash === "" ? "#" : location.hash,
         { retain: true }
       );
+      if (location.hash) {
+        const hashTarget = document.getElementById(location.hash.substring(1));
+        if (hashTarget) {
+          hashTarget.scrollIntoView({ behavior: "smooth" });
+        }
+      }
     }
   }
   function searchParamsIndexed(ps) {
@@ -5967,8 +6009,8 @@
   function searchParamsList(qs) {
     let ps = [];
     const searchParams = new URLSearchParams(qs);
-    searchParams.forEach((value2, key) => {
-      ps.push([key, value2]);
+    searchParams.forEach((value2, key2) => {
+      ps.push([key2, value2]);
     });
     return ps;
   }
@@ -5996,16 +6038,60 @@
     var resp = location[bindings.what];
     maybeRespond(resp, msg);
   }, { wid: "model.location" });
+  function payload_url(msg) {
+    var _a, _b, _c;
+    let url;
+    if ((_a = msg.payload) == null ? void 0 : _a.url) {
+      url = msg.payload.url;
+    } else if ((_c = (_b = msg.payload) == null ? void 0 : _b.message) == null ? void 0 : _c.href) {
+      url = msg.payload.message.href;
+    } else if (typeof msg.payload == "string" && msg.payload) {
+      url = msg.payload;
+    }
+    return url;
+  }
+  subscribe("model/location/post/push", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+      url = new URL(url, window.location);
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      publishLocation();
+    }
+  }, { wid: "model.location" });
+  subscribe("model/location/post/replace", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+      url = new URL(url, window.location);
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      publishLocation();
+    }
+  }, { wid: "model.location" });
+  subscribe("model/location/post/push-silent", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+      url = new URL(url, window.location);
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    }
+  }, { wid: "model.location" });
+  subscribe("model/location/post/replace-silent", function(msg) {
+    let url = payload_url(msg);
+    if (url) {
+      url = new URL(url, window.location);
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    }
+  }, { wid: "model.location" });
   subscribe("model/location/post/redirect", function(msg) {
-    if (msg.payload.url) {
+    let url = payload_url(msg);
+    if (url) {
       window.location = msg.payload.url;
       willNavigate();
     }
   }, { wid: "model.location" });
   subscribe("model/location/post/redirect-local", function(msg) {
-    if (msg.payload.url) {
-      let url = new URL(msg.payload.url, window.location);
-      window.location = url.pathname + url.search + url.hash;
+    let url = payload_url(msg);
+    if (url) {
+      let url2 = new URL(msg.payload.url, window.location);
+      window.location = url2.pathname + url2.search + url2.hash;
       willNavigate();
     }
   }, { wid: "model.location" });
@@ -6054,8 +6140,8 @@
     publishLocation();
   }, { wid: "model.location" });
   subscribe("model/location/post/qlist/submit", function(msg) {
-    var _a;
-    const args = (_a = msg.payload.valueList) != null ? _a : [];
+    var _a, _b;
+    const args = (_b = (_a = msg.payload) == null ? void 0 : _a.valueList) != null ? _b : [];
     if (Array.isArray(args) && args.length > 0) {
       let s = new URLSearchParams();
       for (let i = 0; i < args.length; i++) {
@@ -6261,18 +6347,29 @@
     document.addEventListener("focus", activity_event, { passive: true });
     setInterval(activity_publish, 1e4);
     initTopicEvents(document);
+    const prevNodesCreated = IncrementalDOM.notifications.nodesCreated;
     IncrementalDOM.notifications.nodesCreated = function(nodes) {
-      for (const n in nodes) {
-        if (!n.id)
-          continue;
-        publish("model/ui/event/node-created/" + n.id, { id: n.id });
+      nodes.forEach((n) => {
+        if (n.hasAttribute && n.hasAttribute("data-onvisible-topic")) {
+          attachIntersectionObserver(n);
+        }
+        if (n.id) {
+          publish("model/ui/event/node-created/" + n.id, { id: n.id });
+        }
+      });
+      if (prevNodesCreated) {
+        prevNodesCreated(nodes);
       }
     };
+    const prevNodesDeleted = IncrementalDOM.notifications.nodesCreated;
     IncrementalDOM.notifications.nodesDeleted = function(nodes) {
-      for (const n in nodes) {
-        if (!n.id)
-          continue;
-        publish("model/ui/event/node-deleted/" + n.id, { id: n.id });
+      nodes.forEach((n) => {
+        if (n.id) {
+          publish("model/ui/event/node-deleted/" + n.id, { id: n.id });
+        }
+      });
+      if (prevNodesDeleted) {
+        prevNodesDeleted(nodes);
       }
     };
     if (globalThis.cotonic && globalThis.cotonic.bufferedEvents) {
@@ -6281,6 +6378,23 @@
       }
       globalThis.cotonic.bufferedEvents = [];
     }
+  }
+  function attachIntersectionObserver(elt) {
+    let observer = new IntersectionObserver((changes) => {
+      changes.forEach((c) => {
+        if (c.isIntersecting) {
+          const event = {
+            type: "visible",
+            target: c.target,
+            cancelable: false,
+            stopPropagation: () => 0,
+            preventDefault: () => 0
+          };
+          topic_event(event);
+        }
+      });
+    });
+    observer.observe(elt);
   }
   function initTopicEvents(elt) {
     elt.addEventListener("submit", topic_event);
@@ -6446,24 +6560,38 @@
     { wid: "model.ui" }
   );
   subscribe(
+    "model/ui/replace/+key",
+    function(msg, bindings) {
+      const p = msg.payload || "";
+      let html;
+      if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
+        html = p.result;
+      } else {
+        html = p;
+      }
+      maybeRespond2(replace(bindings.key, html), msg.properties);
+    },
+    { wid: "model.ui" }
+  );
+  subscribe(
     "model/ui/render-template/+key",
     function(msg, bindings) {
       const topic = msg.payload.topic;
       const data = msg.payload.data || {};
-      const key = bindings.key;
-      const dedup = msg.payload.dedup || false;
+      const key2 = bindings.key;
+      const dedup2 = msg.payload.dedup || false;
       const newHash = hashCode(JSON.stringify([topic, data]));
-      if (!dedup || !render_cache[key] || render_cache[key].hash != newHash) {
+      if (!dedup2 || !render_cache[key2] || render_cache[key2].hash != newHash) {
         const serial = render_serial++;
-        render_cache[key] = {
+        render_cache[key2] = {
           serial,
-          dedup,
+          dedup: dedup2,
           hash: newHash,
           topic,
           data
         };
-        call(topic, data, { qos: dedup ? 1 : 0 }).then(function(rendermsg) {
-          if (serial === render_cache[key].serial) {
+        call(topic, data, { qos: dedup2 ? 1 : 0 }).then(function(rendermsg) {
+          if (serial === render_cache[key2].serial) {
             const p = rendermsg.payload || "";
             let html;
             if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
@@ -6471,7 +6599,7 @@
             } else {
               html = p;
             }
-            maybeRespond2(cotonic.ui.update(key, html), msg.properties);
+            maybeRespond2(cotonic.ui.update(key2, html), msg.properties);
           } else {
             maybeRespond2({ is_changed: false }, msg.properties);
           }
@@ -6611,6 +6739,78 @@
     { wid: "model.window" }
   );
   init6();
+
+  // src/cotonic.model.dedup.js
+  var TIMEOUT = 15e3;
+  var in_flight = {};
+  function init7() {
+    publish("model/dedup/event/ping", "pong", { retain: true });
+  }
+  function key(message) {
+    var _a, _b;
+    const key2 = message.payload.topic + "::" + ((_b = (_a = message.properties) == null ? void 0 : _a.response_topic) != null ? _b : "");
+    return btoa(key2);
+  }
+  function dedup(msg, key2) {
+    var _a, _b;
+    const timeout = (_a = msg.payload.timeout) != null ? _a : TIMEOUT;
+    let m = in_flight[key2];
+    if (m) {
+      m.queued_message = msg;
+      m.queued_timeout = Date.now() + timeout;
+    } else {
+      m = {
+        response_topic: (_b = msg.properties) == null ? void 0 : _b.response_topic,
+        queued_message: void 0,
+        queued_timeout: void 0,
+        timeout: setTimeout(() => {
+          done(false, key2);
+        }, timeout)
+      };
+      in_flight[key2] = m;
+      const options = {
+        qos: msg.qos,
+        properties: {
+          response_topic: "model/dedup/post/done/" + key2
+        }
+      };
+      publish(msg.payload.topic, msg.payload.payload, options);
+    }
+  }
+  function done(response, key2) {
+    var _a;
+    const m = in_flight[key2];
+    if (m) {
+      delete in_flight[key2];
+      if (m.timeout) {
+        clearTimeout(m.timeout);
+      }
+      if (response !== false && m.response_topic) {
+        publish(m.response_topic, response.payload, { qos: (_a = response.qos) != null ? _a : 0 });
+      }
+      if (m.queued_message && Date.now() < m.queued_timeout) {
+        dedup(m.queued_message, key2);
+      }
+    }
+  }
+  subscribe("model/dedup/post/done/+key", (msg, bindings) => {
+    done(msg, bindings.key);
+  });
+  subscribe(
+    "model/dedup/post/message",
+    (msg) => {
+      dedup(msg, key(msg));
+    },
+    { wid: "model.dedup" }
+  );
+  subscribe(
+    "model/dedup/post/message/+key",
+    (msg, bindings) => {
+      dedup(msg, bindings.key);
+    },
+    { wid: "model.dedup" }
+  );
+  init7();
 
   // src/index-bundle.js
   var cotonic2 = globalThis.cotonic || {};
