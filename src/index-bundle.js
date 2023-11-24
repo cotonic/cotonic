@@ -38,6 +38,7 @@ import * as ui from "./cotonic.ui.js";
 import * as mqtt_packet from "./cotonic.mqtt_packet.js";
 import * as mqtt_transport_ws from "./cotonic.mqtt_transport.ws.js";
 import * as mqtt_session from "./cotonic.mqtt_session.js";
+import * as mqtt_session_opener from "./cotonic.mqtt_session_opener.js";
 import * as mqtt_bridge from "./cotonic.mqtt_bridge.js";
 import { triggerCotonicReady }  from "./cotonic.event.js";
 
@@ -72,6 +73,7 @@ cotonic.broker = broker;
 cotonic.mqtt_packet = mqtt_packet;
 cotonic.mqtt_transport = { ws: mqtt_transport_ws };
 cotonic.mqtt_session = mqtt_session;
+cotonic.mqtt_session_opener = mqtt_session_opener;
 cotonic.mqtt_bridge = mqtt_bridge;
 cotonic.keyserver = keyserver;
 

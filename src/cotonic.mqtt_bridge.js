@@ -17,6 +17,7 @@
 import { fill, remove_named_wildcards } from "./cotonic.mqtt.js";
 import { subscribe, publish, publish_mqtt_message, find_subscriptions_below } from "./cotonic.broker.js";
 import * as mqtt_session from "./cotonic.mqtt_session.js";
+import * as mqtt_session_opener from "./cotonic.mqtt_session_opener.js";
 
 const BRIDGE_LOCAL_TOPIC = "bridge/+name/#topic";
 const BRIDGE_STATUS_TOPIC = "$bridge/+name/status";
@@ -37,7 +38,11 @@ var newBridge = function( remote, options ) {
     options = options || {};
 
     if(!options.mqtt_session) {
-        options.mqtt_session = mqtt_session;
+        if (remote == 'opener') {
+            options.mqtt_session = mqtt_session_opener;
+        } else {
+            options.mqtt_session = mqtt_session;
+        }
     }
 
     let bridge = bridges[remote];
