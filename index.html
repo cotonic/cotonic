@@ -845,6 +845,7 @@ cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
                 <dd>The mqtt_session module which should be used. Default: cotonic.mqtt_session.</dd>
             </dl>
             </p>
+
             <pre>
 cotonic.mqtt_bridge.newBridge("test.mosquitto.org:8081",
                               {protocol: "wss"});
@@ -857,6 +858,17 @@ cotonic.broker.subscribe("bridge/test.mosquitto.org:8081/bbc/subtitles/bbc_news2
     });
 => Subscribe to a local topic, it will be bridged from the server
    to the page. This gets the raw subtitles of bbc news24.</pre>
+
+            <p>For windows opened by a window with a cotonic broker, a special bridge <tt>"opener"</tt> can
+                be started with <code>cotonic.mqtt_bridge.newBridge("opener");</code>. This bridge is a
+                simple one-way bridge that makes it possible for the opened window to publish to topics
+                in the opening window. It is not (yet) possible to subscribe to topics in the opener window.
+            </p>
+            <p>
+                Example publishing to the opener:
+            </p>
+
+            <pre>cotonic.broker.publish("bridge/opener/model/sessionStorage/post/test", "Hello");</pre>
 
             <p id="cotonic.mqtt_bridge.findBridge">
             <strong class="header">findBridge</strong> <code>cotonic.mqtt_bridge.findBridge([remote])</code>
