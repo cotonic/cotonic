@@ -4174,13 +4174,13 @@
   var WS_CONTROLLER_PATH = "/mqtt-transport";
   var WS_CONNECT_DELAY = 20;
   var WS_PERIODIC_DELAY = 1e3;
-  function newTransport(remote, mqttSession2, options) {
-    return new ws(remote, mqttSession2, options);
+  function newTransport(remote, mqttSession3, options) {
+    return new ws(remote, mqttSession3, options);
   }
-  function ws(remote, mqttSession2, options) {
+  function ws(remote, mqttSession3, options) {
     this.remoteUrl = void 0;
     this.remoteHost = void 0;
-    this.session = mqttSession2;
+    this.session = mqttSession3;
     this.socket = void 0;
     this.randomPing = void 0;
     this.backoff = 0;
@@ -5184,6 +5184,205 @@
   }
   init2();
 
+  // src/cotonic.mqtt_session_opener.js
+  var cotonic_mqtt_session_opener_exports = {};
+  __export(cotonic_mqtt_session_opener_exports, {
+    deleteSession: () => deleteSession2,
+    findSession: () => findSession2,
+    newSession: () => newSession2
+  });
+  var console3 = globalThis.console;
+  var sessions2 = {};
+  var MQTT_KEEP_ALIVE2 = 300;
+  var newSession2 = function(remote, bridgeTopics, options) {
+    remote = remote || "opener";
+    if (sessions2[remote]) {
+      return sessions2[remote];
+    } else {
+      let ch = new mqttSession2(bridgeTopics);
+      sessions2[remote] = ch;
+      ch.connect(remote, options);
+      return ch;
+    }
+  };
+  var findSession2 = function(remote) {
+    remote = remote || "opener";
+    return sessions2[remote];
+  };
+  var deleteSession2 = function(remote) {
+    remote = remote || "opener";
+    delete sessions2[remote];
+  };
+  function mqttSession2(mqttBridgeTopics) {
+    this.bridgeTopics = mqttBridgeTopics;
+    this.clientId = "";
+    this.routingId = void 0;
+    this.disconnectReason = "";
+    this.keepAliveTimer = false;
+    this.keepAliveInterval = MQTT_KEEP_ALIVE2;
+    var self = this;
+    function sessionToRemote(msg) {
+      switch (msg.payload.type) {
+        case "publish":
+          publish2(msg.payload);
+          break;
+        case "subscribe":
+          subscribe2(msg.payload);
+          break;
+        case "unsubscribe":
+          unsubscribe2(msg.payload);
+          break;
+        case "auth":
+          self.sendMessage(msg.payload);
+          break;
+        default:
+          break;
+      }
+    }
+    function sessionToBridge(msg) {
+      localPublish(self.bridgeTopics.session_in, msg);
+    }
+    function sessionControl(msg) {
+    }
+    this.connect = function(remote, options) {
+      options = options || {};
+      if (typeof options.client_id === "string") {
+        self.clientId = options.client_id;
+      }
+      if (window.opener) {
+        resetKeepAliveTimer();
+        publishEvent("transport/connected");
+      } else {
+        stopKeepAliveTimer();
+        publishEvent("transport/disconnected");
+      }
+    };
+    this.disconnect = function(reasonCode) {
+      stopKeepAliveTimer();
+      publishStatus(false);
+    };
+    this.reconnect = function(remote) {
+      if (window.opener) {
+        resetKeepAliveTimer();
+        publishEvent("transport/connected");
+      } else {
+        stopKeepAliveTimer();
+        publishEvent("transport/disconnected");
+      }
+    };
+    this.isConnected = function() {
+      if (window.opener) {
+        return true;
+      } else {
+        return false;
+      }
+    };
+    function publish2(pubmsg) {
+      const payload2 = pubmsg.payload;
+      let properties = pubmsg.properties || {};
+      if (typeof payload2 != "undefined" && payload2 !== null) {
+        let contentType = properties.content_type || guessContentType(payload2);
+        properties.content_type = contentType;
+      }
+      let msg = {
+        type: "publish",
+        topic: pubmsg.topic,
+        payload: pubmsg.payload,
+        qos: pubmsg.qos || 0,
+        retain: pubmsg.retain || 0,
+        properties
+      };
+      self.sendMessage(msg);
+    }
+    function subscribe2(submsg) {
+    }
+    function unsubscribe2(unsubmsg) {
+    }
+    this.keepAlive = function() {
+      if (!window.opener) {
+        stopKeepAliveTimer();
+        publishStatus(false);
+      }
+    };
+    this.sendMessage = function(msg) {
+      if (window.opener) {
+        window.opener.cotonic.broker.publish_mqtt_message(msg);
+        return true;
+      } else {
+        return false;
+      }
+    };
+    function isStateConnected() {
+      return !!window.opener;
+    }
+    function guessContentType(payload2) {
+      switch (typeof payload2) {
+        case "string":
+          return "text/plain";
+        case "number":
+          if (Number.isInteger(payload2)) {
+            return "text/x-integer";
+          }
+          return "text/x-number";
+        case "boolean":
+          return "application/json";
+        case "object":
+          if (payload2 === null) {
+            return void 0;
+          }
+          if (payload2 instanceof Date) {
+            return "text/x-datetime";
+          } else if (typeof payload2.BYTES_PER_ELEMENT == "number") {
+            return "binary/octet-stream";
+          }
+          return "application/json";
+        default:
+          console3.log("Do not know how to serialize a ", typeof payload2);
+          return "application/json";
+      }
+    }
+    function resetKeepAliveTimer() {
+      stopKeepAliveTimer();
+      if (self.keepAliveInterval > 0) {
+        self.keepAliveTimer = setInterval(function() {
+          self.keepAlive();
+        }, self.keepAliveInterval * 1e3);
+      }
+    }
+    function stopKeepAliveTimer() {
+      if (self.keepAliveTimer) {
+        clearTimeout(self.keepAliveTimer);
+        self.keepAliveTimer = false;
+      }
+    }
+    function closeConnections() {
+      stopKeepAliveTimer();
+      publishStatus(false);
+    }
+    function localPublish(topic, msg, opts) {
+      publish(topic, msg, opts);
+    }
+    function localSubscribe(topic, callback) {
+      subscribe(topic, callback);
+    }
+    function publishStatus(isConnected) {
+      localPublish(
+        self.bridgeTopics.session_status,
+        { is_connected: isConnected, client_id: self.clientId },
+        { retain: true }
+      );
+    }
+    function publishEvent(event) {
+      localPublish(`${self.bridgeTopics.session_event}/${event}`, {});
+    }
+    function init8() {
+      publishStatus(false);
+      localSubscribe(self.bridgeTopics.session_out, sessionToRemote);
+      localSubscribe(self.bridgeTopics.session_control, sessionControl);
+    }
+    init8();
+  }
+
   // src/cotonic.mqtt_bridge.js
   var cotonic_mqtt_bridge_exports = {};
   __export(cotonic_mqtt_bridge_exports, {
@@ -5207,7 +5406,11 @@
     remote = remote || "origin";
     options = options || {};
     if (!options.mqtt_session) {
-      options.mqtt_session = cotonic_mqtt_session_exports;
+      if (remote == "opener") {
+        options.mqtt_session = cotonic_mqtt_session_opener_exports;
+      } else {
+        options.mqtt_session = cotonic_mqtt_session_exports;
+      }
     }
     let bridge = bridges[remote];
     if (!bridge) {
@@ -6176,7 +6379,7 @@
   init3();
 
   // src/cotonic.model.serviceWorker.js
-  var console3 = globalThis.console;
+  var console4 = globalThis.console;
   load_config_defaults(
     {
       start_service_worker: true,
@@ -6188,11 +6391,11 @@
       function(error) {
         switch (error.name) {
           case "SecurityError":
-            console3.log("Could not start serviceWorker due to a SecurityError.");
-            console3.log("See https://cotonic.org/#model.serviceWorker for more information.");
+            console4.log("Could not start serviceWorker due to a SecurityError.");
+            console4.log("See https://cotonic.org/#model.serviceWorker for more information.");
             break;
           default:
-            console3.log("Could not start serviceWorker: ", error.message);
+            console4.log("Could not start serviceWorker: ", error.message);
             break;
         }
       }
@@ -6205,7 +6408,7 @@
           publish_mqtt_message(message);
           break;
         default:
-          console3.log("Unknown event from service worker", event);
+          console4.log("Unknown event from service worker", event);
           break;
       }
     });
@@ -6830,6 +7033,7 @@
   cotonic2.mqtt_packet = cotonic_mqtt_packet_exports;
   cotonic2.mqtt_transport = { ws: cotonic_mqtt_transport_ws_exports };
   cotonic2.mqtt_session = cotonic_mqtt_session_exports;
+  cotonic2.mqtt_session_opener = cotonic_mqtt_session_opener_exports;
   cotonic2.mqtt_bridge = cotonic_mqtt_bridge_exports;
   cotonic2.keyserver = cotonic_keyserver_exports;
   triggerCotonicReady();
