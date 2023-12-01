@@ -2051,7 +2051,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.5.1";
+  var VERSION = "1.6.1";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -6113,6 +6113,7 @@
   // src/cotonic.model.location.js
   var location = {};
   var isNavigating = false;
+  var redirectBackTimeout = void 0;
   function init3() {
     publish("model/location/event/ping", "pong", { retain: true });
     publishLocation(true);
@@ -6290,24 +6291,31 @@
       willNavigate();
     }
   }, { wid: "model.location" });
-  subscribe("model/location/post/redirect-local", function(msg) {
-    let url = payload_url(msg);
-    if (url) {
-      let url2 = new URL(msg.payload.url, window.location);
-      window.location = url2.pathname + url2.search + url2.hash;
-      willNavigate();
+  subscribe("model/location/post/redirect/back", function(msg) {
+    window.history.back();
+    willNavigate();
+    if (redirectBackTimeout) {
+      clearTimeout(redirectBackTimeout);
+    }
+    ;
+    const fallbackUrl = payload_url(msg);
+    if (fallbackUrl) {
+      redirectBackTimeout = setTimeout(redirectLocal, 500, fallbackUrl);
     }
   }, { wid: "model.location" });
+  subscribe("model/location/post/redirect-local", function(msg) {
+    redirectLocal(payload_url(msg));
+  }, { wid: "model.location" });
+  function redirectLocal(url) {
+    if (!url)
+      return;
+    url = new URL(url, window.location);
+    window.location = url.pathname + url.search + url.hash;
+    willNavigate();
+  }
   subscribe("model/location/post/reload", function(msg) {
     window.location.reload(true);
     willNavigate();
-  }, { wid: "model.location" });
-  subscribe("model/location/post/redirect/back", function() {
-    if ("referrer" in document) {
-      window.location = document.referrer;
-    } else {
-      window.history.back();
-    }
   }, { wid: "model.location" });
   subscribe("model/location/post/q", function(msg) {
     let args = msg.payload;
