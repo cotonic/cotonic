@@ -228,17 +228,18 @@ subscribe("model/location/post/redirect", function(msg) {
     }
 }, {wid: "model.location"});
 
-subscribe("model/location/post/back", function(msg) {
-    const fallbackUrl = payload_url(msg);
-
-    window.history.go(-1);
+subscribe("model/location/post/redirect/back", function(msg) {
+    window.history.back();
     willNavigate();
 
-    if(navigateBackTimeout) {
-        clearTimeout(navigateBackTimeout);
+    if(redirectBackTimeout) {
+        clearTimeout(redirectBackTimeout);
     };
 
-    navigateBackTimeout = setTimeout(redirectLocal, 500, fallbackUrl);
+    const fallbackUrl = payload_url(msg);
+    if(fallbackUrl) {
+        redirectBackTimeout = setTimeout(redirectLocal, 500, fallbackUrl);
+    }
 }, {wid: "model.location"});
 
 subscribe("model/location/post/redirect-local", function(msg) {
@@ -258,20 +259,6 @@ function redirectLocal(url) {
 subscribe("model/location/post/reload", function(msg) {
     window.location.reload(true);
     willNavigate();
-}, {wid: "model.location"});
-
-subscribe("model/location/post/redirect/back", function(msg) {
-    window.history.back();
-    willNavigate();
-
-    const fallbackUrl = payload_url(msg);
-    if(fallbackUrl) {
-        if(redirectBackTimeout) {
-            clearTimeout(redirectBackTimeout);
-        };
-
-        redirectBackTimeout = setTimeout(redirectLocal, 500, fallbackUrl);
-    }
 }, {wid: "model.location"});
 
 subscribe("model/location/post/q", function(msg) {
