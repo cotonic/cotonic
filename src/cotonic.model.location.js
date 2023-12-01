@@ -19,6 +19,7 @@ import { subscribe, publish } from "./cotonic.broker.js";
 
 let location = {};
 let isNavigating = false;
+let redirectBackTimeout = undefined;
 
 function init() {
     publish("model/location/event/ping", "pong", { retain: true });
@@ -227,26 +228,37 @@ subscribe("model/location/post/redirect", function(msg) {
     }
 }, {wid: "model.location"});
 
-subscribe("model/location/post/redirect-local", function(msg) {
-    let url = payload_url(msg);
-    if (url) {
-        let url = new URL(msg.payload.url, window.location);
-        window.location = url.pathname + url.search + url.hash;
-        willNavigate();
+subscribe("model/location/post/redirect/back", function(msg) {
+    window.history.back();
+    willNavigate();
+
+    if(redirectBackTimeout) {
+        clearTimeout(redirectBackTimeout);
+    };
+
+    const fallbackUrl = payload_url(msg);
+    if(fallbackUrl) {
+        redirectBackTimeout = setTimeout(redirectLocal, 500, fallbackUrl);
     }
 }, {wid: "model.location"});
+
+subscribe("model/location/post/redirect-local", function(msg) {
+    redirectLocal(payload_url(msg));
+}, {wid: "model.location"});
+
+function redirectLocal(url) {
+    if(!url)
+        return;
+
+    url = new URL(url, window.location);
+    window.location = url.pathname + url.search + url.hash;
+
+    willNavigate();
+}
 
 subscribe("model/location/post/reload", function(msg) {
     window.location.reload(true);
     willNavigate();
-}, {wid: "model.location"});
-
-subscribe("model/location/post/redirect/back", function() {
-    if ('referrer' in document) {
-        window.location = document.referrer;
-    } else {
-        window.history.back();
-    }
 }, {wid: "model.location"});
 
 subscribe("model/location/post/q", function(msg) {

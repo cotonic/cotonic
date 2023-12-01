@@ -269,6 +269,7 @@ pre {
                     <li> - <a href="#model.location.get.origin">get/origin</a>
                     <li> - <a href="#model.location.get.port">get/port</a>
                     <li> - <a href="#model.location.post.redirect">post/redirect</a>
+                    <li> - <a href="#model.location.post.redirect.back">post/redirect/back</a>
                     <li> - <a href="#model.location.post.reload">post/reload</a>
                     <li> - <a href="#model.location.post.q">post/q</a>
                     <li> - <a href="#model.location.post.qlist">post/qlist</a>
@@ -1573,8 +1574,28 @@ cotonic.broker.call("model/location/get/port")
             Redirect the user to another url
             </p>
             <pre>
-cotonic.broker.call("model/location/post/redirect", {url: "https://cotonic.org"})
+cotonic.broker.publish("model/location/post/redirect", {url: "https://cotonic.org"})
 => // The user is redirect to cotonic.org.</pre>
+
+            <!-- post/redirect/back -->
+
+<p id="model.location.post.redirect.back">
+
+            <strong class="header">post/redirect/back</strong>
+            <br>
+            Loads the previous URL (page) in the history list. When there is no page in the
+            history list, a default (local) url can be passed. When no navigation occurs, 
+            the user will be redirected to this url.
+</p>
+<pre>
+cotonic.broker.publish("model/location/post/redirect/back", {url: "/home"})
+=> // Go back, when there is no page in the history, move to "/home".</pre>
+
+<p>
+
+<pre>
+&lt;a data-onclick-topic="model/location/post/redirect/back" href="/home"&gt;Go Back&lt;/a&gt;
+</pre>
 
             <!-- post/reload -->
 
