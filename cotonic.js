@@ -2051,7 +2051,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.6.1";
+  var VERSION = "1.6.2";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -6632,6 +6632,15 @@
     }
     if (!topicTarget)
       return;
+    const ignore = getFromDataset(event.target, topicTarget, `on${event.type}Ignore`);
+    switch (ignore) {
+      case "1":
+      case "yes":
+      case "true":
+        return;
+      default:
+        break;
+    }
     const topic = topicTarget.dataset[topicName];
     let msg;
     let cancel = true;
