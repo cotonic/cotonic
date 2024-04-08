@@ -146,6 +146,16 @@ function topic_event( event, isBuffered ) {
     if(!topicTarget)
         return;
 
+    const ignore = getFromDataset(event.target, topicTarget, `on${ event.type }Ignore`);
+    switch (ignore) {
+        case "1":
+        case "yes":
+        case "true":
+            return;
+        default:
+            break;
+    }
+
     const topic = topicTarget.dataset[topicName]
     let msg;
     let cancel = true;
