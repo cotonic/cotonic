@@ -48,21 +48,25 @@ function defaultMatchFn(matchNode, nameOrCtor, expectedNameOrCtor, key, expected
     // strings, null and undefined so the == semantics are not too weird.
     return nameOrCtor == expectedNameOrCtor && key == expectedKey;
 }
+
 let context = null;
 let currentNode = null;
 let currentParent = null;
 let doc = null;
 let focusPath = [];
 let matchFn = defaultMatchFn;
+
 /**
  * Used to build up call arguments. Each patch call gets a separate copy, so
  * this works with nested calls to patch.
  */
 let argsBuilder = [];
+
 /**
  * Used to build up attrs for the an element.
  */
 let attrsBuilder = [];
+
 /**
  * TODO(sparhami) We should just export argsBuilder directly when Closure
  * Compiler supports ES6 directly.
@@ -71,6 +75,7 @@ let attrsBuilder = [];
 function getArgsBuilder() {
     return argsBuilder;
 }
+
 /**
  * TODO(sparhami) We should just export attrsBuilder directly when Closure
  * Compiler supports ES6 directly.
@@ -79,6 +84,7 @@ function getArgsBuilder() {
 function getAttrsBuilder() {
     return attrsBuilder;
 }
+
 /**
  * Checks whether or not the current node matches the specified nameOrCtor and
  * key. This uses the specified match function when creating the patcher.
@@ -91,6 +97,7 @@ function matches(matchNode, nameOrCtor, key) {
     const data = getData(matchNode, key);
     return matchFn(matchNode, nameOrCtor, data.nameOrCtor, key, data.key);
 }
+
 /**
  * Finds the matching node, starting at `node` and looking at the subsequent
  * siblings if a key is used.
@@ -111,6 +118,15 @@ function getMatchingNode(matchNode, nameOrCtor, key) {
     } while (key && (cur = cur.nextSibling));
     return null;
 }
+
+/**
+ * Updates the internal structure of a DOM node in the case that an external
+ * framework tries to modify a DOM element.
+ */
+function alwaysDiffAttributes(el) {
+    getData(el).alwaysDiffAttributes = true;
+}
+
 /**
  * Clears out any unvisited Nodes in a given range.
  * @param maybeParentNode
@@ -127,6 +143,7 @@ function clearUnvisitedDOM(maybeParentNode, startNode, endNode) {
         child = next;
     }
 }
+
 /**
  * @return The next Node to be patched.
  */
@@ -138,6 +155,7 @@ function getNextNode() {
         return currentParent.firstChild;
     }
 }
+
 /**
  * Changes to the first child of the current node.
  */
@@ -145,6 +163,7 @@ function enterNode() {
     currentParent = currentNode;
     currentNode = null;
 }
+
 /**
  * Changes to the parent of the current node, removing any unvisited children.
  */
@@ -153,39 +172,45 @@ function exitNode() {
     currentNode = currentParent;
     currentParent = currentParent.parentNode;
 }
+
 /**
  * Changes to the next sibling of the current node.
  */
 function nextNode() {
     currentNode = getNextNode();
 }
+
 /**
  * Creates a Node and marking it as created.
  * @param nameOrCtor The name or constructor for the Node.
  * @param key The key used to identify the Node.
  * @return The newly created node.
  */
-function createNode(nameOrCtor, key) {
+function createNode(nameOrCtor, key, nonce) {
     let node;
     if (nameOrCtor === "#text") {
         node = createText(doc);
     }
     else {
         node = createElement(doc, currentParent, nameOrCtor, key);
+        if (nonce) {
+            node.setAttribute('nonce', nonce);
+        }
     }
     context.markCreated(node);
     return node;
 }
+
 /**
  * Aligns the virtual Node definition with the actual DOM, moving the
  * corresponding DOM node to the correct location or creating it if necessary.
  * @param nameOrCtor The name or constructor for the Node.
  * @param key The key used to identify the Node.
  */
-function alignWithDOM(nameOrCtor, key) {
+function alignWithDOM(nameOrCtor, key, nonce) {
     nextNode();
     const existingNode = getMatchingNode(currentNode, nameOrCtor, key);
-    const node = existingNode || createNode(nameOrCtor, key);
+    const node = existingNode || createNode(nameOrCtor, key, nonce);
     // If we are at the matching node, then we are done.
     if (node === currentNode) {
         return;
@@ -202,6 +227,7 @@ function alignWithDOM(nameOrCtor, key) {
     }
     currentNode = node;
 }
+
 /**
  * Makes sure that the current node is an Element with a matching nameOrCtor and
  * key.
@@ -212,11 +238,12 @@ function alignWithDOM(nameOrCtor, key) {
  *     when iterating over an array of items.
  * @return The corresponding Element.
  */
-function open(nameOrCtor, key) {
-    alignWithDOM(nameOrCtor, key);
+function open(nameOrCtor, key, nonce) {
+    alignWithDOM(nameOrCtor, key, nonce);
     enterNode();
     return currentParent;
 }
+
 /**
  * Closes the currently open Element, removing any unvisited children if
  * necessary.
@@ -229,6 +256,7 @@ function close() {
     exitNode();
     return currentNode;
 }
+
 /**
  * Makes sure the current node is a Text node and creates a Text node if it is
  * not.
@@ -238,6 +266,7 @@ function text() {
     alignWithDOM("#text", null);
     return currentNode;
 }
+
 /**
  * @returns The current Element being patched.
  */
@@ -248,6 +277,14 @@ function currentElement() {
     }
     return currentParent;
 }
+
+/**
+ * @returns The current Element being patched, or null if no patch is in progress.
+ */
+function tryGetCurrentElement() {
+    return currentParent;
+}
+
 /**
  * @return The Node that will be evaluated for the next instruction.
  */
@@ -259,6 +296,14 @@ function currentPointer() {
     // TODO(tomnguyen): assert that this is not null
     return getNextNode();
 }
+
+/**
+ * @return Return the current patcher context.
+ */
+function currentContext() {
+  return context;
+}
+
 /**
  * Skips the children in a subtree, allowing an Element to be closed without
  * clearing out the children.
@@ -270,6 +315,7 @@ function skip() {
     }
     currentNode = currentParent.lastChild;
 }
+
 /**
  * Returns a patcher function that sets up and restores a patch context,
  * running the run function with the provided data.
@@ -291,7 +337,7 @@ function createPatcher(run, patchConfig = {}) {
         let previousInAttributes = false;
         let previousInSkip = false;
         doc = node.ownerDocument;
-        context = new Context();
+        context = new Context(node);
         matchFn = matches;
         argsBuilder = [];
         attrsBuilder = [];
@@ -331,6 +377,7 @@ function createPatcher(run, patchConfig = {}) {
     };
     return f;
 }
+
 /**
  * Creates a patcher that patches the document starting at node with a
  * provided function. This function may be called during an existing patch operation.
@@ -349,6 +396,7 @@ function createPatchInner(patchConfig) {
         return node;
     }, patchConfig);
 }
+
 /**
  * Creates a patcher that patches an Element with the the provided function.
  * Exactly one top level element call should be made corresponding to `node`.
@@ -376,12 +424,14 @@ function createPatchOuter(patchConfig) {
         return startNode === currentNode ? null : currentNode;
     }, patchConfig);
 }
+
 const patchInner = createPatchInner();
 const patchOuter = createPatchOuter();
 
 
 export {
     alignWithDOM,
+    alwaysDiffAttributes,
     getArgsBuilder,
     getAttrsBuilder,
     text,
@@ -392,9 +442,11 @@ export {
     open,
     close,
     currentElement,
+    currentContext,
     currentPointer,
     skip,
-    nextNode
+    nextNode,
+    tryGetCurrentElement
 };
 
 

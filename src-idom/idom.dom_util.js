@@ -46,7 +46,9 @@ function getAncestry(node, root) {
     while (cur !== root) {
         const n = assert(cur);
         ancestry.push(n);
-        cur = n.parentNode;
+        // If `node` is inside of a ShadowRoot, then it needs to pierce the
+        // ShadowRoot boundary in order to reach `root`.
+        cur = n.parentNode || (root ? n.host : null);
     }
     return ancestry;
 }
@@ -88,8 +90,8 @@ function getFocusedPath(node, root) {
     return getAncestry(activeElement, root);
 }
 /**
- * Like insertBefore, but instead instead of moving the desired node, instead
- * moves all the other nodes after.
+ * Like insertBefore, but instead of moving the desired node, it moves all the
+ * other nodes after.
  * @param parentNode
  * @param node
  * @param referenceNode

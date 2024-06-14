@@ -34,9 +34,10 @@ const prevValuesMap = createMap();
  * @param next The next values, alternating name, value pairs.
  * @param updateCtx The context for the updateFn.
  * @param updateFn A function to call when a value has changed.
+ * @param alwaysDiffAttributes Whether to diff attributes unconditionally
  */
-function calculateDiff(prev, next, updateCtx, updateFn) {
-    const isNew = !prev.length;
+function calculateDiff(prev, next, updateCtx, updateFn, alwaysDiffAttributes) {
+    const isNew = !prev.length || alwaysDiffAttributes;
     let i = 0;
     for (; i < next.length; i += 2) {
         const name = next[i];

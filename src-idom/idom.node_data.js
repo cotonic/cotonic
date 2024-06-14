@@ -38,6 +38,7 @@ class NodeData {
         this.nameOrCtor = nameOrCtor;
         this.key = key;
         this.text = text;
+        this.alwaysDiffAttributes = false;
     }
     hasEmptyAttrsArr() {
         const attrs = this._attrsArr;

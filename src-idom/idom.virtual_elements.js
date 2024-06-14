@@ -58,7 +58,8 @@ const prevAttrsMap = createMap();
 function diffAttrs(element, data) {
     const attrsBuilder = getAttrsBuilder();
     const prevAttrsArr = data.getAttrsArr(attrsBuilder.length);
-    calculateDiff(prevAttrsArr, attrsBuilder, element, updateAttribute);
+    calculateDiff(prevAttrsArr, attrsBuilder, element, updateAttribute,
+                  data.alwaysDiffAttributes);
     truncateArray(attrsBuilder, 0);
 }
 
@@ -178,12 +179,26 @@ function elementOpenEnd() {
         assertInAttributes("elementOpenEnd");
         setInAttributes(false);
     }
-    const node = open(argsBuilder[0], argsBuilder[1]);
+    const node = open(argsBuilder[0], argsBuilder[1], getNonce());
     const data = getData(node);
     diffStatics(node, data, argsBuilder[2]);
     diffAttrs(node, data);
     truncateArray(argsBuilder, 0);
     return node;
+}
+
+/** Gets the value of the nonce attribute. */
+function getNonce() {
+    const argsBuilder = getArgsBuilder();
+    const statics = argsBuilder[2];
+    if (statics) {
+        for (let i = 0; i < statics.length; i += 2) {
+            if (statics[i] === 'nonce') {
+                return statics[i + 1];
+            }
+        }
+    }
+    return '';
 }
 
 /**

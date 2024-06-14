@@ -21,9 +21,10 @@ import { notifications } from "./idom.notifications.js";
  * A context object keeps track of the state of a patch.
  */
 class Context {
-    constructor() {
+    constructor(node) {
         this.created = [];
         this.deleted = [];
+        this.node = node;
     }
     markCreated(node) {
         this.created.push(node);
