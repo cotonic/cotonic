@@ -27,8 +27,7 @@ import * as keyserver from "./cotonic.keyserver.js";
 
 import { VERSION, config, ready, readyResolve, spawn, spawn_named, whereis } from "./cotonic.js";
 
-// Can be changed to normal esm import when IncrementalDOM supports this.
-import "./require_idom.js"; // Exports a global IncrementalDOM reference.
+import "../src-idom/index-bundle.js";
 import * as idom from "./cotonic.idom.js";
 
 import * as broker from "./cotonic.broker.js";

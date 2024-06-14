@@ -1,0 +1,163 @@
+/**
+ * Copyright 2018 The Incremental DOM Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { assert } from "./idom.assertions.js";
+import { createMap, has } from "./idom.util.js";
+import { symbols } from "./idom.symbols.js";
+
+
+/**
+ * @param name The name of the attribute. For example "tabindex" or
+ *    "xlink:href".
+ * @returns The namespace to use for the attribute, or null if there is
+ * no namespace.
+ */
+function getNamespace(name) {
+    if (name.lastIndexOf("xml:", 0) === 0) {
+        return "http://www.w3.org/XML/1998/namespace";
+    }
+    if (name.lastIndexOf("xlink:", 0) === 0) {
+        return "http://www.w3.org/1999/xlink";
+    }
+    return null;
+}
+/**
+ * Applies an attribute or property to a given Element. If the value is null
+ * or undefined, it is removed from the Element. Otherwise, the value is set
+ * as an attribute.
+ * @param el The element to apply the attribute to.
+ * @param name The attribute's name.
+ * @param value The attribute's value.
+ */
+function applyAttr(el, name, value) {
+    if (value == null) {
+        el.removeAttribute(name);
+    }
+    else {
+        const attrNS = getNamespace(name);
+        if (attrNS) {
+            el.setAttributeNS(attrNS, name, String(value));
+        }
+        else {
+            el.setAttribute(name, String(value));
+        }
+    }
+}
+/**
+ * Applies a property to a given Element.
+ * @param el The element to apply the property to.
+ * @param name The property's name.
+ * @param value The property's value.
+ */
+function applyProp(el, name, value) {
+    el[name] = value;
+}
+/**
+ * Applies a value to a style declaration. Supports CSS custom properties by
+ * setting properties containing a dash using CSSStyleDeclaration.setProperty.
+ * @param style A style declaration.
+ * @param prop The property to apply. This can be either camelcase or dash
+ *    separated. For example: "backgroundColor" and "background-color" are both
+ *    supported.
+ * @param value The value of the property.
+ */
+function setStyleValue(style, prop, value) {
+    if (prop.indexOf("-") >= 0) {
+        style.setProperty(prop, value);
+    }
+    else {
+        style[prop] = value;
+    }
+}
+/**
+ * Applies a style to an Element. No vendor prefix expansion is done for
+ * property names/values.
+ * @param el The Element to apply the style for.
+ * @param name The attribute's name.
+ * @param  style The style to set. Either a string of css or an object
+ *     containing property-value pairs.
+ */
+function applyStyle(el, name, style) {
+    // MathML elements inherit from Element, which does not have style. We cannot
+    // do `instanceof HTMLElement` / `instanceof SVGElement`, since el can belong
+    // to a different document, so just check that it has a style.
+    assert("style" in el);
+    const elStyle = el.style;
+    if (typeof style === "string") {
+        elStyle.cssText = style;
+    }
+    else {
+        elStyle.cssText = "";
+        for (const prop in style) {
+            if (has(style, prop)) {
+                setStyleValue(elStyle, prop, style[prop]);
+            }
+        }
+    }
+}
+/**
+ * Updates a single attribute on an Element.
+ * @param el The Element to apply the attribute to.
+ * @param name The attribute's name.
+ * @param value The attribute's value. If the value is an object or
+ *     function it is set on the Element, otherwise, it is set as an HTML
+ *     attribute.
+ */
+function applyAttributeTyped(el, name, value) {
+    const type = typeof value;
+    if (type === "object" || type === "function") {
+        applyProp(el, name, value);
+    }
+    else {
+        applyAttr(el, name, value);
+    }
+}
+
+/**
+ * A publicly mutable object to provide custom mutators for attributes.
+ * NB: The result of createMap() has to be recast since closure compiler
+ * will just assume attributes is "any" otherwise and throws away
+ * the type annotation set by tsickle.
+ */
+const attributes = createMap();
+
+// Special generic mutator that's called for any attribute that does not
+// have a specific mutator.
+attributes[symbols.default] = applyAttributeTyped;
+attributes["style"] = applyStyle;
+
+
+/**
+ * Calls the appropriate attribute mutator for this attribute.
+ * @param el The Element to apply the attribute to.
+ * @param name The attribute's name.
+ * @param value The attribute's value. If the value is an object or
+ *     function it is set on the Element, otherwise, it is set as an HTML
+ *     attribute.
+ */
+function updateAttribute(el, name, value) {
+    const mutator = attributes[name] || attributes[symbols.default];
+    mutator(el, name, value);
+}
+
+
+export {
+      updateAttribute,
+      applyProp,
+      applyAttr,
+      attributes
+};
+

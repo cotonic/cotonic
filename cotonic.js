@@ -1,815 +1,9 @@
 (() => {
   var __defProp = Object.defineProperty;
-  var __getOwnPropNames = Object.getOwnPropertyNames;
-  var __commonJS = (cb, mod) => function __require() {
-    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-  };
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
   };
-
-  // lib/incremental-dom-cjs.js
-  var require_incremental_dom_cjs = __commonJS({
-    "lib/incremental-dom-cjs.js"(exports) {
-      "use strict";
-      Object.defineProperty(exports, "__esModule", { value: true });
-      var keyAttributeName = "key";
-      function getKeyAttributeName() {
-        return keyAttributeName;
-      }
-      function setKeyAttributeName(name) {
-        keyAttributeName = name;
-      }
-      var inAttributes = false;
-      var inSkip = false;
-      var inPatch = false;
-      function assert(val) {
-        if (!val) {
-          throw new Error("Expected value to be defined");
-        }
-        return val;
-      }
-      function assertInPatch(functionName) {
-        if (!inPatch) {
-          throw new Error("Cannot call " + functionName + "() unless in patch.");
-        }
-      }
-      function assertNoUnclosedTags(openElement, root2) {
-        if (openElement === root2) {
-          return;
-        }
-        let currentElement2 = openElement;
-        const openTags = [];
-        while (currentElement2 && currentElement2 !== root2) {
-          openTags.push(currentElement2.nodeName.toLowerCase());
-          currentElement2 = currentElement2.parentNode;
-        }
-        throw new Error("One or more tags were not closed:\n" + openTags.join("\n"));
-      }
-      function assertPatchOuterHasParentNode(parent) {
-        if (!parent) {
-          console.warn("patchOuter requires the node have a parent if there is a key.");
-        }
-      }
-      function assertNotInAttributes(functionName) {
-        if (inAttributes) {
-          throw new Error(functionName + "() can not be called between elementOpenStart() and elementOpenEnd().");
-        }
-      }
-      function assertNotInSkip(functionName) {
-        if (inSkip) {
-          throw new Error(functionName + "() may not be called inside an element that has called skip().");
-        }
-      }
-      function assertInAttributes(functionName) {
-        if (!inAttributes) {
-          throw new Error(functionName + "() can only be called after calling elementOpenStart().");
-        }
-      }
-      function assertVirtualAttributesClosed() {
-        if (inAttributes) {
-          throw new Error("elementOpenEnd() must be called after calling elementOpenStart().");
-        }
-      }
-      function assertCloseMatchesOpenTag(currentNameOrCtor, nameOrCtor) {
-        if (currentNameOrCtor !== nameOrCtor) {
-          throw new Error('Received a call to close "' + nameOrCtor + '" but "' + currentNameOrCtor + '" was open.');
-        }
-      }
-      function assertNoChildrenDeclaredYet(functionName, previousNode) {
-        if (previousNode !== null) {
-          throw new Error(functionName + "() must come before any child declarations inside the current element.");
-        }
-      }
-      function assertPatchElementNoExtras(maybeStartNode, maybeCurrentNode, expectedNextNode, expectedPrevNode) {
-        const startNode = assert(maybeStartNode);
-        const currentNode2 = assert(maybeCurrentNode);
-        const wasUpdated = currentNode2.nextSibling === expectedNextNode && currentNode2.previousSibling === expectedPrevNode;
-        const wasChanged = currentNode2.nextSibling === startNode.nextSibling && currentNode2.previousSibling === expectedPrevNode;
-        const wasRemoved = currentNode2 === startNode;
-        if (!wasUpdated && !wasChanged && !wasRemoved) {
-          throw new Error("There must be exactly one top level call corresponding to the patched element.");
-        }
-      }
-      function updatePatchContext(newContext) {
-        inPatch = newContext != null;
-      }
-      function setInAttributes(value2) {
-        const previous = inAttributes;
-        inAttributes = value2;
-        return previous;
-      }
-      function setInSkip(value2) {
-        const previous = inSkip;
-        inSkip = value2;
-        return previous;
-      }
-      var hasOwnProperty = Object.prototype.hasOwnProperty;
-      function Blank() {
-      }
-      Blank.prototype = /* @__PURE__ */ Object.create(null);
-      function has(map, property) {
-        return hasOwnProperty.call(map, property);
-      }
-      function createMap() {
-        return new Blank();
-      }
-      function truncateArray(arr, length) {
-        while (arr.length > length) {
-          arr.pop();
-        }
-      }
-      function createArray(initialAllocationSize) {
-        const arr = new Array(initialAllocationSize);
-        truncateArray(arr, 0);
-        return arr;
-      }
-      var symbols = {
-        default: "__default"
-      };
-      function getNamespace(name) {
-        if (name.lastIndexOf("xml:", 0) === 0) {
-          return "http://www.w3.org/XML/1998/namespace";
-        }
-        if (name.lastIndexOf("xlink:", 0) === 0) {
-          return "http://www.w3.org/1999/xlink";
-        }
-        return null;
-      }
-      function applyAttr(el, name, value2) {
-        if (value2 == null) {
-          el.removeAttribute(name);
-        } else {
-          const attrNS = getNamespace(name);
-          if (attrNS) {
-            el.setAttributeNS(attrNS, name, String(value2));
-          } else {
-            el.setAttribute(name, String(value2));
-          }
-        }
-      }
-      function applyProp(el, name, value2) {
-        el[name] = value2;
-      }
-      function setStyleValue(style, prop, value2) {
-        if (prop.indexOf("-") >= 0) {
-          style.setProperty(prop, value2);
-        } else {
-          style[prop] = value2;
-        }
-      }
-      function applyStyle(el, name, style) {
-        assert("style" in el);
-        const elStyle = el.style;
-        if (typeof style === "string") {
-          elStyle.cssText = style;
-        } else {
-          elStyle.cssText = "";
-          for (const prop in style) {
-            if (has(style, prop)) {
-              setStyleValue(elStyle, prop, style[prop]);
-            }
-          }
-        }
-      }
-      function applyAttributeTyped(el, name, value2) {
-        const type = typeof value2;
-        if (type === "object" || type === "function") {
-          applyProp(el, name, value2);
-        } else {
-          applyAttr(el, name, value2);
-        }
-      }
-      var attributes = createMap();
-      attributes[symbols.default] = applyAttributeTyped;
-      attributes["style"] = applyStyle;
-      function updateAttribute(el, name, value2) {
-        const mutator = attributes[name] || attributes[symbols.default];
-        mutator(el, name, value2);
-      }
-      var notifications = {
-        nodesCreated: null,
-        nodesDeleted: null
-      };
-      var Context = class {
-        constructor() {
-          this.created = [];
-          this.deleted = [];
-        }
-        markCreated(node) {
-          this.created.push(node);
-        }
-        markDeleted(node) {
-          this.deleted.push(node);
-        }
-        /**
-         * Notifies about nodes that were created during the patch operation.
-         */
-        notifyChanges() {
-          if (notifications.nodesCreated && this.created.length > 0) {
-            notifications.nodesCreated(this.created);
-          }
-          if (notifications.nodesDeleted && this.deleted.length > 0) {
-            notifications.nodesDeleted(this.deleted);
-          }
-        }
-      };
-      function isDocumentRoot(node) {
-        return node.nodeType === 11 || node.nodeType === 9;
-      }
-      function isElement(node) {
-        return node.nodeType === 1;
-      }
-      function getAncestry(node, root2) {
-        const ancestry = [];
-        let cur = node;
-        while (cur !== root2) {
-          const n = assert(cur);
-          ancestry.push(n);
-          cur = n.parentNode;
-        }
-        return ancestry;
-      }
-      var getRootNode = typeof Node !== "undefined" && Node.prototype.getRootNode || function() {
-        let cur = this;
-        let prev = cur;
-        while (cur) {
-          prev = cur;
-          cur = cur.parentNode;
-        }
-        return prev;
-      };
-      function getActiveElement(node) {
-        const root2 = getRootNode.call(node);
-        return isDocumentRoot(root2) ? root2.activeElement : null;
-      }
-      function getFocusedPath(node, root2) {
-        const activeElement = getActiveElement(node);
-        if (!activeElement || !node.contains(activeElement)) {
-          return [];
-        }
-        return getAncestry(activeElement, root2);
-      }
-      function moveBefore(parentNode, node, referenceNode) {
-        const insertReferenceNode = node.nextSibling;
-        let cur = referenceNode;
-        while (cur !== null && cur !== node) {
-          const next = cur.nextSibling;
-          parentNode.insertBefore(cur, insertReferenceNode);
-          cur = next;
-        }
-      }
-      var NodeData = class {
-        constructor(nameOrCtor, key3, text2) {
-          this._attrsArr = null;
-          this.staticsApplied = false;
-          this.nameOrCtor = nameOrCtor;
-          this.key = key3;
-          this.text = text2;
-        }
-        hasEmptyAttrsArr() {
-          const attrs = this._attrsArr;
-          return !attrs || !attrs.length;
-        }
-        getAttrsArr(length) {
-          return this._attrsArr || (this._attrsArr = createArray(length));
-        }
-      };
-      function initData(node, nameOrCtor, key3, text2) {
-        const data = new NodeData(nameOrCtor, key3, text2);
-        node["__incrementalDOMData"] = data;
-        return data;
-      }
-      function isDataInitialized(node) {
-        return Boolean(node["__incrementalDOMData"]);
-      }
-      function recordAttributes(node, data) {
-        const attributes2 = node.attributes;
-        const length = attributes2.length;
-        if (!length) {
-          return;
-        }
-        const attrsArr = data.getAttrsArr(length);
-        for (let i = 0, j = 0; i < length; i += 1, j += 2) {
-          const attr2 = attributes2[i];
-          const name = attr2.name;
-          const value2 = attr2.value;
-          attrsArr[j] = name;
-          attrsArr[j + 1] = value2;
-        }
-      }
-      function importSingleNode(node, fallbackKey) {
-        if (node["__incrementalDOMData"]) {
-          return node["__incrementalDOMData"];
-        }
-        const nodeName = isElement(node) ? node.localName : node.nodeName;
-        const keyAttrName = getKeyAttributeName();
-        const keyAttr = isElement(node) && keyAttrName != null ? node.getAttribute(keyAttrName) : null;
-        const key3 = isElement(node) ? keyAttr || fallbackKey : null;
-        const data = initData(node, nodeName, key3);
-        if (isElement(node)) {
-          recordAttributes(node, data);
-        }
-        return data;
-      }
-      function importNode(node) {
-        importSingleNode(node);
-        for (let child = node.firstChild; child; child = child.nextSibling) {
-          importNode(child);
-        }
-      }
-      function getData(node, fallbackKey) {
-        return importSingleNode(node, fallbackKey);
-      }
-      function getKey(node) {
-        assert(node["__incrementalDOMData"]);
-        return getData(node).key;
-      }
-      function clearCache(node) {
-        node["__incrementalDOMData"] = null;
-        for (let child = node.firstChild; child; child = child.nextSibling) {
-          clearCache(child);
-        }
-      }
-      function getNamespaceForTag(tag, parent) {
-        if (tag === "svg") {
-          return "http://www.w3.org/2000/svg";
-        }
-        if (tag === "math") {
-          return "http://www.w3.org/1998/Math/MathML";
-        }
-        if (parent == null) {
-          return null;
-        }
-        if (getData(parent).nameOrCtor === "foreignObject") {
-          return null;
-        }
-        return parent.namespaceURI;
-      }
-      function createElement(doc2, parent, nameOrCtor, key3) {
-        let el;
-        if (typeof nameOrCtor === "function") {
-          el = new nameOrCtor();
-        } else {
-          const namespace = getNamespaceForTag(nameOrCtor, parent);
-          if (namespace) {
-            el = doc2.createElementNS(namespace, nameOrCtor);
-          } else {
-            el = doc2.createElement(nameOrCtor);
-          }
-        }
-        initData(el, nameOrCtor, key3);
-        return el;
-      }
-      function createText(doc2) {
-        const node = doc2.createTextNode("");
-        initData(node, "#text", null);
-        return node;
-      }
-      function defaultMatchFn(matchNode, nameOrCtor, expectedNameOrCtor, key3, expectedKey) {
-        return nameOrCtor == expectedNameOrCtor && key3 == expectedKey;
-      }
-      var context = null;
-      var currentNode = null;
-      var currentParent = null;
-      var doc = null;
-      var focusPath = [];
-      var matchFn = defaultMatchFn;
-      var argsBuilder = [];
-      var attrsBuilder = [];
-      function getArgsBuilder() {
-        return argsBuilder;
-      }
-      function getAttrsBuilder() {
-        return attrsBuilder;
-      }
-      function matches2(matchNode, nameOrCtor, key3) {
-        const data = getData(matchNode, key3);
-        return matchFn(matchNode, nameOrCtor, data.nameOrCtor, key3, data.key);
-      }
-      function getMatchingNode(matchNode, nameOrCtor, key3) {
-        if (!matchNode) {
-          return null;
-        }
-        let cur = matchNode;
-        do {
-          if (matches2(cur, nameOrCtor, key3)) {
-            return cur;
-          }
-        } while (key3 && (cur = cur.nextSibling));
-        return null;
-      }
-      function clearUnvisitedDOM(maybeParentNode, startNode, endNode) {
-        const parentNode = maybeParentNode;
-        let child = startNode;
-        while (child !== endNode) {
-          const next = child.nextSibling;
-          parentNode.removeChild(child);
-          context.markDeleted(child);
-          child = next;
-        }
-      }
-      function getNextNode() {
-        if (currentNode) {
-          return currentNode.nextSibling;
-        } else {
-          return currentParent.firstChild;
-        }
-      }
-      function enterNode() {
-        currentParent = currentNode;
-        currentNode = null;
-      }
-      function exitNode() {
-        clearUnvisitedDOM(currentParent, getNextNode(), null);
-        currentNode = currentParent;
-        currentParent = currentParent.parentNode;
-      }
-      function nextNode() {
-        currentNode = getNextNode();
-      }
-      function createNode(nameOrCtor, key3) {
-        let node;
-        if (nameOrCtor === "#text") {
-          node = createText(doc);
-        } else {
-          node = createElement(doc, currentParent, nameOrCtor, key3);
-        }
-        context.markCreated(node);
-        return node;
-      }
-      function alignWithDOM(nameOrCtor, key3) {
-        nextNode();
-        const existingNode = getMatchingNode(currentNode, nameOrCtor, key3);
-        const node = existingNode || createNode(nameOrCtor, key3);
-        if (node === currentNode) {
-          return;
-        }
-        if (focusPath.indexOf(node) >= 0) {
-          moveBefore(currentParent, node, currentNode);
-        } else {
-          currentParent.insertBefore(node, currentNode);
-        }
-        currentNode = node;
-      }
-      function open(nameOrCtor, key3) {
-        alignWithDOM(nameOrCtor, key3);
-        enterNode();
-        return currentParent;
-      }
-      function close() {
-        {
-          setInSkip(false);
-        }
-        exitNode();
-        return currentNode;
-      }
-      function text() {
-        alignWithDOM("#text", null);
-        return currentNode;
-      }
-      function currentElement() {
-        {
-          assertInPatch("currentElement");
-          assertNotInAttributes("currentElement");
-        }
-        return currentParent;
-      }
-      function currentPointer() {
-        {
-          assertInPatch("currentPointer");
-          assertNotInAttributes("currentPointer");
-        }
-        return getNextNode();
-      }
-      function skip() {
-        {
-          assertNoChildrenDeclaredYet("skip", currentNode);
-          setInSkip(true);
-        }
-        currentNode = currentParent.lastChild;
-      }
-      function createPatcher(run, patchConfig = {}) {
-        const { matches: matches3 = defaultMatchFn } = patchConfig;
-        const f = (node, fn, data) => {
-          const prevContext = context;
-          const prevDoc = doc;
-          const prevFocusPath = focusPath;
-          const prevArgsBuilder = argsBuilder;
-          const prevAttrsBuilder = attrsBuilder;
-          const prevCurrentNode = currentNode;
-          const prevCurrentParent = currentParent;
-          const prevMatchFn = matchFn;
-          let previousInAttributes = false;
-          let previousInSkip = false;
-          doc = node.ownerDocument;
-          context = new Context();
-          matchFn = matches3;
-          argsBuilder = [];
-          attrsBuilder = [];
-          currentNode = null;
-          currentParent = node.parentNode;
-          focusPath = getFocusedPath(node, currentParent);
-          {
-            previousInAttributes = setInAttributes(false);
-            previousInSkip = setInSkip(false);
-            updatePatchContext(context);
-          }
-          try {
-            const retVal = run(node, fn, data);
-            {
-              assertVirtualAttributesClosed();
-            }
-            return retVal;
-          } finally {
-            context.notifyChanges();
-            doc = prevDoc;
-            context = prevContext;
-            matchFn = prevMatchFn;
-            argsBuilder = prevArgsBuilder;
-            attrsBuilder = prevAttrsBuilder;
-            currentNode = prevCurrentNode;
-            currentParent = prevCurrentParent;
-            focusPath = prevFocusPath;
-            {
-              setInAttributes(previousInAttributes);
-              setInSkip(previousInSkip);
-              updatePatchContext(context);
-            }
-          }
-        };
-        return f;
-      }
-      function createPatchInner(patchConfig) {
-        return createPatcher((node, fn, data) => {
-          currentNode = node;
-          enterNode();
-          fn(data);
-          exitNode();
-          {
-            assertNoUnclosedTags(currentNode, node);
-          }
-          return node;
-        }, patchConfig);
-      }
-      function createPatchOuter(patchConfig) {
-        return createPatcher((node, fn, data) => {
-          const startNode = { nextSibling: node };
-          let expectedNextNode = null;
-          let expectedPrevNode = null;
-          {
-            expectedNextNode = node.nextSibling;
-            expectedPrevNode = node.previousSibling;
-          }
-          currentNode = startNode;
-          fn(data);
-          {
-            assertPatchOuterHasParentNode(currentParent);
-            assertPatchElementNoExtras(startNode, currentNode, expectedNextNode, expectedPrevNode);
-          }
-          if (currentParent) {
-            clearUnvisitedDOM(currentParent, getNextNode(), node.nextSibling);
-          }
-          return startNode === currentNode ? null : currentNode;
-        }, patchConfig);
-      }
-      var patchInner2 = createPatchInner();
-      var patchOuter2 = createPatchOuter();
-      var buffer = [];
-      var bufferStart = 0;
-      function queueChange(fn, a, b, c) {
-        buffer.push(fn);
-        buffer.push(a);
-        buffer.push(b);
-        buffer.push(c);
-      }
-      function flush2() {
-        const start = bufferStart;
-        const end = buffer.length;
-        bufferStart = end;
-        for (let i = start; i < end; i += 4) {
-          const fn = buffer[i];
-          fn(buffer[i + 1], buffer[i + 2], buffer[i + 3]);
-        }
-        bufferStart = start;
-        truncateArray(buffer, start);
-      }
-      var prevValuesMap = createMap();
-      function calculateDiff(prev, next, updateCtx, updateFn) {
-        const isNew = !prev.length;
-        let i = 0;
-        for (; i < next.length; i += 2) {
-          const name = next[i];
-          if (isNew) {
-            prev[i] = name;
-          } else if (prev[i] !== name) {
-            break;
-          }
-          const value2 = next[i + 1];
-          if (isNew || prev[i + 1] !== value2) {
-            prev[i + 1] = value2;
-            queueChange(updateFn, updateCtx, name, value2);
-          }
-        }
-        if (i < next.length || i < prev.length) {
-          const startIndex = i;
-          for (i = startIndex; i < prev.length; i += 2) {
-            prevValuesMap[prev[i]] = prev[i + 1];
-          }
-          for (i = startIndex; i < next.length; i += 2) {
-            const name = next[i];
-            const value2 = next[i + 1];
-            if (prevValuesMap[name] !== value2) {
-              queueChange(updateFn, updateCtx, name, value2);
-            }
-            prev[i] = name;
-            prev[i + 1] = value2;
-            delete prevValuesMap[name];
-          }
-          truncateArray(prev, next.length);
-          for (const name in prevValuesMap) {
-            queueChange(updateFn, updateCtx, name, void 0);
-            delete prevValuesMap[name];
-          }
-        }
-        flush2();
-      }
-      var ATTRIBUTES_OFFSET = 3;
-      var prevAttrsMap = createMap();
-      function diffAttrs(element, data) {
-        const attrsBuilder2 = getAttrsBuilder();
-        const prevAttrsArr = data.getAttrsArr(attrsBuilder2.length);
-        calculateDiff(prevAttrsArr, attrsBuilder2, element, updateAttribute);
-        truncateArray(attrsBuilder2, 0);
-      }
-      function diffStatics(node, data, statics) {
-        if (data.staticsApplied) {
-          return;
-        }
-        data.staticsApplied = true;
-        if (!statics || !statics.length) {
-          return;
-        }
-        if (data.hasEmptyAttrsArr()) {
-          for (let i = 0; i < statics.length; i += 2) {
-            updateAttribute(node, statics[i], statics[i + 1]);
-          }
-          return;
-        }
-        for (let i = 0; i < statics.length; i += 2) {
-          prevAttrsMap[statics[i]] = i + 1;
-        }
-        const attrsArr = data.getAttrsArr(0);
-        let j = 0;
-        for (let i = 0; i < attrsArr.length; i += 2) {
-          const name = attrsArr[i];
-          const value2 = attrsArr[i + 1];
-          const staticsIndex = prevAttrsMap[name];
-          if (staticsIndex) {
-            if (statics[staticsIndex] === value2) {
-              delete prevAttrsMap[name];
-            }
-            continue;
-          }
-          attrsArr[j] = name;
-          attrsArr[j + 1] = value2;
-          j += 2;
-        }
-        truncateArray(attrsArr, j);
-        for (const name in prevAttrsMap) {
-          updateAttribute(node, name, statics[prevAttrsMap[name]]);
-          delete prevAttrsMap[name];
-        }
-      }
-      function elementOpenStart(nameOrCtor, key3, statics) {
-        const argsBuilder2 = getArgsBuilder();
-        {
-          assertNotInAttributes("elementOpenStart");
-          setInAttributes(true);
-        }
-        argsBuilder2[0] = nameOrCtor;
-        argsBuilder2[1] = key3;
-        argsBuilder2[2] = statics;
-      }
-      function key2(key3) {
-        const argsBuilder2 = getArgsBuilder();
-        {
-          assertInAttributes("key");
-          assert(argsBuilder2);
-        }
-        argsBuilder2[1] = key3;
-      }
-      function attr(name, value2) {
-        const attrsBuilder2 = getAttrsBuilder();
-        {
-          assertInPatch("attr");
-        }
-        attrsBuilder2.push(name);
-        attrsBuilder2.push(value2);
-      }
-      function elementOpenEnd() {
-        const argsBuilder2 = getArgsBuilder();
-        {
-          assertInAttributes("elementOpenEnd");
-          setInAttributes(false);
-        }
-        const node = open(argsBuilder2[0], argsBuilder2[1]);
-        const data = getData(node);
-        diffStatics(node, data, argsBuilder2[2]);
-        diffAttrs(node, data);
-        truncateArray(argsBuilder2, 0);
-        return node;
-      }
-      function elementOpen(nameOrCtor, key3, statics, ...varArgs) {
-        {
-          assertNotInAttributes("elementOpen");
-          assertNotInSkip("elementOpen");
-        }
-        elementOpenStart(nameOrCtor, key3, statics);
-        for (let i = ATTRIBUTES_OFFSET; i < arguments.length; i += 2) {
-          attr(arguments[i], arguments[i + 1]);
-        }
-        return elementOpenEnd();
-      }
-      function applyAttrs() {
-        const node = currentElement();
-        const data = getData(node);
-        diffAttrs(node, data);
-      }
-      function applyStatics(statics) {
-        const node = currentElement();
-        const data = getData(node);
-        diffStatics(node, data, statics);
-      }
-      function elementClose(nameOrCtor) {
-        {
-          assertNotInAttributes("elementClose");
-        }
-        const node = close();
-        {
-          assertCloseMatchesOpenTag(getData(node).nameOrCtor, nameOrCtor);
-        }
-        return node;
-      }
-      function elementVoid(nameOrCtor, key3, statics, ...varArgs) {
-        elementOpen.apply(null, arguments);
-        return elementClose(nameOrCtor);
-      }
-      function text$1(value2, ...varArgs) {
-        {
-          assertNotInAttributes("text");
-          assertNotInSkip("text");
-        }
-        const node = text();
-        const data = getData(node);
-        if (data.text !== value2) {
-          data.text = value2;
-          let formatted = value2;
-          for (let i = 1; i < arguments.length; i += 1) {
-            const fn = arguments[i];
-            formatted = fn(formatted);
-          }
-          if (node.data !== formatted) {
-            node.data = formatted;
-          }
-        }
-        return node;
-      }
-      exports.applyAttr = applyAttr;
-      exports.applyProp = applyProp;
-      exports.attributes = attributes;
-      exports.alignWithDOM = alignWithDOM;
-      exports.close = close;
-      exports.createPatchInner = createPatchInner;
-      exports.createPatchOuter = createPatchOuter;
-      exports.currentElement = currentElement;
-      exports.currentPointer = currentPointer;
-      exports.open = open;
-      exports.patch = patchInner2;
-      exports.patchInner = patchInner2;
-      exports.patchOuter = patchOuter2;
-      exports.skip = skip;
-      exports.skipNode = nextNode;
-      exports.setKeyAttributeName = setKeyAttributeName;
-      exports.clearCache = clearCache;
-      exports.getKey = getKey;
-      exports.importNode = importNode;
-      exports.isDataInitialized = isDataInitialized;
-      exports.notifications = notifications;
-      exports.symbols = symbols;
-      exports.applyAttrs = applyAttrs;
-      exports.applyStatics = applyStatics;
-      exports.attr = attr;
-      exports.elementClose = elementClose;
-      exports.elementOpen = elementOpen;
-      exports.elementOpenEnd = elementOpenEnd;
-      exports.elementOpenStart = elementOpenStart;
-      exports.elementVoid = elementVoid;
-      exports.key = key2;
-      exports.text = text$1;
-    }
-  });
 
   // src/cotonic.mqtt.js
   var cotonic_mqtt_exports = {};
@@ -932,32 +126,32 @@
   var TEXTAREA = 2;
   var NORMAL = 3;
   function TokenBuilder(acc) {
-    function addKey(token, attributes) {
-      for (let i = 0; i < attributes.length; i = i + 2) {
-        if (attributes[i] === "key") {
-          token.key = attributes[i + 1];
+    function addKey(token, attributes2) {
+      for (let i = 0; i < attributes2.length; i = i + 2) {
+        if (attributes2[i] === "key") {
+          token.key = attributes2[i + 1];
           break;
         }
       }
     }
-    this.elementOpen = function(tag, attributes) {
-      const t = { type: "open", tag, attributes };
-      addKey(t, attributes);
+    this.elementOpen = function(tag, attributes2) {
+      const t = { type: "open", tag, attributes: attributes2 };
+      addKey(t, attributes2);
       acc.push(t);
     };
-    this.elementVoid = function(tag, attributes) {
-      const t = { type: "void", tag, attributes };
-      addKey(t, attributes);
+    this.elementVoid = function(tag, attributes2) {
+      const t = { type: "void", tag, attributes: attributes2 };
+      addKey(t, attributes2);
       acc.push(t);
     };
     this.elementClose = function(tag) {
       acc.push({ type: "close", tag });
     };
-    this.processingInstruction = function(tag, attributes) {
-      acc.push({ type: "pi", tag, attributes });
+    this.processingInstruction = function(tag, attributes2) {
+      acc.push({ type: "pi", tag, attributes: attributes2 });
     };
-    this.doctype = function(attributes) {
-      acc.push({ type: "doctype", attributes });
+    this.doctype = function(attributes2) {
+      acc.push({ type: "doctype", attributes: attributes2 });
     };
     this.comment = function(data) {
       acc.push({ type: "comment", data });
@@ -1026,7 +220,7 @@
     }
   }
   function tokenize(data, builder, d) {
-    let tag, attributes, text_data, has_slash, c0, c1, c2, c3, c4, c5, c6, c7, c8;
+    let tag, attributes2, text_data, has_slash, c0, c1, c2, c3, c4, c5, c6, c7, c8;
     c0 = data.charAt(d.offset);
     if (c0 === void 0)
       return DONE;
@@ -1048,9 +242,9 @@
       return tokenize_cdata(data, d.adv_col(9));
     if (c0 === "<" && c1 === "?") {
       tag = tokenize_literal(data, d.adv_col(2), "tag");
-      attributes = tokenize_attributes(data, d);
+      attributes2 = tokenize_attributes(data, d);
       find_qgt(data, d);
-      d.builder.processingInstruction(tag.value, attributes.value);
+      d.builder.processingInstruction(tag.value, attributes2.value);
       return NORMAL;
     }
     if (c0 === "&") {
@@ -1071,12 +265,12 @@
     }
     if (c0 === "<") {
       tag = tokenize_literal(data, d.inc_col(), "tag");
-      attributes = tokenize_attributes(data, d);
+      attributes2 = tokenize_attributes(data, d);
       has_slash = find_gt(data, d);
       if (has_slash.value || is_singleton(tag.value)) {
-        builder.elementVoid(tag.value, attributes.value);
+        builder.elementVoid(tag.value, attributes2.value);
       } else {
-        builder.elementOpen(tag.value, attributes.value);
+        builder.elementOpen(tag.value, attributes2.value);
       }
       if (tag.value === "textarea")
         return TEXTAREA;
@@ -1286,15 +480,15 @@
     }
   }
   function tokenize_attributes(data, d) {
-    let cont = true, attributes = [], attribute, attribute_value;
+    let cont = true, attributes2 = [], attribute, attribute_value;
     while (cont) {
       let c = data.codePointAt(d.offset);
       if (c === void 0)
-        return value(attributes, d);
+        return value(attributes2, d);
       if (c === GT || c === SLASH)
-        return value(attributes, d);
+        return value(attributes2, d);
       if (c === QUESTION_MARK && data.codePointAt(d.offset + 1) === GT) {
-        return value(attributes, d);
+        return value(attributes2, d);
       }
       if (is_whitespace(c)) {
         d.inc_char(c);
@@ -1302,8 +496,8 @@
       }
       attribute = tokenize_literal(data, d, "attributes");
       attribute_value = tokenize_attr_value(attribute.value, data, d);
-      attributes.push(tokenize_attribute_name(attribute.value));
-      attributes.push(attribute_value.value);
+      attributes2.push(tokenize_attribute_name(attribute.value));
+      attributes2.push(attribute_value.value);
     }
   }
   function find_gt(data, d) {
@@ -1346,14 +540,14 @@
       throw "internal_error";
     }
   }
-  function tokenize_attr_value(key2, data, d) {
+  function tokenize_attr_value(key3, data, d) {
     let c;
     skip_whitespace(data, d);
     c = data.codePointAt(d.offset);
     if (c === EQUALS) {
       return tokenize_quoted_or_unquoted_attr_value(data, d.inc_col());
     }
-    return value(key2, d);
+    return value(key3, d);
   }
   function tokenize_quoted_or_unquoted_attr_value(data, d) {
     let c;
@@ -1843,8 +1037,8 @@
       ["encrypt"]
     );
   }
-  function exportKey(key2) {
-    return crypto.subtle.exportKey("raw", key2);
+  function exportKey(key3) {
+    return crypto.subtle.exportKey("raw", key3);
   }
   function encodeHelloMessage(id, encodedKey, encodedNonce) {
     const encodedId = textEncoder.encode(id);
@@ -1857,8 +1051,8 @@
     msg.set(encodedId, 2 + KEY_BYTES + NONCE_BYTES);
     return msg;
   }
-  function encryptConnectMessage(id, key2, nonce, pubServerEncKey) {
-    return exportKey(key2).then(function(encodedKey) {
+  function encryptConnectMessage(id, key3, nonce, pubServerEncKey) {
+    return exportKey(key3).then(function(encodedKey) {
       const msg = encodeHelloMessage(id, encodedKey, nonce);
       return crypto.subtle.encrypt({ name: "RSA-OAEP" }, pubServerEncKey, msg);
     });
@@ -1897,7 +1091,7 @@
         throw new Error("Unknown request");
     }
   }
-  function encryptRequest(id, nonce, request, key2, iv) {
+  function encryptRequest(id, nonce, request, key3, iv) {
     const encId = textEncoder.encode(id);
     let req = encodeRequest(request);
     let msg = new Uint8Array(1 + NONCE_BYTES + req.length);
@@ -1911,11 +1105,11 @@
         additionalData: encId,
         tagLength: AES_GCM_TAG_SIZE * 8
       },
-      key2,
+      key3,
       msg
     );
   }
-  function decryptResponse(id, nonce, response, key2, iv) {
+  function decryptResponse(id, nonce, response, key3, iv) {
     const encId = textEncoder.encode(id);
     return crypto.subtle.decrypt(
       {
@@ -1924,7 +1118,7 @@
         additionalData: encId,
         tagLength: AES_GCM_TAG_SIZE * 8
       },
-      key2,
+      key3,
       response
     ).then(function(plain) {
       return decodeResponse(plain);
@@ -1991,7 +1185,7 @@
     }
     return result;
   }
-  function encryptSecurePublish(message, keyId, key2) {
+  function encryptSecurePublish(message, keyId, key3) {
     const iv = randomIV();
     const alg = {
       name: "AES-GCM",
@@ -1999,7 +1193,7 @@
       additionalData: keyId,
       tagLength: AES_GCM_TAG_SIZE * 8
     };
-    return crypto.subtle.encrypt(alg, key2, message).then(function(cipherText) {
+    return crypto.subtle.encrypt(alg, key3, message).then(function(cipherText) {
       return encodeSecurePublish(iv, new Uint8Array(cipherText));
     });
   }
@@ -2020,7 +1214,7 @@
     let message = data.slice(IV_BYTES + 2);
     return { type: SECURE_PUBLISH, iv, message };
   }
-  function decryptSecurePublish(message, keyId, key2) {
+  function decryptSecurePublish(message, keyId, key3) {
     const d = decodeSecurePublish(message);
     const alg = {
       name: "AES-GCM",
@@ -2028,7 +1222,7 @@
       additionalData: keyId,
       tagLength: AES_GCM_TAG_SIZE * 8
     };
-    return crypto.subtle.decrypt(alg, key2, d.message);
+    return crypto.subtle.decrypt(alg, key3, d.message);
   }
   function toDate(t) {
     let d = /* @__PURE__ */ new Date();
@@ -2064,9 +1258,9 @@
   var named_worker_ids = {};
   var receive_handler = null;
   function load_config_defaults(options) {
-    for (let key2 in options) {
-      if (!config.hasOwnProperty(key2)) {
-        config[key2] = options[key2];
+    for (let key3 in options) {
+      if (!config.hasOwnProperty(key3)) {
+        config[key3] = options[key3];
       }
     }
   }
@@ -2190,15 +1384,832 @@
   }
   cleanupSessionStorage();
 
-  // src/require_idom.js
-  var IncrementalDOM2 = require_incremental_dom_cjs();
-  globalThis.IncrementalDOM = IncrementalDOM2;
+  // src-idom/idom.global.js
+  var keyAttributeName = "key";
+  function getKeyAttributeName() {
+    return keyAttributeName;
+  }
+
+  // src-idom/idom.assertions.js
+  var inAttributes = false;
+  var inSkip = false;
+  var inPatch = false;
+  function assert(val) {
+    if (!val) {
+      throw new Error("Expected value to be defined");
+    }
+    return val;
+  }
+  function assertInPatch(functionName) {
+    if (!inPatch) {
+      throw new Error("Cannot call " + functionName + "() unless in patch.");
+    }
+  }
+  function assertNoUnclosedTags(openElement, root2) {
+    if (openElement === root2) {
+      return;
+    }
+    let currentElement2 = openElement;
+    const openTags = [];
+    while (currentElement2 && currentElement2 !== root2) {
+      openTags.push(currentElement2.nodeName.toLowerCase());
+      currentElement2 = currentElement2.parentNode;
+    }
+    throw new Error("One or more tags were not closed:\n" + openTags.join("\n"));
+  }
+  function assertPatchOuterHasParentNode(parent) {
+    if (!parent) {
+      console.warn("patchOuter requires the node have a parent if there is a key.");
+    }
+  }
+  function assertNotInAttributes(functionName) {
+    if (inAttributes) {
+      throw new Error(functionName + "() can not be called between elementOpenStart() and elementOpenEnd().");
+    }
+  }
+  function assertNotInSkip(functionName) {
+    if (inSkip) {
+      throw new Error(functionName + "() may not be called inside an element that has called skip().");
+    }
+  }
+  function assertInAttributes(functionName) {
+    if (!inAttributes) {
+      throw new Error(functionName + "() can only be called after calling elementOpenStart().");
+    }
+  }
+  function assertVirtualAttributesClosed() {
+    if (inAttributes) {
+      throw new Error("elementOpenEnd() must be called after calling elementOpenStart().");
+    }
+  }
+  function assertCloseMatchesOpenTag(currentNameOrCtor, nameOrCtor) {
+    if (currentNameOrCtor !== nameOrCtor) {
+      throw new Error('Received a call to close "' + nameOrCtor + '" but "' + currentNameOrCtor + '" was open.');
+    }
+  }
+  function assertNoChildrenDeclaredYet(functionName, previousNode) {
+    if (previousNode !== null) {
+      throw new Error(functionName + "() must come before any child declarations inside the current element.");
+    }
+  }
+  function assertPatchElementNoExtras(maybeStartNode, maybeCurrentNode, expectedNextNode, expectedPrevNode) {
+    const startNode = assert(maybeStartNode);
+    const currentNode2 = assert(maybeCurrentNode);
+    const wasUpdated = currentNode2.nextSibling === expectedNextNode && currentNode2.previousSibling === expectedPrevNode;
+    const wasChanged = currentNode2.nextSibling === startNode.nextSibling && currentNode2.previousSibling === expectedPrevNode;
+    const wasRemoved = currentNode2 === startNode;
+    if (!wasUpdated && !wasChanged && !wasRemoved) {
+      throw new Error("There must be exactly one top level call corresponding to the patched element.");
+    }
+  }
+  function updatePatchContext(newContext) {
+    inPatch = newContext != null;
+  }
+  function setInAttributes(value2) {
+    const previous = inAttributes;
+    inAttributes = value2;
+    return previous;
+  }
+  function setInSkip(value2) {
+    const previous = inSkip;
+    inSkip = value2;
+    return previous;
+  }
+
+  // src-idom/idom.util.js
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  function Blank() {
+  }
+  Blank.prototype = /* @__PURE__ */ Object.create(null);
+  function has(map, property) {
+    return hasOwnProperty.call(map, property);
+  }
+  function createMap() {
+    return new Blank();
+  }
+  function truncateArray(arr, length) {
+    while (arr.length > length) {
+      arr.pop();
+    }
+  }
+  function createArray(initialAllocationSize) {
+    const arr = new Array(initialAllocationSize);
+    truncateArray(arr, 0);
+    return arr;
+  }
+
+  // src-idom/idom.symbols.js
+  var symbols = {
+    default: "__default"
+  };
+
+  // src-idom/idom.attributes.js
+  function getNamespace(name) {
+    if (name.lastIndexOf("xml:", 0) === 0) {
+      return "http://www.w3.org/XML/1998/namespace";
+    }
+    if (name.lastIndexOf("xlink:", 0) === 0) {
+      return "http://www.w3.org/1999/xlink";
+    }
+    return null;
+  }
+  function applyAttr(el, name, value2) {
+    if (value2 == null) {
+      el.removeAttribute(name);
+    } else {
+      const attrNS = getNamespace(name);
+      if (attrNS) {
+        el.setAttributeNS(attrNS, name, String(value2));
+      } else {
+        el.setAttribute(name, String(value2));
+      }
+    }
+  }
+  function applyProp(el, name, value2) {
+    el[name] = value2;
+  }
+  function setStyleValue(style, prop, value2) {
+    if (prop.indexOf("-") >= 0) {
+      style.setProperty(prop, value2);
+    } else {
+      style[prop] = value2;
+    }
+  }
+  function applyStyle(el, name, style) {
+    assert("style" in el);
+    const elStyle = el.style;
+    if (typeof style === "string") {
+      elStyle.cssText = style;
+    } else {
+      elStyle.cssText = "";
+      for (const prop in style) {
+        if (has(style, prop)) {
+          setStyleValue(elStyle, prop, style[prop]);
+        }
+      }
+    }
+  }
+  function applyAttributeTyped(el, name, value2) {
+    const type = typeof value2;
+    if (type === "object" || type === "function") {
+      applyProp(el, name, value2);
+    } else {
+      applyAttr(el, name, value2);
+    }
+  }
+  var attributes = createMap();
+  attributes[symbols.default] = applyAttributeTyped;
+  attributes["style"] = applyStyle;
+  function updateAttribute(el, name, value2) {
+    const mutator = attributes[name] || attributes[symbols.default];
+    mutator(el, name, value2);
+  }
+
+  // src-idom/idom.notifications.js
+  var notifications = {
+    nodesCreated: null,
+    nodesDeleted: null
+  };
+
+  // src-idom/idom.context.js
+  var Context = class {
+    constructor() {
+      this.created = [];
+      this.deleted = [];
+    }
+    markCreated(node) {
+      this.created.push(node);
+    }
+    markDeleted(node) {
+      this.deleted.push(node);
+    }
+    /**
+     * Notifies about nodes that were created during the patch operation.
+     */
+    notifyChanges() {
+      if (notifications.nodesCreated && this.created.length > 0) {
+        notifications.nodesCreated(this.created);
+      }
+      if (notifications.nodesDeleted && this.deleted.length > 0) {
+        notifications.nodesDeleted(this.deleted);
+      }
+    }
+  };
+
+  // src-idom/idom.dom_util.js
+  function isDocumentRoot(node) {
+    return node.nodeType === 11 || node.nodeType === 9;
+  }
+  function isElement(node) {
+    return node.nodeType === 1;
+  }
+  function getAncestry(node, root2) {
+    const ancestry = [];
+    let cur = node;
+    while (cur !== root2) {
+      const n = assert(cur);
+      ancestry.push(n);
+      cur = n.parentNode;
+    }
+    return ancestry;
+  }
+  var getRootNode = typeof Node !== "undefined" && Node.prototype.getRootNode || function() {
+    let cur = this;
+    let prev = cur;
+    while (cur) {
+      prev = cur;
+      cur = cur.parentNode;
+    }
+    return prev;
+  };
+  function getActiveElement(node) {
+    const root2 = getRootNode.call(node);
+    return isDocumentRoot(root2) ? root2.activeElement : null;
+  }
+  function getFocusedPath(node, root2) {
+    const activeElement = getActiveElement(node);
+    if (!activeElement || !node.contains(activeElement)) {
+      return [];
+    }
+    return getAncestry(activeElement, root2);
+  }
+  function moveBefore(parentNode, node, referenceNode) {
+    const insertReferenceNode = node.nextSibling;
+    let cur = referenceNode;
+    while (cur !== null && cur !== node) {
+      const next = cur.nextSibling;
+      parentNode.insertBefore(cur, insertReferenceNode);
+      cur = next;
+    }
+  }
+
+  // src-idom/idom.node_data.js
+  var NodeData = class {
+    constructor(nameOrCtor, key3, text3) {
+      this._attrsArr = null;
+      this.staticsApplied = false;
+      this.nameOrCtor = nameOrCtor;
+      this.key = key3;
+      this.text = text3;
+    }
+    hasEmptyAttrsArr() {
+      const attrs = this._attrsArr;
+      return !attrs || !attrs.length;
+    }
+    getAttrsArr(length) {
+      return this._attrsArr || (this._attrsArr = createArray(length));
+    }
+  };
+  function initData(node, nameOrCtor, key3, text3) {
+    const data = new NodeData(nameOrCtor, key3, text3);
+    node["__incrementalDOMData"] = data;
+    return data;
+  }
+  function isDataInitialized(node) {
+    return Boolean(node["__incrementalDOMData"]);
+  }
+  function recordAttributes(node, data) {
+    const attributes2 = node.attributes;
+    const length = attributes2.length;
+    if (!length) {
+      return;
+    }
+    const attrsArr = data.getAttrsArr(length);
+    for (let i = 0, j = 0; i < length; i += 1, j += 2) {
+      const attr2 = attributes2[i];
+      const name = attr2.name;
+      const value2 = attr2.value;
+      attrsArr[j] = name;
+      attrsArr[j + 1] = value2;
+    }
+  }
+  function importSingleNode(node, fallbackKey) {
+    if (node["__incrementalDOMData"]) {
+      return node["__incrementalDOMData"];
+    }
+    const nodeName = isElement(node) ? node.localName : node.nodeName;
+    const keyAttrName = getKeyAttributeName();
+    const keyAttr = isElement(node) && keyAttrName != null ? node.getAttribute(keyAttrName) : null;
+    const key3 = isElement(node) ? keyAttr || fallbackKey : null;
+    const data = initData(node, nodeName, key3);
+    if (isElement(node)) {
+      recordAttributes(node, data);
+    }
+    return data;
+  }
+  function importNode(node) {
+    importSingleNode(node);
+    for (let child = node.firstChild; child; child = child.nextSibling) {
+      importNode(child);
+    }
+  }
+  function getData(node, fallbackKey) {
+    return importSingleNode(node, fallbackKey);
+  }
+  function getKey(node) {
+    assert(node["__incrementalDOMData"]);
+    return getData(node).key;
+  }
+  function clearCache(node) {
+    node["__incrementalDOMData"] = null;
+    for (let child = node.firstChild; child; child = child.nextSibling) {
+      clearCache(child);
+    }
+  }
+
+  // src-idom/idom.nodes.js
+  function getNamespaceForTag(tag, parent) {
+    if (tag === "svg") {
+      return "http://www.w3.org/2000/svg";
+    }
+    if (tag === "math") {
+      return "http://www.w3.org/1998/Math/MathML";
+    }
+    if (parent == null) {
+      return null;
+    }
+    if (getData(parent).nameOrCtor === "foreignObject") {
+      return null;
+    }
+    return parent.namespaceURI;
+  }
+  function createElement(doc2, parent, nameOrCtor, key3) {
+    let el;
+    if (typeof nameOrCtor === "function") {
+      el = new nameOrCtor();
+    } else {
+      const namespace = getNamespaceForTag(nameOrCtor, parent);
+      if (namespace) {
+        el = doc2.createElementNS(namespace, nameOrCtor);
+      } else {
+        el = doc2.createElement(nameOrCtor);
+      }
+    }
+    initData(el, nameOrCtor, key3);
+    return el;
+  }
+  function createText(doc2) {
+    const node = doc2.createTextNode("");
+    initData(node, "#text", null);
+    return node;
+  }
+
+  // src-idom/idom.core.js
+  function defaultMatchFn(matchNode, nameOrCtor, expectedNameOrCtor, key3, expectedKey) {
+    return nameOrCtor == expectedNameOrCtor && key3 == expectedKey;
+  }
+  var context = null;
+  var currentNode = null;
+  var currentParent = null;
+  var doc = null;
+  var focusPath = [];
+  var matchFn = defaultMatchFn;
+  var argsBuilder = [];
+  var attrsBuilder = [];
+  function getArgsBuilder() {
+    return argsBuilder;
+  }
+  function getAttrsBuilder() {
+    return attrsBuilder;
+  }
+  function matches2(matchNode, nameOrCtor, key3) {
+    const data = getData(matchNode, key3);
+    return matchFn(matchNode, nameOrCtor, data.nameOrCtor, key3, data.key);
+  }
+  function getMatchingNode(matchNode, nameOrCtor, key3) {
+    if (!matchNode) {
+      return null;
+    }
+    let cur = matchNode;
+    do {
+      if (matches2(cur, nameOrCtor, key3)) {
+        return cur;
+      }
+    } while (key3 && (cur = cur.nextSibling));
+    return null;
+  }
+  function clearUnvisitedDOM(maybeParentNode, startNode, endNode) {
+    const parentNode = maybeParentNode;
+    let child = startNode;
+    while (child !== endNode) {
+      const next = child.nextSibling;
+      parentNode.removeChild(child);
+      context.markDeleted(child);
+      child = next;
+    }
+  }
+  function getNextNode() {
+    if (currentNode) {
+      return currentNode.nextSibling;
+    } else {
+      return currentParent.firstChild;
+    }
+  }
+  function enterNode() {
+    currentParent = currentNode;
+    currentNode = null;
+  }
+  function exitNode() {
+    clearUnvisitedDOM(currentParent, getNextNode(), null);
+    currentNode = currentParent;
+    currentParent = currentParent.parentNode;
+  }
+  function nextNode() {
+    currentNode = getNextNode();
+  }
+  function createNode(nameOrCtor, key3) {
+    let node;
+    if (nameOrCtor === "#text") {
+      node = createText(doc);
+    } else {
+      node = createElement(doc, currentParent, nameOrCtor, key3);
+    }
+    context.markCreated(node);
+    return node;
+  }
+  function alignWithDOM(nameOrCtor, key3) {
+    nextNode();
+    const existingNode = getMatchingNode(currentNode, nameOrCtor, key3);
+    const node = existingNode || createNode(nameOrCtor, key3);
+    if (node === currentNode) {
+      return;
+    }
+    if (focusPath.indexOf(node) >= 0) {
+      moveBefore(currentParent, node, currentNode);
+    } else {
+      currentParent.insertBefore(node, currentNode);
+    }
+    currentNode = node;
+  }
+  function open(nameOrCtor, key3) {
+    alignWithDOM(nameOrCtor, key3);
+    enterNode();
+    return currentParent;
+  }
+  function close() {
+    {
+      setInSkip(false);
+    }
+    exitNode();
+    return currentNode;
+  }
+  function currentElement() {
+    {
+      assertInPatch("currentElement");
+      assertNotInAttributes("currentElement");
+    }
+    return currentParent;
+  }
+  function currentPointer() {
+    {
+      assertInPatch("currentPointer");
+      assertNotInAttributes("currentPointer");
+    }
+    return getNextNode();
+  }
+  function skip() {
+    {
+      assertNoChildrenDeclaredYet("skip", currentNode);
+      setInSkip(true);
+    }
+    currentNode = currentParent.lastChild;
+  }
+  function createPatcher(run, patchConfig = {}) {
+    const { matches: matches3 = defaultMatchFn } = patchConfig;
+    const f = (node, fn, data) => {
+      const prevContext = context;
+      const prevDoc = doc;
+      const prevFocusPath = focusPath;
+      const prevArgsBuilder = argsBuilder;
+      const prevAttrsBuilder = attrsBuilder;
+      const prevCurrentNode = currentNode;
+      const prevCurrentParent = currentParent;
+      const prevMatchFn = matchFn;
+      let previousInAttributes = false;
+      let previousInSkip = false;
+      doc = node.ownerDocument;
+      context = new Context();
+      matchFn = matches3;
+      argsBuilder = [];
+      attrsBuilder = [];
+      currentNode = null;
+      currentParent = node.parentNode;
+      focusPath = getFocusedPath(node, currentParent);
+      {
+        previousInAttributes = setInAttributes(false);
+        previousInSkip = setInSkip(false);
+        updatePatchContext(context);
+      }
+      try {
+        const retVal = run(node, fn, data);
+        {
+          assertVirtualAttributesClosed();
+        }
+        return retVal;
+      } finally {
+        context.notifyChanges();
+        doc = prevDoc;
+        context = prevContext;
+        matchFn = prevMatchFn;
+        argsBuilder = prevArgsBuilder;
+        attrsBuilder = prevAttrsBuilder;
+        currentNode = prevCurrentNode;
+        currentParent = prevCurrentParent;
+        focusPath = prevFocusPath;
+        {
+          setInAttributes(previousInAttributes);
+          setInSkip(previousInSkip);
+          updatePatchContext(context);
+        }
+      }
+    };
+    return f;
+  }
+  function createPatchInner(patchConfig) {
+    return createPatcher((node, fn, data) => {
+      currentNode = node;
+      enterNode();
+      fn(data);
+      exitNode();
+      {
+        assertNoUnclosedTags(currentNode, node);
+      }
+      return node;
+    }, patchConfig);
+  }
+  function createPatchOuter(patchConfig) {
+    return createPatcher((node, fn, data) => {
+      const startNode = { nextSibling: node };
+      let expectedNextNode = null;
+      let expectedPrevNode = null;
+      {
+        expectedNextNode = node.nextSibling;
+        expectedPrevNode = node.previousSibling;
+      }
+      currentNode = startNode;
+      fn(data);
+      {
+        assertPatchOuterHasParentNode(currentParent);
+        assertPatchElementNoExtras(startNode, currentNode, expectedNextNode, expectedPrevNode);
+      }
+      if (currentParent) {
+        clearUnvisitedDOM(currentParent, getNextNode(), node.nextSibling);
+      }
+      return startNode === currentNode ? null : currentNode;
+    }, patchConfig);
+  }
+  var patchInner = createPatchInner();
+  var patchOuter = createPatchOuter();
+
+  // src-idom/idom.changes.js
+  var buffer = [];
+  var bufferStart = 0;
+  function queueChange(fn, a, b, c) {
+    buffer.push(fn);
+    buffer.push(a);
+    buffer.push(b);
+    buffer.push(c);
+  }
+  function flush() {
+    const start = bufferStart;
+    const end = buffer.length;
+    bufferStart = end;
+    for (let i = start; i < end; i += 4) {
+      const fn = buffer[i];
+      fn(buffer[i + 1], buffer[i + 2], buffer[i + 3]);
+    }
+    bufferStart = start;
+    truncateArray(buffer, start);
+  }
+
+  // src-idom/idom.diff.js
+  var prevValuesMap = createMap();
+  function calculateDiff(prev, next, updateCtx, updateFn) {
+    const isNew = !prev.length;
+    let i = 0;
+    for (; i < next.length; i += 2) {
+      const name = next[i];
+      if (isNew) {
+        prev[i] = name;
+      } else if (prev[i] !== name) {
+        break;
+      }
+      const value2 = next[i + 1];
+      if (isNew || prev[i + 1] !== value2) {
+        prev[i + 1] = value2;
+        queueChange(updateFn, updateCtx, name, value2);
+      }
+    }
+    if (i < next.length || i < prev.length) {
+      const startIndex = i;
+      for (i = startIndex; i < prev.length; i += 2) {
+        prevValuesMap[prev[i]] = prev[i + 1];
+      }
+      for (i = startIndex; i < next.length; i += 2) {
+        const name = next[i];
+        const value2 = next[i + 1];
+        if (prevValuesMap[name] !== value2) {
+          queueChange(updateFn, updateCtx, name, value2);
+        }
+        prev[i] = name;
+        prev[i + 1] = value2;
+        delete prevValuesMap[name];
+      }
+      truncateArray(prev, next.length);
+      for (const name in prevValuesMap) {
+        queueChange(updateFn, updateCtx, name, void 0);
+        delete prevValuesMap[name];
+      }
+    }
+    flush();
+  }
+
+  // src-idom/idom.virtual_elements.js
+  var ATTRIBUTES_OFFSET = 3;
+  var prevAttrsMap = createMap();
+  function diffAttrs(element, data) {
+    const attrsBuilder2 = getAttrsBuilder();
+    const prevAttrsArr = data.getAttrsArr(attrsBuilder2.length);
+    calculateDiff(prevAttrsArr, attrsBuilder2, element, updateAttribute);
+    truncateArray(attrsBuilder2, 0);
+  }
+  function diffStatics(node, data, statics) {
+    if (data.staticsApplied) {
+      return;
+    }
+    data.staticsApplied = true;
+    if (!statics || !statics.length) {
+      return;
+    }
+    if (data.hasEmptyAttrsArr()) {
+      for (let i = 0; i < statics.length; i += 2) {
+        updateAttribute(node, statics[i], statics[i + 1]);
+      }
+      return;
+    }
+    for (let i = 0; i < statics.length; i += 2) {
+      prevAttrsMap[statics[i]] = i + 1;
+    }
+    const attrsArr = data.getAttrsArr(0);
+    let j = 0;
+    for (let i = 0; i < attrsArr.length; i += 2) {
+      const name = attrsArr[i];
+      const value2 = attrsArr[i + 1];
+      const staticsIndex = prevAttrsMap[name];
+      if (staticsIndex) {
+        if (statics[staticsIndex] === value2) {
+          delete prevAttrsMap[name];
+        }
+        continue;
+      }
+      attrsArr[j] = name;
+      attrsArr[j + 1] = value2;
+      j += 2;
+    }
+    truncateArray(attrsArr, j);
+    for (const name in prevAttrsMap) {
+      updateAttribute(node, name, statics[prevAttrsMap[name]]);
+      delete prevAttrsMap[name];
+    }
+  }
+  function elementOpenStart(nameOrCtor, key3, statics) {
+    const argsBuilder2 = getArgsBuilder();
+    {
+      assertNotInAttributes("elementOpenStart");
+      setInAttributes(true);
+    }
+    argsBuilder2[0] = nameOrCtor;
+    argsBuilder2[1] = key3;
+    argsBuilder2[2] = statics;
+  }
+  function key(key3) {
+    const argsBuilder2 = getArgsBuilder();
+    {
+      assertInAttributes("key");
+      assert(argsBuilder2);
+    }
+    argsBuilder2[1] = key3;
+  }
+  function attr(name, value2) {
+    const attrsBuilder2 = getAttrsBuilder();
+    {
+      assertInPatch("attr");
+    }
+    attrsBuilder2.push(name);
+    attrsBuilder2.push(value2);
+  }
+  function elementOpenEnd() {
+    const argsBuilder2 = getArgsBuilder();
+    {
+      assertInAttributes("elementOpenEnd");
+      setInAttributes(false);
+    }
+    const node = open(argsBuilder2[0], argsBuilder2[1]);
+    const data = getData(node);
+    diffStatics(node, data, argsBuilder2[2]);
+    diffAttrs(node, data);
+    truncateArray(argsBuilder2, 0);
+    return node;
+  }
+  function elementOpen(nameOrCtor, key3, statics, ...varArgs) {
+    {
+      assertNotInAttributes("elementOpen");
+      assertNotInSkip("elementOpen");
+    }
+    elementOpenStart(nameOrCtor, key3, statics);
+    for (let i = ATTRIBUTES_OFFSET; i < arguments.length; i += 2) {
+      attr(arguments[i], arguments[i + 1]);
+    }
+    return elementOpenEnd();
+  }
+  function applyAttrs() {
+    const node = currentElement();
+    const data = getData(node);
+    diffAttrs(node, data);
+  }
+  function applyStatics(statics) {
+    const node = currentElement();
+    const data = getData(node);
+    diffStatics(node, data, statics);
+  }
+  function elementClose(nameOrCtor) {
+    {
+      assertNotInAttributes("elementClose");
+    }
+    const node = close();
+    {
+      assertCloseMatchesOpenTag(getData(node).nameOrCtor, nameOrCtor);
+    }
+    return node;
+  }
+  function elementVoid(nameOrCtor, key3, statics, ...varArgs) {
+    elementOpen.apply(null, arguments);
+    return elementClose(nameOrCtor);
+  }
+  function text$1(value2, ...varArgs) {
+    {
+      assertNotInAttributes("text");
+      assertNotInSkip("text");
+    }
+    const node = text();
+    const data = getData(node);
+    if (data.text !== value2) {
+      data.text = value2;
+      let formatted = value2;
+      for (let i = 1; i < arguments.length; i += 1) {
+        const fn = arguments[i];
+        formatted = fn(formatted);
+      }
+      if (node.data !== formatted) {
+        node.data = formatted;
+      }
+    }
+    return node;
+  }
+
+  // src-idom/index-bundle.js
+  var IncrementalDOM2 = globalThis.IncrementalDOM || {};
+  if (!globalThis.IncrementalDOM) {
+    globalThis.IncrementalDOM = IncrementalDOM2;
+  }
+  IncrementalDOM2.applyAttr = applyAttr;
+  IncrementalDOM2.applyProp = applyProp;
+  IncrementalDOM2.attributes = attributes;
+  IncrementalDOM2.alignWithDOM = alignWithDOM;
+  IncrementalDOM2.close = close;
+  IncrementalDOM2.createPatchInner = createPatchInner;
+  IncrementalDOM2.createPatchOuter = createPatchOuter;
+  IncrementalDOM2.currentElement = currentElement;
+  IncrementalDOM2.currentPointer = currentPointer;
+  IncrementalDOM2.open = open;
+  IncrementalDOM2.patch = patchInner;
+  IncrementalDOM2.patchInner = patchInner;
+  IncrementalDOM2.patchOuter = patchOuter;
+  IncrementalDOM2.skip = skip;
+  IncrementalDOM2.skipNode = nextNode;
+  IncrementalDOM2.setKeyAttributeName = idom_global.setKeyAttributeName;
+  IncrementalDOM2.clearCache = clearCache;
+  IncrementalDOM2.getKey = getKey;
+  IncrementalDOM2.importNode = importNode;
+  IncrementalDOM2.isDataInitialized = isDataInitialized;
+  IncrementalDOM2.notifications = notifications;
+  IncrementalDOM2.symbols = symbols;
+  IncrementalDOM2.applyAttrs = applyAttrs;
+  IncrementalDOM2.applyStatics = applyStatics;
+  IncrementalDOM2.attr = attr;
+  IncrementalDOM2.elementClose = elementClose;
+  IncrementalDOM2.elementOpen = elementOpen;
+  IncrementalDOM2.elementOpenEnd = elementOpenEnd;
+  IncrementalDOM2.elementOpenStart = elementOpenStart;
+  IncrementalDOM2.elementVoid = elementVoid;
+  IncrementalDOM2.key = key;
+  IncrementalDOM2.text = text$1;
 
   // src/cotonic.idom.js
   var cotonic_idom_exports = {};
   __export(cotonic_idom_exports, {
-    patchInner: () => patchInner,
-    patchOuter: () => patchOuter
+    patchInner: () => patchInner2,
+    patchOuter: () => patchOuter2
   });
   var idom = IncrementalDOM;
   function render(tokens2) {
@@ -2232,7 +2243,7 @@
     return idom.elementVoid.apply(null, [token.tag, token.hasOwnProperty("key") ? token.key : null, null].concat(token.attributes));
   }
   function skipNode(token) {
-    const currentPointer = idom.currentPointer();
+    const currentPointer2 = idom.currentPointer();
     let id;
     for (let i = 0; i < token.attributes.length; i = i + 2) {
       if (token.attributes[i] === "id") {
@@ -2243,17 +2254,17 @@
     if (!id) {
       throw "No id attribute found in cotonic-idom-skip node";
     }
-    if (!currentPointer || currentPointer.id !== id) {
-      let tag = "div", attributes = [];
+    if (!currentPointer2 || currentPointer2.id !== id) {
+      let tag = "div", attributes2 = [];
       for (let i = 0; i < token.attributes.length; i = i + 2) {
         if (token.attributes[i] === "tag") {
           tag = token.attributes[i + 1];
         } else {
-          attributes.push(token.attributes[i]);
-          attributes.push(token.attributes[i + 1]);
+          attributes2.push(token.attributes[i]);
+          attributes2.push(token.attributes[i + 1]);
         }
       }
-      return idom.elementVoid.apply(null, [tag, token.hasOwnProperty("key") ? token.key : null, null].concat(attributes));
+      return idom.elementVoid.apply(null, [tag, token.hasOwnProperty("key") ? token.key : null, null].concat(attributes2));
     }
     idom.skipNode();
   }
@@ -2268,8 +2279,8 @@
       render(tokens2);
     });
   }
-  var patchInner = patch.bind(void 0, idom.patch);
-  var patchOuter = patch.bind(void 0, idom.patchOuter);
+  var patchInner2 = patch.bind(void 0, idom.patch);
+  var patchOuter2 = patch.bind(void 0, idom.patchOuter);
 
   // src/cotonic.broker.js
   var cotonic_broker_exports = {};
@@ -2293,7 +2304,7 @@
   function new_node(value2) {
     return [null, value2];
   }
-  function flush() {
+  function flush2() {
     clients = {};
     root = new_node(null);
   }
@@ -2324,16 +2335,16 @@
   }
   function match(topic) {
     const path = topic.split("/");
-    const matches2 = [];
-    collect_matches(path, root, matches2);
-    return matches2;
+    const matches3 = [];
+    collect_matches(path, root, matches3);
+    return matches3;
   }
-  function collect_matches(path, trie, matches2) {
+  function collect_matches(path, trie, matches3) {
     if (trie === void 0)
       return;
     if (path.length === 0) {
       if (trie[VALUE] !== null) {
-        matches2.push.apply(matches2, trie[VALUE]);
+        matches3.push.apply(matches3, trie[VALUE]);
         return;
       }
     }
@@ -2347,9 +2358,9 @@
       case "#":
         throw Error("match on wildcard not possible");
       default:
-        collect_matches(sub_path, children[path[0]], matches2);
-        collect_matches(sub_path, children["+"], matches2);
-        collect_matches([], children["#"], matches2);
+        collect_matches(sub_path, children[path[0]], matches3);
+        collect_matches(sub_path, children["+"], matches3);
+        collect_matches([], children["#"], matches3);
     }
   }
   function remove(topic, thing) {
@@ -2666,23 +2677,23 @@
     return `${retained_prefix}${topic}`;
   }
   function retain(message) {
-    const key2 = retain_key(message.topic);
+    const key3 = retain_key(message.topic);
     if (message.payload !== void 0 && message.payload !== null && message.payload !== "") {
-      sessionStorage.setItem(key2, JSON.stringify({
+      sessionStorage.setItem(key3, JSON.stringify({
         message
       }));
     } else {
-      sessionStorage.removeItem(key2);
+      sessionStorage.removeItem(key3);
     }
   }
   function get_matching_retained(topic) {
     let matching = [];
     for (let i = 0; i < sessionStorage.length; i++) {
-      let key2 = sessionStorage.key(i);
-      if (key2.substring(0, retained_prefix.length) !== retained_prefix) {
+      let key3 = sessionStorage.key(i);
+      if (key3.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
-      const retained_topic = key2.substring(retained_prefix.length);
+      const retained_topic = key3.substring(retained_prefix.length);
       if (!matches(topic, retained_topic)) {
         continue;
       }
@@ -2693,25 +2704,25 @@
     return matching;
   }
   function get_retained(topic) {
-    const key2 = retain_key(topic);
-    const item = sessionStorage.getItem(key2);
+    const key3 = retain_key(topic);
+    const item = sessionStorage.getItem(key3);
     if (item === null) {
       return null;
     }
     const Obj = JSON.parse(item);
     if (!Obj.message) {
-      sessionStorage.removeItem(key2);
+      sessionStorage.removeItem(key3);
       return null;
     }
     return Obj;
   }
   function delete_all_retained() {
     for (let i = 0; i < sessionStorage.length; i++) {
-      const key2 = sessionStorage.key(i);
-      if (key2.substring(0, retained_prefix.length) !== retained_prefix) {
+      const key3 = sessionStorage.key(i);
+      if (key3.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
-      sessionStorage.removeItem(key2);
+      sessionStorage.removeItem(key3);
     }
   }
   function call(topic, payload2, options) {
@@ -2748,7 +2759,7 @@
     var _a, _b, _c;
     retained_prefix = (_a = options == null ? void 0 : options.retained_prefix) != null ? _a : "c_retained$";
     if ((_b = options == null ? void 0 : options.flush) != null ? _b : true) {
-      flush();
+      flush2();
     }
     if ((_c = options == null ? void 0 : options.delete_all_retained) != null ? _c : true) {
       delete_all_retained();
@@ -2887,10 +2898,10 @@
     }
     switch (s.mode) {
       case "inner":
-        patchInner(elt, s.data);
+        patchInner2(elt, s.data);
         break;
       case "outer":
-        patchOuter(elt, s.data);
+        patchOuter2(elt, s.data);
         break;
       case "shadow":
       case "shadow-open":
@@ -2899,7 +2910,7 @@
           s.shadowRoot = initializeShadowRoot(elt, s.mode);
           publish("model/ui/event/new-shadow-root/" + id, { id, shadow_root: s.shadowRoot });
         }
-        patchInner(s.shadowRoot, s.data);
+        patchInner2(s.shadowRoot, s.data);
     }
     s.dirty = false;
     if (is_patch_replace) {
@@ -3138,8 +3149,8 @@
     syncStateClass();
   }
   function syncStateClass() {
-    let attr = document.body.parentElement.getAttribute("class") || "";
-    let classes = attr.split(/\s+/);
+    let attr2 = document.body.parentElement.getAttribute("class") || "";
+    let classes = attr2.split(/\s+/);
     let keep = [];
     var i, j;
     for (i = classes.length - 1; i >= 0; i--) {
@@ -3155,7 +3166,7 @@
       }
     }
     let new_attr = keep.sort().join(" ");
-    if (new_attr != attr) {
+    if (new_attr != attr2) {
       document.body.parentElement.setAttribute("class", new_attr);
     }
   }
@@ -6213,8 +6224,8 @@
   function searchParamsList(qs) {
     let ps = [];
     const searchParams = new URLSearchParams(qs);
-    searchParams.forEach((value2, key2) => {
-      ps.push([key2, value2]);
+    searchParams.forEach((value2, key3) => {
+      ps.push([key3, value2]);
     });
     return ps;
   }
@@ -6632,6 +6643,15 @@
     }
     if (!topicTarget)
       return;
+    const ignore = getFromDataset(event.target, topicTarget, `on${event.type}Ignore`);
+    switch (ignore) {
+      case "1":
+      case "yes":
+      case "true":
+        return;
+      default:
+        break;
+    }
     const topic = topicTarget.dataset[topicName];
     let msg;
     let cancel = true;
@@ -6708,11 +6728,11 @@
     let elt = startElt;
     let attrs = {};
     do {
-      let attributes = elt.attributes;
-      for (let i = attributes.length - 1; i >= 0; i--) {
-        let name = attributes[i].name;
+      let attributes2 = elt.attributes;
+      for (let i = attributes2.length - 1; i >= 0; i--) {
+        let name = attributes2[i].name;
         if (!attrs[name]) {
-          attrs[name] = attributes[i].value;
+          attrs[name] = attributes2[i].value;
         }
       }
       if (elt === endElt)
@@ -6789,12 +6809,12 @@
     function(msg, bindings) {
       const topic = msg.payload.topic;
       const data = msg.payload.data || {};
-      const key2 = bindings.key;
+      const key3 = bindings.key;
       const dedup2 = msg.payload.dedup || false;
       const newHash = hashCode(JSON.stringify([topic, data]));
-      if (!dedup2 || !render_cache[key2] || render_cache[key2].hash != newHash) {
+      if (!dedup2 || !render_cache[key3] || render_cache[key3].hash != newHash) {
         const serial = render_serial++;
-        render_cache[key2] = {
+        render_cache[key3] = {
           serial,
           dedup: dedup2,
           hash: newHash,
@@ -6802,7 +6822,7 @@
           data
         };
         call(topic, data, { qos: dedup2 ? 1 : 0 }).then(function(rendermsg) {
-          if (serial === render_cache[key2].serial) {
+          if (serial === render_cache[key3].serial) {
             const p = rendermsg.payload || "";
             let html;
             if (typeof p === "object" && p.status === "ok" && typeof p.result === "string") {
@@ -6810,7 +6830,7 @@
             } else {
               html = p;
             }
-            maybeRespond2(cotonic.ui.update(key2, html), msg.properties);
+            maybeRespond2(cotonic.ui.update(key3, html), msg.properties);
           } else {
             maybeRespond2({ is_changed: false }, msg.properties);
           }
@@ -6957,15 +6977,15 @@
   function init7() {
     publish("model/dedup/event/ping", "pong", { retain: true });
   }
-  function key(message) {
+  function key2(message) {
     var _a, _b;
-    const key2 = message.payload.topic + "::" + ((_b = (_a = message.properties) == null ? void 0 : _a.response_topic) != null ? _b : "");
-    return btoa(key2);
+    const key3 = message.payload.topic + "::" + ((_b = (_a = message.properties) == null ? void 0 : _a.response_topic) != null ? _b : "");
+    return btoa(key3);
   }
-  function dedup(msg, key2) {
+  function dedup(msg, key3) {
     var _a, _b;
     const timeout = (_a = msg.payload.timeout) != null ? _a : TIMEOUT;
-    let m = in_flight[key2];
+    let m = in_flight[key3];
     if (m) {
       m.queued_message = msg;
       m.queued_timeout = Date.now() + timeout;
@@ -6975,24 +6995,24 @@
         queued_message: void 0,
         queued_timeout: void 0,
         timeout: setTimeout(() => {
-          done(false, key2);
+          done(false, key3);
         }, timeout)
       };
-      in_flight[key2] = m;
+      in_flight[key3] = m;
       const options = {
         qos: msg.qos,
         properties: {
-          response_topic: "model/dedup/post/done/" + key2
+          response_topic: "model/dedup/post/done/" + key3
         }
       };
       publish(msg.payload.topic, msg.payload.payload, options);
     }
   }
-  function done(response, key2) {
+  function done(response, key3) {
     var _a;
-    const m = in_flight[key2];
+    const m = in_flight[key3];
     if (m) {
-      delete in_flight[key2];
+      delete in_flight[key3];
       if (m.timeout) {
         clearTimeout(m.timeout);
       }
@@ -7000,7 +7020,7 @@
         publish(m.response_topic, response.payload, { qos: (_a = response.qos) != null ? _a : 0 });
       }
       if (m.queued_message && Date.now() < m.queued_timeout) {
-        dedup(m.queued_message, key2);
+        dedup(m.queued_message, key3);
       }
     }
   }
@@ -7010,7 +7030,7 @@
   subscribe(
     "model/dedup/post/message",
     (msg) => {
-      dedup(msg, key(msg));
+      dedup(msg, key2(msg));
     },
     { wid: "model.dedup" }
   );
@@ -7046,11 +7066,6 @@
   cotonic2.keyserver = cotonic_keyserver_exports;
   triggerCotonicReady();
 })();
-/**
- * @preserve
- * Copyright 2015 The Incremental DOM Authors. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0.
- */
 /**
  * @preserve
  * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
