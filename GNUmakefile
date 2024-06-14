@@ -5,22 +5,6 @@ $(shell mkdir -p $(DIRS))
 
 download = curl --create-dirs --location -f --output $(1) $(2)
 
-## Deps
-
-# lib: lib/incremental-dom.js lib/incremental-dom-min.js lib/incremental-dom-cjs.js
-
-# lib/incremental-dom.js:
-# 	$(call download, "$@", \
-# 	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom.js")
-
-# lib/incremental-dom-cjs.js:
-# 	$(call download, "$@", \
-# 	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom-cjs.js")
-
-# lib/incremental-dom-min.js:
-# 	$(call download, "$@", \
-# 	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom-min.js")
-
 ## Things needed for testing.
 
 testlib: test/lib/qunit.js test/lib/qunit.css test/lib/qunit.css test/lib/qunit-composite.css test/lib/qunit-composite.js
@@ -40,7 +24,7 @@ test/lib/qunit-composite.css:
 test/lib/qunit-composite.js:
 	$(call download, "$@", \
 			"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.js")
-	
+
 # Dist
 
 dist/cotonic-bundle.js: $(wildcard src/*.js) $(wildcard idom-src/*.js)
