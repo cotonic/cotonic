@@ -19,15 +19,18 @@
  * elementOpenStart, but before elementOpenEnd).
  */
 let inAttributes = false;
+
 /**
  * Keeps track whether or not we are in an element that should not have its
  * children cleared.
  */
 let inSkip = false;
+
 /**
  * Keeps track of whether or not we are in a patch.
  */
 let inPatch = false;
+
 /**
  * Asserts that a value exists and is not null or undefined. goog.asserts
  * is not used in order to avoid dependencies on external code.
@@ -41,6 +44,7 @@ function assert(val) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return val;
 }
+
 /**
  * Makes sure that there is a current patch context.
  * @param functionName The name of the caller, for the error message.
@@ -50,6 +54,7 @@ function assertInPatch(functionName) {
         throw new Error("Cannot call " + functionName + "() unless in patch.");
     }
 }
+
 /**
  * Makes sure that a patch closes every node that it opened.
  * @param openElement
@@ -67,6 +72,7 @@ function assertNoUnclosedTags(openElement, root) {
     }
     throw new Error("One or more tags were not closed:\n" + openTags.join("\n"));
 }
+
 /**
  * Makes sure that node being outer patched has a parent node.
  * @param parent
@@ -76,6 +82,7 @@ function assertPatchOuterHasParentNode(parent) {
         console.warn("patchOuter requires the node have a parent if there is a key.");
     }
 }
+
 /**
  * Makes sure that the caller is not where attributes are expected.
  * @param functionName The name of the caller, for the error message.
@@ -87,6 +94,7 @@ function assertNotInAttributes(functionName) {
             "elementOpenStart() and elementOpenEnd().");
     }
 }
+
 /**
  * Makes sure that the caller is not inside an element that has declared skip.
  * @param functionName The name of the caller, for the error message.
@@ -98,6 +106,7 @@ function assertNotInSkip(functionName) {
             "that has called skip().");
     }
 }
+
 /**
  * Makes sure that the caller is where attributes are expected.
  * @param functionName The name of the caller, for the error message.
@@ -109,6 +118,7 @@ function assertInAttributes(functionName) {
             "elementOpenStart().");
     }
 }
+
 /**
  * Makes sure the patch closes virtual attributes call
  */
@@ -117,6 +127,7 @@ function assertVirtualAttributesClosed() {
         throw new Error("elementOpenEnd() must be called after calling " + "elementOpenStart().");
     }
 }
+
 /**
  * Makes sure that tags are correctly nested.
  * @param currentNameOrCtor
@@ -131,6 +142,7 @@ function assertCloseMatchesOpenTag(currentNameOrCtor, nameOrCtor) {
             '" was open.');
     }
 }
+
 /**
  * Makes sure that no children elements have been declared yet in the current
  * element.
@@ -144,6 +156,7 @@ function assertNoChildrenDeclaredYet(functionName, previousNode) {
             "declarations inside the current element.");
     }
 }
+
 /**
  * Checks that a call to patchOuter actually patched the element.
  * @param maybeStartNode The value for the currentNode when the patch
@@ -167,12 +180,14 @@ function assertPatchElementNoExtras(maybeStartNode, maybeCurrentNode, expectedNe
             "to the patched element.");
     }
 }
+
 /**
  * @param newContext The current patch context.
  */
 function updatePatchContext(newContext) {
     inPatch = newContext != null;
 }
+
 /**
  * Updates the state of being in an attribute declaration.
  * @param value Whether or not the patch is in an attribute declaration.
@@ -183,6 +198,7 @@ function setInAttributes(value) {
     inAttributes = value;
     return previous;
 }
+
 /**
  * Updates the state of being in a skip element.
  * @param value Whether or not the patch is skipping the children of a
@@ -194,7 +210,6 @@ function setInSkip(value) {
     inSkip = value;
     return previous;
 }
-
 
 
 export {

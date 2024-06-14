@@ -34,6 +34,7 @@ function getNamespace(name) {
     }
     return null;
 }
+
 /**
  * Applies an attribute or property to a given Element. If the value is null
  * or undefined, it is removed from the Element. Otherwise, the value is set
@@ -56,6 +57,7 @@ function applyAttr(el, name, value) {
         }
     }
 }
+
 /**
  * Applies a property to a given Element.
  * @param el The element to apply the property to.
@@ -65,6 +67,7 @@ function applyAttr(el, name, value) {
 function applyProp(el, name, value) {
     el[name] = value;
 }
+
 /**
  * Applies a value to a style declaration. Supports CSS custom properties by
  * setting properties containing a dash using CSSStyleDeclaration.setProperty.
@@ -82,6 +85,7 @@ function setStyleValue(style, prop, value) {
         style[prop] = value;
     }
 }
+
 /**
  * Applies a style to an Element. No vendor prefix expansion is done for
  * property names/values.
@@ -108,6 +112,7 @@ function applyStyle(el, name, style) {
         }
     }
 }
+
 /**
  * Updates a single attribute on an Element.
  * @param el The Element to apply the attribute to.
@@ -160,4 +165,3 @@ export {
       applyAttr,
       attributes
 };
-

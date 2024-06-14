@@ -33,6 +33,7 @@ function queueChange(fn, a, b, c) {
     buffer.push(b);
     buffer.push(c);
 }
+
 /**
  * Flushes the changes buffer, calling the functions for each change.
  */

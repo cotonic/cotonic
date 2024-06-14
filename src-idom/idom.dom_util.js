@@ -27,6 +27,7 @@ import { assert } from "./idom.assertions.js";
 function isDocumentRoot(node) {
     return node.nodeType === 11 || node.nodeType === 9;
 }
+
 /**
  * Checks if the node is an Element. This is faster than an instanceof check.
  * @param node The node to check.
@@ -35,6 +36,7 @@ function isDocumentRoot(node) {
 function isElement(node) {
     return node.nodeType === 1;
 }
+
 /**
  * @param  node The node to start at, inclusive.
  * @param  root The root ancestor to get until, exclusive.
@@ -52,6 +54,7 @@ function getAncestry(node, root) {
     }
     return ancestry;
 }
+
 /**
  * @param this
  * @returns The root node of the DOM tree that contains this node.
@@ -66,6 +69,7 @@ const getRootNode = (typeof Node !== "undefined" && Node.prototype.getRootNode) 
         }
         return prev;
     };
+
 /**
  * @param node The node to get the activeElement for.
  * @returns The activeElement in the Document or ShadowRoot
@@ -75,6 +79,7 @@ function getActiveElement(node) {
     const root = getRootNode.call(node);
     return isDocumentRoot(root) ? root.activeElement : null;
 }
+
 /**
  * Gets the path of nodes that contain the focused node in the same document as
  * a reference node, up until the root.
@@ -89,6 +94,7 @@ function getFocusedPath(node, root) {
     }
     return getAncestry(activeElement, root);
 }
+
 /**
  * Like insertBefore, but instead of moving the desired node, it moves all the
  * other nodes after.

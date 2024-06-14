@@ -48,6 +48,7 @@ class NodeData {
         return this._attrsArr || (this._attrsArr = createArray(length));
     }
 }
+
 /**
  * Initializes a NodeData object for a Node.
  * @param node The Node to initialized data for.
@@ -61,6 +62,7 @@ function initData(node, nameOrCtor, key, text) {
     node["__incrementalDOMData"] = data;
     return data;
 }
+
 /**
  * @param node The node to check.
  * @returns True if the NodeData already exists, false otherwise.
@@ -68,6 +70,7 @@ function initData(node, nameOrCtor, key, text) {
 function isDataInitialized(node) {
     return Boolean(node["__incrementalDOMData"]);
 }
+
 /**
  * Records the element's attributes.
  * @param node The Element that may have attributes
@@ -91,6 +94,7 @@ function recordAttributes(node, data) {
         attrsArr[j + 1] = value;
     }
 }
+
 /**
  * Imports single node and its subtree, initializing caches, if it has not
  * already been imported.
@@ -116,6 +120,7 @@ function importSingleNode(node, fallbackKey) {
     }
     return data;
 }
+
 /**
  * Imports node and its subtree, initializing caches.
  * @param node The Node to import.
@@ -126,6 +131,7 @@ function importNode(node) {
         importNode(child);
     }
 }
+
 /**
  * Retrieves the NodeData object for a Node, creating it if necessary.
  * @param node The node to get data for.
@@ -137,6 +143,7 @@ function importNode(node) {
 function getData(node, fallbackKey) {
     return importSingleNode(node, fallbackKey);
 }
+
 /**
  * Gets the key for a Node. note that the Node should have been imported
  * by now.
@@ -147,6 +154,7 @@ function getKey(node) {
     assert(node["__incrementalDOMData"]);
     return getData(node).key;
 }
+
 /**
  * Clears all caches from a node and all of its children.
  * @param node The Node to clear the cache for.
