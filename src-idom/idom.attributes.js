@@ -133,9 +133,6 @@ function applyAttributeTyped(el, name, value) {
 
 /**
  * A publicly mutable object to provide custom mutators for attributes.
- * NB: The result of createMap() has to be recast since closure compiler
- * will just assume attributes is "any" otherwise and throws away
- * the type annotation set by tsickle.
  */
 const attributes = createMap();
 
