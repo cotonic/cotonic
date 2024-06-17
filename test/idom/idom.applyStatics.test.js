@@ -1,5 +1,5 @@
 //
-// IncrementalDOM - skipNode test
+// IncrementalDOM - applyStatics test
 //
 
 import "/src-idom/index-bundle.js";
