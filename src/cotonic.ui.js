@@ -428,34 +428,48 @@ function serializeFormToObject(form) {
 }
 
 function serializeFormToList(form) {
-    let field, l, v, s = [];
-    const len = form.elements.length;
-    for (let i=0; i<len; i++) {
-        field = form.elements[i];
-        if ( field.name
-            && !field.disabled
-            && !field.classList.contains("nosubmit")
-            && field.type != 'file'
-            && field.type != 'reset'
-            && field.type != 'submit'
-            && field.type != 'button')
-        {
-            if (field.type == 'select-multiple') {
-                l = form.elements[i].options.length;
-                for (let j=0; j<l; j++) {
-                    if(field.options[j].selected) {
-                        s.push([field.name, field.options[j].value]);
+    let field, l, v, s = [], prev = "", skipped = false;
+    if (typeof form == 'object' && form.nodeName == "FORM") {
+        const len = form.elements.length;
+        for (let i=0; i<len; i++) {
+            field = form.elements[i];
+            if ( field.name
+                && !field.disabled
+                && !field.classList.contains("nosubmit")
+                && field.type != 'file'
+                && field.type != 'reset'
+                && field.type != 'submit'
+                && field.type != 'button')
+            {
+                if (skipped && field.name != skipped) {
+                    s.push([skipped, ""]);
+                    skipped = false;
+                }
+
+                if (field.type == 'select-multiple') {
+                    l = form.elements[i].options.length;
+                    for (let j=0; j<l; j++) {
+                        if(field.options[j].selected) {
+                            s.push([field.name, field.options[j].value]);
+                        }
                     }
-                }
-            } else if (field.type == 'checkbox') {
-                if (field.checked) {
+                } else if (field.type == 'checkbox') {
+                    if (field.checked) {
+                        if (prev == field.name) {
+                            skipped = false;
+                        }
+                        s.push([field.name, field.value]);
+                    } else if (prev != field.name) {
+                        skipped = field.name;
+                    }
+                } else if (field.type != 'radio' || field.checked) {
                     s.push([field.name, field.value]);
-                } else {
-                    s.push([field.name, ""]);
                 }
-            } else if (field.type != 'radio' || field.checked) {
-                s.push([field.name, field.value]);
+                prev = field.name;
             }
+        }
+        if (skipped) {
+            s.push([skipped, ""]);
         }
     }
     return s;
@@ -559,4 +573,5 @@ function requestRender() {
 
 export { insert, get, update, replace, remove,
     render, renderId,
-    updateStateData, updateStateClass, on };
+    updateStateData, updateStateClass, on,
+    serializeFormToList, serializeFormToObject };
