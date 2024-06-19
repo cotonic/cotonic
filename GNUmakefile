@@ -1,25 +1,9 @@
-.PHONY: all dist release lib clean testlib
+.PHONY: all dist release clean testlib
 
 DIRS=dist
 $(shell mkdir -p $(DIRS))
 
 download = curl --create-dirs --location -f --output $(1) $(2)
-
-## Deps
-
-lib: lib/incremental-dom.js lib/incremental-dom-min.js lib/incremental-dom-cjs.js
-
-lib/incremental-dom.js:
-	$(call download, "$@", \
-	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom.js")
-
-lib/incremental-dom-cjs.js:
-	$(call download, "$@", \
-	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom-cjs.js")
-
-lib/incremental-dom-min.js:
-	$(call download, "$@", \
-	    "https://unpkg.com/incremental-dom@0.7.0/dist/incremental-dom-min.js")
 
 ## Things needed for testing.
 
@@ -40,13 +24,13 @@ test/lib/qunit-composite.css:
 test/lib/qunit-composite.js:
 	$(call download, "$@", \
 			"https://raw.githubusercontent.com/JamesMGreene/qunit-composite/master/qunit-composite.js")
-	
+
 # Dist
 
-dist/cotonic-bundle.js: lib/incremental-dom-cjs.js $(wildcard src/*.js)
+dist/cotonic-bundle.js: $(wildcard src/*.js) $(wildcard idom-src/*.js)
 	esbuild src/index-bundle.js --platform=browser --target=es2018 --bundle --outfile=dist/cotonic-bundle.js
 
-dist/cotonic-worker-bundle.js: lib/incremental-dom-cjs.js $(wildcard src/*.js)
+dist/cotonic-worker-bundle.js: $(wildcard src/*.js) $(wildcard idom-src/*.js)
 	esbuild src/index-worker-bundle.js --platform=browser --target=es2018 --bundle --outfile=dist/cotonic-worker-bundle.js
 
 dist/cotonic-service-worker-bundle.js:
@@ -71,11 +55,10 @@ release: cotonic.js cotonic-worker.js cotonic-service-worker.js
 
 clean:
 	rm -f dist/*
-	rm -f lib/*
 	rm -f test/lib/*
 
 # Test
 
-test: lib testlib
+test: testlib
 	./start_dev.sh
 

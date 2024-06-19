@@ -1,4 +1,5 @@
 
+import "/src-idom/index-bundle.js";
 
 import * as broker from "/src/cotonic.broker.js";
 import "/src/default_broker_init.js";

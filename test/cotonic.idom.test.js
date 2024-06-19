@@ -2,6 +2,8 @@
 // HTML Idom Tests.
 //
 
+import "/src-idom/index-bundle.js";
+
 import * as idom from "/src/cotonic.idom.js";
 
 QUnit.test("Idom patch html", function(assert) {
