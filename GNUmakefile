@@ -55,11 +55,10 @@ release: cotonic.js cotonic-worker.js cotonic-service-worker.js
 
 clean:
 	rm -f dist/*
-	rm -f lib/*
 	rm -f test/lib/*
 
 # Test
 
-test: lib testlib
+test: testlib
 	./start_dev.sh
 
