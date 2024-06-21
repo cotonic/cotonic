@@ -1389,6 +1389,9 @@
   function getKeyAttributeName() {
     return keyAttributeName;
   }
+  function setKeyAttributeName(name) {
+    keyAttributeName = name;
+  }
 
   // src-idom/idom.assertions.js
   var inAttributes = false;
@@ -1573,9 +1576,10 @@
 
   // src-idom/idom.context.js
   var Context = class {
-    constructor() {
+    constructor(node) {
       this.created = [];
       this.deleted = [];
+      this.node = node;
     }
     markCreated(node) {
       this.created.push(node);
@@ -1609,7 +1613,7 @@
     while (cur !== root2) {
       const n = assert(cur);
       ancestry.push(n);
-      cur = n.parentNode;
+      cur = n.parentNode || (root2 ? n.host : null);
     }
     return ancestry;
   }
@@ -1645,12 +1649,13 @@
 
   // src-idom/idom.node_data.js
   var NodeData = class {
-    constructor(nameOrCtor, key3, text3) {
+    constructor(nameOrCtor, key3, text2) {
       this._attrsArr = null;
       this.staticsApplied = false;
       this.nameOrCtor = nameOrCtor;
       this.key = key3;
-      this.text = text3;
+      this.text = text2;
+      this.alwaysDiffAttributes = false;
     }
     hasEmptyAttrsArr() {
       const attrs = this._attrsArr;
@@ -1660,8 +1665,8 @@
       return this._attrsArr || (this._attrsArr = createArray(length));
     }
   };
-  function initData(node, nameOrCtor, key3, text3) {
-    const data = new NodeData(nameOrCtor, key3, text3);
+  function initData(node, nameOrCtor, key3, text2) {
+    const data = new NodeData(nameOrCtor, key3, text2);
     node["__incrementalDOMData"] = data;
     return data;
   }
@@ -1788,6 +1793,9 @@
     } while (key3 && (cur = cur.nextSibling));
     return null;
   }
+  function alwaysDiffAttributes(el) {
+    getData(el).alwaysDiffAttributes = true;
+  }
   function clearUnvisitedDOM(maybeParentNode, startNode, endNode) {
     const parentNode = maybeParentNode;
     let child = startNode;
@@ -1817,20 +1825,23 @@
   function nextNode() {
     currentNode = getNextNode();
   }
-  function createNode(nameOrCtor, key3) {
+  function createNode(nameOrCtor, key3, nonce) {
     let node;
     if (nameOrCtor === "#text") {
       node = createText(doc);
     } else {
       node = createElement(doc, currentParent, nameOrCtor, key3);
+      if (nonce) {
+        node.setAttribute("nonce", nonce);
+      }
     }
     context.markCreated(node);
     return node;
   }
-  function alignWithDOM(nameOrCtor, key3) {
+  function alignWithDOM(nameOrCtor, key3, nonce) {
     nextNode();
     const existingNode = getMatchingNode(currentNode, nameOrCtor, key3);
-    const node = existingNode || createNode(nameOrCtor, key3);
+    const node = existingNode || createNode(nameOrCtor, key3, nonce);
     if (node === currentNode) {
       return;
     }
@@ -1841,8 +1852,8 @@
     }
     currentNode = node;
   }
-  function open(nameOrCtor, key3) {
-    alignWithDOM(nameOrCtor, key3);
+  function open(nameOrCtor, key3, nonce) {
+    alignWithDOM(nameOrCtor, key3, nonce);
     enterNode();
     return currentParent;
   }
@@ -1853,11 +1864,18 @@
     exitNode();
     return currentNode;
   }
+  function text() {
+    alignWithDOM("#text", null);
+    return currentNode;
+  }
   function currentElement() {
     {
       assertInPatch("currentElement");
       assertNotInAttributes("currentElement");
     }
+    return currentParent;
+  }
+  function tryGetCurrentElement() {
     return currentParent;
   }
   function currentPointer() {
@@ -1866,6 +1884,9 @@
       assertNotInAttributes("currentPointer");
     }
     return getNextNode();
+  }
+  function currentContext() {
+    return context;
   }
   function skip() {
     {
@@ -1888,7 +1909,7 @@
       let previousInAttributes = false;
       let previousInSkip = false;
       doc = node.ownerDocument;
-      context = new Context();
+      context = new Context(node);
       matchFn = matches3;
       argsBuilder = [];
       attrsBuilder = [];
@@ -1984,8 +2005,8 @@
 
   // src-idom/idom.diff.js
   var prevValuesMap = createMap();
-  function calculateDiff(prev, next, updateCtx, updateFn) {
-    const isNew = !prev.length;
+  function calculateDiff(prev, next, updateCtx, updateFn, alwaysDiffAttributes2) {
+    const isNew = !prev.length || alwaysDiffAttributes2;
     let i = 0;
     for (; i < next.length; i += 2) {
       const name = next[i];
@@ -2030,7 +2051,13 @@
   function diffAttrs(element, data) {
     const attrsBuilder2 = getAttrsBuilder();
     const prevAttrsArr = data.getAttrsArr(attrsBuilder2.length);
-    calculateDiff(prevAttrsArr, attrsBuilder2, element, updateAttribute);
+    calculateDiff(
+      prevAttrsArr,
+      attrsBuilder2,
+      element,
+      updateAttribute,
+      data.alwaysDiffAttributes
+    );
     truncateArray(attrsBuilder2, 0);
   }
   function diffStatics(node, data, statics) {
@@ -2104,12 +2131,24 @@
       assertInAttributes("elementOpenEnd");
       setInAttributes(false);
     }
-    const node = open(argsBuilder2[0], argsBuilder2[1]);
+    const node = open(argsBuilder2[0], argsBuilder2[1], getNonce());
     const data = getData(node);
     diffStatics(node, data, argsBuilder2[2]);
     diffAttrs(node, data);
     truncateArray(argsBuilder2, 0);
     return node;
+  }
+  function getNonce() {
+    const argsBuilder2 = getArgsBuilder();
+    const statics = argsBuilder2[2];
+    if (statics) {
+      for (let i = 0; i < statics.length; i += 2) {
+        if (statics[i] === "nonce") {
+          return statics[i + 1];
+        }
+      }
+    }
+    return "";
   }
   function elementOpen(nameOrCtor, key3, statics, ...varArgs) {
     {
@@ -2176,10 +2215,12 @@
   IncrementalDOM2.applyProp = applyProp;
   IncrementalDOM2.attributes = attributes;
   IncrementalDOM2.alignWithDOM = alignWithDOM;
+  IncrementalDOM2.alwaysDiffAttributes = alwaysDiffAttributes;
   IncrementalDOM2.close = close;
   IncrementalDOM2.createPatchInner = createPatchInner;
   IncrementalDOM2.createPatchOuter = createPatchOuter;
   IncrementalDOM2.currentElement = currentElement;
+  IncrementalDOM2.currentContext = currentContext;
   IncrementalDOM2.currentPointer = currentPointer;
   IncrementalDOM2.open = open;
   IncrementalDOM2.patch = patchInner;
@@ -2187,7 +2228,8 @@
   IncrementalDOM2.patchOuter = patchOuter;
   IncrementalDOM2.skip = skip;
   IncrementalDOM2.skipNode = nextNode;
-  IncrementalDOM2.setKeyAttributeName = idom_global.setKeyAttributeName;
+  IncrementalDOM2.tryGetCurrentElement = tryGetCurrentElement;
+  IncrementalDOM2.setKeyAttributeName = setKeyAttributeName;
   IncrementalDOM2.clearCache = clearCache;
   IncrementalDOM2.getKey = getKey;
   IncrementalDOM2.importNode = importNode;
@@ -2779,6 +2821,8 @@
     render: () => render2,
     renderId: () => renderId,
     replace: () => replace,
+    serializeFormToList: () => serializeFormToList,
+    serializeFormToObject: () => serializeFormToObject,
     update: () => update,
     updateStateClass: () => updateStateClass,
     updateStateData: () => updateStateData
@@ -3115,27 +3159,40 @@
     return s;
   }
   function serializeFormToList(form) {
-    let field, l, v, s = [];
-    const len = form.elements.length;
-    for (let i = 0; i < len; i++) {
-      field = form.elements[i];
-      if (field.name && !field.disabled && !field.classList.contains("nosubmit") && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
-        if (field.type == "select-multiple") {
-          l = form.elements[i].options.length;
-          for (let j = 0; j < l; j++) {
-            if (field.options[j].selected) {
-              s.push([field.name, field.options[j].value]);
+    let field, l, v, s = [], prev = "", skipped = false;
+    if (typeof form == "object" && form.nodeName == "FORM") {
+      const len = form.elements.length;
+      for (let i = 0; i < len; i++) {
+        field = form.elements[i];
+        if (field.name && !field.disabled && !field.classList.contains("nosubmit") && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
+          if (skipped && field.name != skipped) {
+            s.push([skipped, ""]);
+            skipped = false;
+          }
+          if (field.type == "select-multiple") {
+            l = form.elements[i].options.length;
+            for (let j = 0; j < l; j++) {
+              if (field.options[j].selected) {
+                s.push([field.name, field.options[j].value]);
+              }
             }
-          }
-        } else if (field.type == "checkbox") {
-          if (field.checked) {
+          } else if (field.type == "checkbox") {
+            if (field.checked) {
+              if (prev == field.name) {
+                skipped = false;
+              }
+              s.push([field.name, field.value]);
+            } else if (prev != field.name) {
+              skipped = field.name;
+            }
+          } else if (field.type != "radio" || field.checked) {
             s.push([field.name, field.value]);
-          } else {
-            s.push([field.name, ""]);
           }
-        } else if (field.type != "radio" || field.checked) {
-          s.push([field.name, field.value]);
+          prev = field.name;
         }
+      }
+      if (skipped) {
+        s.push([skipped, ""]);
       }
     }
     return s;
@@ -7066,6 +7123,11 @@
   cotonic2.keyserver = cotonic_keyserver_exports;
   triggerCotonicReady();
 })();
+/**
+ * @preserve
+ * Copyright 2024 The Cotonic Authors. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0.
+ */
 /**
  * @preserve
  * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
