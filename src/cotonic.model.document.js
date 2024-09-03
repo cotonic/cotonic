@@ -92,7 +92,7 @@ function setCookie(cname, cvalue, exdays, csamesite) {
             const exmsec = (exdays ?? 0)  * 24 * 60 * 60 * 1000;
             const d = new Date();
             d.setTime(d.getTime() + exmsec);
-            expires = "expires="+d.toUTCString();
+            expires = "; expires="+d.toUTCString();
         }
     }
     const value = cleanCookieValue(cvalue ?? "");

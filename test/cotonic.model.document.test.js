@@ -49,3 +49,15 @@ QUnit.test("test.model.document - delete cookie", function(assert) {
                         });
             });
 });
+
+QUnit.test("test.model.document - expires 1 day", function(assert) {
+    let done = assert.async();
+
+    broker.publish("model/document/post/cookie/test4", { value: "t4", exdays: 1 });
+    broker
+        .call("model/document/get/cookie/test4")
+        .then((msg) => {
+                assert.equal(msg.payload, "t4");
+                done();
+            });
+});
