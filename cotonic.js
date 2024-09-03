@@ -1245,7 +1245,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.6.2";
+  var VERSION = "1.7.0";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -5817,7 +5817,7 @@
   subscribe(
     "model/document/post/cookie/+key",
     (msg, bindings) => {
-      setCookie(bindings.key, msg.payload.value, msg.payload.exdays);
+      setCookie(bindings.key, msg.payload.value, msg.payload.exdays, msg.payload.samesite);
       if (msg.properties.response_topic) {
         publish(msg.properties.response_topic, getCookie(bindings.key));
       }
@@ -5825,10 +5825,10 @@
     { wid: "model.document" }
   );
   function getCookie(cname) {
-    var name = cname + "=";
-    var ca = document.cookie.split(";");
-    for (var i = 0; i < ca.length; i++) {
-      var c = ca[i];
+    const name = cname + "=";
+    const ca = document.cookie.split(";");
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
       while (c.charAt(0) == " ") {
         c = c.substring(1);
       }
@@ -5838,11 +5838,42 @@
     }
     return "";
   }
-  function setCookie(cname, cvalue, exdays) {
-    var d = /* @__PURE__ */ new Date();
-    d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1e3);
-    var expires = "expires=" + d.toUTCString();
-    document.cookie = cname + "=" + cvalue + "; " + expires + "; path=/; Secure; SameSite=None";
+  function setCookie(cname, cvalue, exdays, csamesite) {
+    let expires = "";
+    if (typeof exdays == "number") {
+      if (exdays == 0) {
+        expires = "; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      } else {
+        const exmsec = (exdays != null ? exdays : 0) * 24 * 60 * 60 * 1e3;
+        const d = /* @__PURE__ */ new Date();
+        d.setTime(d.getTime() + exmsec);
+        expires = "expires=" + d.toUTCString();
+      }
+    }
+    const value2 = cleanCookieValue(cvalue != null ? cvalue : "");
+    const name = cleanCookieValue(cname);
+    let samesite = csamesite != null ? csamesite : "None";
+    switch (samesite.toLowerCase()) {
+      case "strict":
+        samesite = "Strict";
+        break;
+      case "lax":
+        samesite = "Lax";
+        break;
+      case "none":
+      default:
+        samesite = "None";
+        break;
+    }
+    let secure = "Secure; ";
+    if (document.location.protocol == "http:") {
+      secure = "";
+    }
+    document.cookie = name + "=" + value2 + expires + "; path=/; " + secure + "SameSite=" + samesite;
+  }
+  function cleanCookieValue(v) {
+    v = v.replace(";", "").replace(",", "").replace("=", "").replace("\n", "").replace("	", "").replace("\r", "").replace("\v", "").replace("\f", "");
+    return v;
   }
   function timezone_info() {
     return {
@@ -5873,14 +5904,14 @@
     return null;
   }
   function is_touch_device() {
-    var prefixes = " -webkit- -moz- -o- -ms- ".split(" ");
-    var mq = function(query2) {
+    const prefixes = " -webkit- -moz- -o- -ms- ".split(" ");
+    const mq = function(query2) {
       return window.matchMedia(query2).matches;
     };
     if ("ontouchstart" in window || window.DocumentTouch && document instanceof DocumentTouch) {
       return true;
     }
-    var query = ["(", prefixes.join("touch-enabled),("), "heartz", ")"].join("");
+    const query = ["(", prefixes.join("touch-enabled),("), "heartz", ")"].join("");
     return mq(query);
   }
 
@@ -6515,7 +6546,7 @@
   function setcookie(value2) {
     publish(
       "model/document/post/cookie/cotonic-sid",
-      { value: value2, exdays: 14 }
+      { value: value2, exdays: 14, samesite: "strict" }
     );
   }
   function generate() {
@@ -6523,7 +6554,7 @@
     window.localStorage.setItem("cotonic-sid", JSON.stringify(value2));
     publish(
       "model/document/post/cookie/cotonic-sid",
-      { value: value2, exdays: 4 }
+      { value: value2, exdays: 4, samesite: "strict" }
     );
     publish("model/sessionId/event", value2);
     return value2;
@@ -6566,7 +6597,7 @@
       }
       publish(
         "model/document/post/cookie/cotonic-sid",
-        { value: "", exdays: 0 }
+        { value: "", exdays: 0, samesite: "strict" }
       );
       publish("model/sessionId/event", null);
     },
