@@ -1245,7 +1245,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.7.0";
+  var VERSION = "1.7.1";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -5847,7 +5847,7 @@
         const exmsec = (exdays != null ? exdays : 0) * 24 * 60 * 60 * 1e3;
         const d = /* @__PURE__ */ new Date();
         d.setTime(d.getTime() + exmsec);
-        expires = "expires=" + d.toUTCString();
+        expires = "; expires=" + d.toUTCString();
       }
     }
     const value2 = cleanCookieValue(cvalue != null ? cvalue : "");
