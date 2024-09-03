@@ -24,14 +24,14 @@ function s4() {
 
 function setcookie(value) {
     publish("model/document/post/cookie/cotonic-sid",
-        { value: value, exdays: 14 });
+        { value: value, exdays: 14, samesite: "strict" });
 }
 
 function generate() {
     let value = s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     window.localStorage.setItem("cotonic-sid", JSON.stringify(value));
     publish("model/document/post/cookie/cotonic-sid",
-        { value: value, exdays: 4 });
+        { value: value, exdays: 4, samesite: "strict" });
     publish("model/sessionId/event", value);
     return value;
 }
@@ -71,7 +71,7 @@ subscribe("model/sessionId/delete",
             publish(msg.properties.response_topic, null);
         }
         publish("model/document/post/cookie/cotonic-sid",
-            { value: "", exdays: 0 });
+            { value: "", exdays: 0, samesite: "strict" });
         publish("model/sessionId/event", null);
     },
     {wid: "model.sessionId"}
