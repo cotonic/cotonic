@@ -60,7 +60,7 @@ subscribe("model/document/get/cookie/+key",
 
 subscribe("model/document/post/cookie/+key",
     (msg, bindings) => {
-        setCookie(bindings.key, msg.payload.value, msg.payload.exdays);
+        setCookie(bindings.key, msg.payload.value, msg.payload.exdays, msg.payload.samesite);
         if(msg.properties.response_topic) {
             publish(msg.properties.response_topic, getCookie(bindings.key));
         }
@@ -69,10 +69,10 @@ subscribe("model/document/post/cookie/+key",
 );
 
 function getCookie(cname) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i = 0; i < ca.length; i++) {
-        var c = ca[i];
+    const name = cname + "=";
+    const ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
         while (c.charAt(0) == ' ') {
             c = c.substring(1);
         }
@@ -83,11 +83,52 @@ function getCookie(cname) {
     return "";
 }
 
-function setCookie(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-    var expires = "expires="+d.toUTCString();
-    document.cookie = cname + "=" + cvalue + "; " + expires + "; path=/; Secure; SameSite=None";
+function setCookie(cname, cvalue, exdays, csamesite) {
+    let expires = "";
+    if (typeof exdays == "number") {
+        if (exdays == 0) {
+            expires = "; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        } else {
+            const exmsec = (exdays ?? 0)  * 24 * 60 * 60 * 1000;
+            const d = new Date();
+            d.setTime(d.getTime() + exmsec);
+            expires = "expires="+d.toUTCString();
+        }
+    }
+    const value = cleanCookieValue(cvalue ?? "");
+    const name = cleanCookieValue(cname);
+
+    let samesite = csamesite ?? "None";
+    switch (samesite.toLowerCase()) {
+        case "strict":
+            samesite = "Strict";
+            break;
+        case "lax":
+            samesite = "Lax";
+            break;
+        case "none":
+        default:
+            samesite = "None";
+            break;
+    }
+
+    let secure = "Secure; ";
+    if (document.location.protocol == 'http:') {
+        secure = "";
+    }
+    document.cookie = name + "=" + value + expires + "; path=/; " + secure + "SameSite=" + samesite;
+}
+
+function cleanCookieValue(v) {
+    v = v.replace(";", "")
+         .replace(",", "")
+         .replace("=", "")
+         .replace("\n", "")
+         .replace("\t", "")
+         .replace("\r", "")
+         .replace("\x0b", "")
+         .replace("\x0c", "");
+    return v;
 }
 
 // TODO: handle case of fixed/guessed timezone
@@ -124,14 +165,14 @@ function timezone() {
 }
 
 function is_touch_device() {
-    var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
-    var mq = function(query) {
+    const prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
+    const mq = function(query) {
         return window.matchMedia(query).matches;
     };
     if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
         return true;
     }
-    var query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
+    const query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
     return mq(query);
 }
 

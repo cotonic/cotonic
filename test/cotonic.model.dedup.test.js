@@ -1,5 +1,5 @@
 //
-// LocalStorage model tests
+// Dedup model tests
 //
 
 import * as broker from "/src/cotonic.broker.js";
