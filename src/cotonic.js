@@ -15,7 +15,7 @@
  */
 
 /* Current cotonic version */
-const VERSION = "1.6.2";
+const VERSION = "1.7.0";
 
 /* Get a configuration from a global cotonic variable, when available */
 const config = (globalThis.cotonic && globalThis.cotonic.config) ? globalThis.cotonic.config : {};
