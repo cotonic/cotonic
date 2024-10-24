@@ -505,13 +505,13 @@ function decodePubackEtAl( first, vb ) {
     };
 }
 
-function decodeSubscribe( first, vb ) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var topics = [];
+function decodeSubscribe( _first, vb ) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const topics = [];
     while (vb.remainingLength() > 0) {
-        var name = vb.decodeUtf8();
-        var flags = vb.decode1();
+        const name = vb.decodeUtf8();
+        const flags = vb.decode1();
         topics.push({
             topic: name,
             retain_handling: (flags >> 4) % 0x03,
@@ -528,13 +528,13 @@ function decodeSubscribe( first, vb ) {
     };
 }
 
-function decodeSuback( first, vb ) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var acks = [];
+function decodeSuback( _first, vb ) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const acks = [];
     while (vb.remainingLength() > 0) {
         //  0..2 is Qos, 0x80+ is error code
-        var ack = vb.decode1();
+        const ack = vb.decode1();
         if (ack > 2 && ack < 0x80) {
             throw "Illegal suback";
         }
@@ -548,12 +548,12 @@ function decodeSuback( first, vb ) {
     };
 }
 
-function decodeUnsubscribe( first, vb ) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var topics = [];
+function decodeUnsubscribe( _first, vb ) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const topics = [];
     while (vb.remainingLength() > 0) {
-        var topic = vb.decodeUtf8();
+        const topic = vb.decodeUtf8();
         topics.push(topic);
     }
     return {
@@ -564,13 +564,13 @@ function decodeUnsubscribe( first, vb ) {
     };
 }
 
-function decodeUnsuback( first, vb ) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var acks = [];
+function decodeUnsuback( _first, vb ) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const acks = [];
     while (vb.remainingLength() > 0) {
         //  0..2 is Qos, 0x80+ is error code
-        var ack = vb.decode1();
+        const ack = vb.decode1();
         if (ack != 0 && ack != 17 && ack < 0x80) {
             throw "Illegal unsuback";
         }
@@ -584,7 +584,7 @@ function decodeUnsuback( first, vb ) {
     };
 }
 
-function decodePingReq( first, vb ) {
+function decodePingReq( _first, vb ) {
     if (vb.remainingLength() > 0) {
         throw "pingreq with variable part";
     }
@@ -593,7 +593,7 @@ function decodePingReq( first, vb ) {
     };
 }
 
-function decodePingResp( first, vb ) {
+function decodePingResp( _first, vb ) {
     if (vb.remainingLength() > 0) {
         throw "pingresp with variable part";
     }
@@ -602,9 +602,9 @@ function decodePingResp( first, vb ) {
     };
 }
 
-function decodeDisconnect( first, vb ) {
-    var reasonCode;
-    var props;
+function decodeDisconnect( _first, vb ) {
+    let reasonCode;
+    let props;
     if (vb.remainingLength() == 0) {
         reasonCode = 0;
         props = {};
@@ -619,9 +619,9 @@ function decodeDisconnect( first, vb ) {
     };
 }
 
-function decodeAuth( first, vb ) {
-    var reasonCode;
-    var props;
+function decodeAuth( _first, vb ) {
+    let reasonCode;
+    let props;
     if (vb.remainingLength() == 0) {
         reasonCode = 0;
         props = {};
@@ -648,121 +648,119 @@ function decodeAuth( first, vb ) {
 function decodeStream ( binary ) {
     this.offset = 0;
     this.buf = binary;
-    var self = this;
 
-    this.remainingLength = function() {
-        return self.buf.length - self.offset;
+    this.remainingLength = () => {
+        return this.buf.length - this.offset;
     };
 
-    this.remainingData = function() {
-        if (self.buf.length == self.offset) {
+    this.remainingData = () => {
+        if (this.buf.length == this.offset) {
             return new Uint8Array(0);
         } else {
-            return self.buf.slice(self.offset, self.buf.length);
+            return this.buf.slice(this.offset, this.buf.length);
         }
     };
 
-    this.ensure = function( n ) {
-        if (self.offset + n > self.buf.length) {
+    this.ensure = ( n ) => {
+        if (this.offset + n > this.buf.length) {
             throw "incomplete_packet";
         }
     };
 
-    this.decodeVarint = function() {
-        var multiplier = 1;
-        var n = 0;
-        var digits = 0;
-        var digit;
+    this.decodeVarint = () => {
+        let multiplier = 1;
+        let n = 0;
+        let digits = 0;
+        let digit;
         do {
-            self.ensure(1);
+            this.ensure(1);
             if (++digits > 4) {
                 throw "malformed";
             }
-            digit = self.buf[self.offset++];
+            digit = this.buf[this.offset++];
             n += ((digit & 0x7F) * multiplier);
             multiplier *= 128;
         } while ((digit & 0x80) !== 0);
         return n;
     };
 
-    this.decode1 = function() {
-        self.ensure(1);
-        return self.buf[self.offset++];
+    this.decode1 = () => {
+        this.ensure(1);
+        return this.buf[this.offset++];
     };
 
-    this.decodeUint16 = function() {
-        self.ensure(2);
-        var msb = self.buf[self.offset++];
-        var lsb = self.buf[self.offset++];
+    this.decodeUint16 = () => {
+        this.ensure(2);
+        const msb = this.buf[this.offset++];
+        const lsb = this.buf[this.offset++];
         return (msb << 8) + lsb;
     };
 
-    this.decodeUint32 = function() {
-        self.ensure(4);
-        var b1 = self.buf[self.offset++];
-        var b2 = self.buf[self.offset++];
-        var b3 = self.buf[self.offset++];
-        var b4 = self.buf[self.offset++];
+    this.decodeUint32 = () => {
+        this.ensure(4);
+        const b1 = this.buf[this.offset++];
+        const b2 = this.buf[this.offset++];
+        const b3 = this.buf[this.offset++];
+        const b4 = this.buf[this.offset++];
         return (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
     };
 
-    this.decodeBin = function( length ) {
+    this.decodeBin = ( length ) => {
         if (length == 0) {
             return new Uint8Array(0);
         } else {
-            self.ensure(length);
-            var offs = self.offset;
-            self.offset += length;
-            return self.buf.slice(offs, self.offset);
+            this.ensure(length);
+            const offs = this.offset;
+            this.offset += length;
+            return this.buf.slice(offs, this.offset);
         }
     };
 
-    this.decodeUtf8 = function() {
-        var length = self.decodeUint16();
-        return UTF8ToString( self.decodeBin(length) );
+    this.decodeUtf8 = () => {
+        const length = this.decodeUint16();
+        return UTF8ToString( this.decodeBin(length) );
     };
 
-    this.decodeProperties = function() {
-        if (self.remainingLength() == 0) {
+    this.decodeProperties = () => {
+        if (this.remainingLength() == 0) {
             return {};
         }
-        var len = self.decodeVarint();
-        var end = self.offset + len;
-        var props = {};
-        while (self.offset < end) {
-            var c = self.decode1();
-            var p = PROPERTY_DECODE[c];
+        const len = this.decodeVarint();
+        const end = this.offset + len;
+        const props = {};
+        while (this.offset < end) {
+            const c = this.decode1();
+            const p = PROPERTY_DECODE[c];
             if (p) {
-                var v;
-                var k = p[0];
+                let v;
+                let k = p[0];
                 switch (p[1]) {
                     case "bool":
-                        v = !!(self.decode1());
+                        v = !!(this.decode1());
                         break;
                     case "uint32":
-                        v = self.decodeUint32();
+                        v = this.decodeUint32();
                         break;
                     case "uint16":
-                        v = self.decodeUint16();
+                        v = this.decodeUint16();
                         break;
                     case "uint8":
-                        v = self.decode1();
+                        v = this.decode1();
                         break;
                     case "utf8":
-                        v = self.decodeUtf8();
+                        v = this.decodeUtf8();
                         break;
                     case "bin":
-                        var count = self.decodeUint16();
-                        v = self.decodeBin(count);
+                        v = this.decodeBin( this.decodeUint16() /* count */ );
                         break;
                     case "varint":
-                        v = self.decodeVarint();
+                        v = this.decodeVarint();
                         break;
                     case "user":
                     default:
                         // User property
-                        k = self.decodeUtf8();
-                        v = self.decodeUtf8();
+                        k = this.decodeUtf8();
+                        v = this.decodeUtf8();
                         break;
                 }
                 if (p[2]) {
@@ -775,7 +773,7 @@ function decodeStream ( binary ) {
                             props[k].push(v);
                             break;
                         default:
-                            props[k] = new Array(props[k], v);
+                            props[k] = [props[k], v];
                             break;
                     }
                 } else {
@@ -799,16 +797,16 @@ function decodeStream ( binary ) {
  * @private
  */
 function serializeSubscribeTopics( v, topics ) {
-    for (var i = 0; i < topics.length; i++) {
-        var topic = topics[i];
+    for (let i = 0; i < topics.length; i++) {
+        let topic = topics[i];
         if (typeof topic == "string") {
             topic = { topic: topic };
         }
-        var qos = topic.qos || 0;
-        var noLocal = topic.no_local || false;
-        var retainAsPublished = topic.retain_as_published || false;
-        var retainHandling = topic.retain_handling || 0;
-        var flags = 0;
+        const qos = topic.qos || 0;
+        const noLocal = topic.no_local || false;
+        const retainAsPublished = topic.retain_as_published || false;
+        const retainHandling = topic.retain_handling || 0;
+        let flags = 0;
         flags |= retainHandling << 4;
         flags |= (retainAsPublished ? 1 : 0) << 3;
         flags |= (noLocal ? 1 : 0) << 2;
@@ -823,8 +821,8 @@ function serializeSubscribeTopics( v, topics ) {
  * @private
  */
 function serializeSubscribeAcks( v, acks ) {
-    for (var i = 0; i < acks.length; i++) {
-        var ack = acks[i];
+    for (let i = 0; i < acks.length; i++) {
+        const ack = acks[i];
         if (ack >= 0 && ack <= 2) {
             // ok result with QoS
             v.append1(ack);
@@ -842,7 +840,7 @@ function serializeSubscribeAcks( v, acks ) {
  * @private
  */
 function serializeUnsubscribeTopics( v, topics ) {
-    for (var i = 0; i < topics.length; i++) {
+    for (let i = 0; i < topics.length; i++) {
         v.appendUTF8(topics[i]);
     }
 }
@@ -852,8 +850,8 @@ function serializeUnsubscribeTopics( v, topics ) {
  * @private
  */
 function serializeUnsubscribeAcks( v, acks ) {
-    for (var i = 0; i < acks.length; i++) {
-        var ack = acks[i];
+    for (let i = 0; i < acks.length; i++) {
+        const ack = acks[i];
         if (ack == 0 || ack == 17) {
             // found or not-found
             v.append1(ack);
@@ -873,11 +871,11 @@ function serializeUnsubscribeAcks( v, acks ) {
  * @private
  */
 function packet( first, binary ) {
-    var mbi = encodeMBI(binary.length());
-    var pack = new Uint8Array( 1 + mbi.length + binary.length());
+    const mbi = encodeMBI(binary.length());
+    const pack = new Uint8Array( 1 + mbi.length + binary.length());
 
     pack[0] = first;
-    for (var i = 0; i < mbi.length; i++) {
+    for (let i = 0; i < mbi.length; i++) {
         pack[ 1 + i ] = mbi[i];
     }
     binary.copyInto(pack, 1 + mbi.length);
@@ -894,80 +892,80 @@ function binary() {
     this.size = 64;
     this.buf = new Uint8Array( this.size );
     this.len = 0;
-    var self = this;
+    // const self = this;
 
-    this.length = function() {
+    this.length = () => {
         return this.len;
     };
 
-    this.copyInto = function( buf, offset ) {
-        for (var i = self.len-1; i >= 0; i--) {
-            buf[i+offset] = self.buf[i];
+    this.copyInto = ( buf, offset ) => {
+        for (let i = this.len-1; i >= 0; i--) {
+            buf[i+offset] = this.buf[i];
         }
     };
 
-    this.val = function() {
-        return self.buf.slice( 0, self.len );
+    this.val = () => {
+        return this.buf.slice( 0, this.len );
     };
 
-    this.append = function( bytes ) {
-        self.reserve( bytes.length );
-        for (var i = 0; i < bytes.length; i++) {
-            self.buf[ self.len++ ] = bytes[i];
+    this.append = ( bytes ) => {
+        this.reserve( bytes.length );
+        for (let i = 0; i < bytes.length; i++) {
+            this.buf[ this.len++ ] = bytes[i];
         }
     };
 
-    this.append1 = function( byte ) {
-        self.reserve(1);
-        self.buf[ self.len++ ] = byte;
+    this.append1 = ( byte ) => {
+        this.reserve(1);
+        this.buf[ this.len++ ] = byte;
     };
 
-    this.appendUint32 = function( input ) {
-        self.reserve(4);
+    this.appendUint32 = ( input ) => {
+        this.reserve(4);
         if (input < 0) {
             throw "Value uint32 below 0";
         }
-        self.buf[ self.len++ ] = (input >> 24) & 255;
-        self.buf[ self.len++ ] = (input >> 16) & 255;
-        self.buf[ self.len++ ] = (input >> 8) & 255;
-        self.buf[ self.len++ ] = input & 255;
+        this.buf[ this.len++ ] = (input >> 24) & 255;
+        this.buf[ this.len++ ] = (input >> 16) & 255;
+        this.buf[ this.len++ ] = (input >> 8) & 255;
+        this.buf[ this.len++ ] = input & 255;
     };
 
-    this.appendUint16 = function( input ) {
-        self.reserve(2);
+    this.appendUint16 = ( input ) => {
+        this.reserve(2);
         if (input < 0 || input >= 65536) {
             throw "Value too large for uint16";
         }
-        self.buf[ self.len++ ] = input >> 8;
-        self.buf[ self.len++ ] = input & 255;
+        this.buf[ this.len++ ] = input >> 8;
+        this.buf[ this.len++ ] = input & 255;
     };
 
-    this.appendVarint = function( number ) {
+    this.appendVarint = ( number ) => {
         if (number < 0) {
             throw "Negative varint";
         }
-        var numBytes = 0;
+        let numBytes = 0;
         do {
-            self.reserve(1);
-            var digit = number % 128;
+            this.reserve(1);
+            let digit = number % 128;
             number = number >> 7;
             if (number > 0) {
                 digit |= 0x80;
             }
-            self.buf[ self.len++ ] = digit;
+            this.buf[ this.len++ ] = digit;
         } while ( (number > 0) && ( ++numBytes < 4) );
     };
 
-    this.appendUTF8 = function ( s ) {
-        var b = stringToUTF8(s);
-        self.appendUint16(b.length);
-        self.reserve(b.length);
-        for (var i = 0; i < b.length; i++) {
-            self.buf[ self.len++ ] = b[i];
+    this.appendUTF8 = ( s ) => {
+        const b = stringToUTF8(s);
+        this.appendUint16(b.length);
+        this.reserve(b.length);
+        for (let i = 0; i < b.length; i++) {
+            this.buf[ this.len++ ] = b[i];
         }
     };
 
-    this.appendBin = function ( b, addlen ) {
+    this.appendBin = ( b, addlen ) => {
         switch (typeof b) {
             case "undefined":
                 // Append empty data
@@ -978,35 +976,35 @@ function binary() {
             case "string":
                 b = stringToUTF8(b);
                 if (addlen) {
-                    self.appendUint16(b.length);
+                    this.appendUint16(b.length);
                 }
-                self.reserve(b.length);
-                for (var i = 0; i < b.length; i++) {
-                    self.buf[ self.len++ ] = b[i];
+                this.reserve(b.length);
+                for (let i = 0; i < b.length; i++) {
+                    this.buf[ this.len++ ] = b[i];
                 }
                 break;
             case "object":
                 if (b instanceof binary) {
                     if (addlen) {
-                        self.appendUint16(b.length());
+                        this.appendUint16(b.length());
                     }
-                    self.reserve(b.length());
-                    b.copyInto(self.buf, self.len);
-                    self.len += b.length();
+                    this.reserve(b.length());
+                    b.copyInto(this.buf, this.len);
+                    this.len += b.length();
                 } else if (typeof b.BYTES_PER_ELEMENT == "number") {
                     // Assume a TypedArray
-                    var v;
+                    let v;
                     if (b.BYTES_PER_ELEMENT == 1) {
                         v = b;
                     } else {
                         v = new Uint8Array( b.buffer );
                     }
-                    self.reserve(v.length + 2);
+                    this.reserve(v.length + 2);
                     if (addlen) {
-                        self.appendUint16(v.length);
+                        this.appendUint16(v.length);
                     }
                     for (let i = 0; i < v.length; i++) {
-                        self.buf[self.len++] = v[i];
+                        this.buf[this.len++] = v[i];
                     }
                 } else {
                     throw "Can't serialize unknown object";
@@ -1017,26 +1015,26 @@ function binary() {
         }
     };
 
-    this.appendProperties = function ( props ) {
-        var b = serializeProperties(props);
+    this.appendProperties = ( props ) => {
+        const b = serializeProperties(props);
 
-        self.appendVarint(b.length());
-        self.appendBin(b);
+        this.appendVarint(b.length());
+        this.appendBin(b);
     };
 
-    this.reserve = function( count ) {
-        if (self.size < self.len + count ) {
-            var newsize = self.size * 2;
-            while (newsize < self.size + count) {
+    this.reserve = ( count ) => {
+        if (this.size < this.len + count ) {
+            let newsize = this.size * 2;
+            while (newsize < this.size + count) {
                 newsize = newsize * 2;
             }
-            var newbuf = new Uint8Array(newsize);
+            const newbuf = new Uint8Array(newsize);
 
-            for (var i = self.len-1; i >= 0; i--) {
-                newbuf[i] = self.buf[i];
+            for (let i = this.len-1; i >= 0; i--) {
+                newbuf[i] = this.buf[i];
             }
-            self.size = newsize;
-            self.buf = newbuf;
+            this.size = newsize;
+            this.buf = newbuf;
         }
     };
 }
@@ -1047,8 +1045,8 @@ function binary() {
  * @private
  */
 function isEmptyProperties( props ) {
-    for (var k in props) {
-        if (!props.hasOwnProperty(k)) {
+    for (const k in props) {
+        if (!Object.prototype.hasOwnProperty.call(props, k)) {
             continue;
         }
         return false;
@@ -1062,14 +1060,14 @@ function isEmptyProperties( props ) {
  * @private
  */
 function serializeProperties( props ) {
-    var b = new binary();
-    for (var k in props) {
-        if (!props.hasOwnProperty(k)) {
+    const b = new binary();
+    for (const k in props) {
+        if (!Object.prototype.hasOwnProperty.call(props, k)) {
             continue;
         }
-        var p = (PROPERTY[k] || PROPERTY.__user);
+        const p = (PROPERTY[k] || PROPERTY.__user);
         if (p[2] && props[k].constructor === Array) {
-            for (var i = 0; i < props[k].length; i++) {
+            for (let i = 0; i < props[k].length; i++) {
                 b.append1(p[0]);
                 serializeProperty(p[1], k, props[k][i], b);
             }
@@ -1135,11 +1133,11 @@ function stringToUTF8 ( input ) {
  * @private
  */
 function encodeMBI(number) {
-    var output = new Array(1);
-    var numBytes = 0;
+    const output = new Array(1);
+    let numBytes = 0;
 
     do {
-        var digit = number % 128;
+        let digit = number % 128;
         number = number >> 7;
         if (number > 0) {
             digit |= 0x80;
@@ -1154,8 +1152,8 @@ function encodeMBI(number) {
  * Initialize some lookup arrays etc
  */
 function init() {
-    for (var k in PROPERTY) {
-        var p = PROPERTY[k];
+    for (const k in PROPERTY) {
+        const p = PROPERTY[k];
         PROPERTY_DECODE[p[0]] = [ k, p[1], p[2] ];
     }
 }
