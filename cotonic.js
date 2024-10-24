@@ -56,8 +56,7 @@
         break;
       } else if (patternChar === SINGLE)
         result.push("" + paramValue);
-      else
-        result.push(currentPattern);
+      else result.push(currentPattern);
     }
     return result.join(SEPARATOR);
   }
@@ -195,17 +194,16 @@
     if (tokenBuilder === void 0) {
       tokenBuilder = new TokenBuilder([]);
     }
-    let decoder2 = new Decoder(tokenBuilder);
+    const decoder2 = new Decoder(tokenBuilder);
     tokens3(data, tokenBuilder, decoder2);
     return tokenBuilder.result;
   };
   function tokens3(data, builder, decoder2) {
-    let cont = true;
-    while (cont) {
+    while (true) {
       if (data.length <= decoder2.offset) {
         return;
       }
-      let rv = tokenize(data, builder, decoder2);
+      const rv = tokenize(data, builder, decoder2);
       if (rv === DONE) {
         return;
       } else if (rv === NORMAL) {
@@ -220,20 +218,20 @@
     }
   }
   function tokenize(data, builder, d) {
-    let tag, attributes2, text_data, has_slash, c0, c1, c2, c3, c4, c5, c6, c7, c8;
-    c0 = data.charAt(d.offset);
+    let tag, attributes2, text_data, has_slash;
+    const c0 = data.charAt(d.offset);
     if (c0 === void 0)
       return DONE;
-    c1 = data.charAt(d.offset + 1);
-    c2 = data.charAt(d.offset + 2);
-    c3 = data.charAt(d.offset + 3);
+    const c1 = data.charAt(d.offset + 1);
+    const c2 = data.charAt(d.offset + 2);
+    const c3 = data.charAt(d.offset + 3);
     if (c0 === "<" && c1 === "!" && c2 === "-" && c3 === "-")
       return tokenize_comment(data, d.adv_col(4));
-    c4 = data.charAt(d.offset + 4);
-    c5 = data.charAt(d.offset + 5);
-    c6 = data.charAt(d.offset + 6);
-    c7 = data.charAt(d.offset + 7);
-    c8 = data.charAt(d.offset + 8);
+    const c4 = data.charAt(d.offset + 4);
+    const c5 = data.charAt(d.offset + 5);
+    const c6 = data.charAt(d.offset + 6);
+    const c7 = data.charAt(d.offset + 7);
+    const c8 = data.charAt(d.offset + 8);
     if (c0 === "<" && c1 === "!" && c2 === "D" && c3 === "O" && c4 === "C" && c5 === "T" && c6 === "Y" && c7 === "P" && c8 === "E")
       return tokenize_doctype(data, d.adv_col(10));
     if (c0 === "<" && c1 === "!" && c2 === "d" && c3 === "o" && c4 === "c" && c5 === "t" && c6 === "y" && c7 === "p" && c8 === "e")
@@ -272,10 +270,8 @@
       } else {
         builder.elementOpen(tag.value, attributes2.value);
       }
-      if (tag.value === "textarea")
-        return TEXTAREA;
-      if (tag.value === "script")
-        return SCRIPT;
+      if (tag.value === "textarea") return TEXTAREA;
+      if (tag.value === "script") return SCRIPT;
       return NORMAL;
     }
     text_data = tokenize_data(data, d);
@@ -283,48 +279,37 @@
     return NORMAL;
   }
   function tokenize_textarea(data, d) {
-    let cont = true, offsetStart = d.offset, lt, slash, n;
-    while (cont) {
+    const offsetStart = d.offset;
+    let lt, slash, n;
+    while (true) {
       lt = data.codePointAt(d.offset);
       if (lt === void 0) {
-        if (offsetStart !== d.offset)
-          d.builder.text(data.slice(offsetStart, d.offset));
+        if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
         return;
       }
       lookahead: {
-        if (lt !== LT)
-          break lookahead;
+        if (lt !== LT) break lookahead;
         slash = data.codePointAt(d.offset + 1);
-        if (slash !== SLASH)
-          break lookahead;
+        if (slash !== SLASH) break lookahead;
         n = data[d.offset + 2];
-        if (!(n === "t" || n === "T"))
-          break lookahead;
+        if (!(n === "t" || n === "T")) break lookahead;
         n = data[d.offset + 3];
-        if (!(n === "e" || n === "E"))
-          break lookahead;
+        if (!(n === "e" || n === "E")) break lookahead;
         n = data[d.offset + 4];
-        if (!(n === "x" || n === "X"))
-          break lookahead;
+        if (!(n === "x" || n === "X")) break lookahead;
         n = data[d.offset + 5];
-        if (!(n === "t" || n === "T"))
-          break lookahead;
+        if (!(n === "t" || n === "T")) break lookahead;
         n = data[d.offset + 6];
-        if (!(n === "a" || n === "A"))
-          break lookahead;
+        if (!(n === "a" || n === "A")) break lookahead;
         n = data[d.offset + 7];
-        if (!(n === "r" || n === "R"))
-          break lookahead;
+        if (!(n === "r" || n === "R")) break lookahead;
         n = data[d.offset + 8];
-        if (!(n === "e" || n === "E"))
-          break lookahead;
+        if (!(n === "e" || n === "E")) break lookahead;
         n = data[d.offset + 9];
-        if (!(n === "a" || n === "A"))
-          break lookahead;
+        if (!(n === "a" || n === "A")) break lookahead;
         n = data.codePointAt(d.offset + 10);
         if (is_probable_close(n)) {
-          if (offsetStart !== d.offset)
-            d.builder.text(data.slice(offsetStart, d.offset));
+          if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
           return;
         }
       }
@@ -332,42 +317,33 @@
     }
   }
   function tokenize_script(data, d) {
-    let cont = true, offsetStart = d.offset, lt, slash, n;
-    while (cont) {
+    const offsetStart = d.offset;
+    let lt, slash, n;
+    while (true) {
       lt = data.codePointAt(d.offset);
       if (lt === void 0) {
-        if (offsetStart !== d.offset)
-          d.builder.text(data.slice(offsetStart, d.offset));
+        if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
         return;
       }
       lookahead: {
-        if (lt !== LT)
-          break lookahead;
+        if (lt !== LT) break lookahead;
         slash = data.codePointAt(d.offset + 1);
-        if (slash !== SLASH)
-          break lookahead;
+        if (slash !== SLASH) break lookahead;
         n = data[d.offset + 2];
-        if (!(n === "s" || n === "S"))
-          break lookahead;
+        if (!(n === "s" || n === "S")) break lookahead;
         n = data[d.offset + 3];
-        if (!(n === "c" || n === "C"))
-          break lookahead;
+        if (!(n === "c" || n === "C")) break lookahead;
         n = data[d.offset + 4];
-        if (!(n === "r" || n === "R"))
-          break lookahead;
+        if (!(n === "r" || n === "R")) break lookahead;
         n = data[d.offset + 5];
-        if (!(n === "i" || n === "I"))
-          break lookahead;
+        if (!(n === "i" || n === "I")) break lookahead;
         n = data[d.offset + 6];
-        if (!(n === "p" || n === "P"))
-          break lookahead;
+        if (!(n === "p" || n === "P")) break lookahead;
         n = data[d.offset + 7];
-        if (!(n === "t" || n === "T"))
-          break lookahead;
+        if (!(n === "t" || n === "T")) break lookahead;
         n = data.codePointAt(d.offset + 8);
         if (is_probable_close(n)) {
-          if (offsetStart !== d.offset)
-            d.builder.text(data.slice(offsetStart, d.offset));
+          if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
           return;
         }
       }
@@ -375,12 +351,12 @@
     }
   }
   function tokenize_doctype(data, d) {
-    let c, acc = [], word, cont = true;
-    while (cont) {
+    const acc = [];
+    let c, word;
+    while (true) {
       c = data.codePointAt(d.offset);
       if (c === void 0 || c === GT) {
-        if (c === GT)
-          d.inc_col();
+        if (c === GT) d.inc_col();
         d.builder.doctype(acc);
         return NORMAL;
       }
@@ -393,11 +369,11 @@
     }
   }
   function tokenize_comment(data, d) {
-    let offsetStart = d.offset, cont = true;
-    while (cont) {
-      let c1 = data.codePointAt(d.offset);
-      let c2 = data.codePointAt(d.offset + 1);
-      let c3 = data.codePointAt(d.offset + 2);
+    const offsetStart = d.offset;
+    while (true) {
+      const c1 = data.codePointAt(d.offset);
+      const c2 = data.codePointAt(d.offset + 1);
+      const c3 = data.codePointAt(d.offset + 2);
       if (c1 === DASH && c2 === DASH && c3 === GT) {
         d.builder.comment(data.slice(offsetStart, d.offset));
         d.adv_col(3);
@@ -414,7 +390,7 @@
     throw "Not implemented";
   }
   function tokenize_word_or_literal(data, d) {
-    let c = data.codePointAt(d.offset);
+    const c = data.codePointAt(d.offset);
     if (c === QUOTE || c === SQUOTE)
       return tokenize_word(data, c, d.inc_col());
     if (!is_whitespace(c)) {
@@ -423,9 +399,10 @@
     throw "inconsistent";
   }
   function tokenize_word(data, quote, d) {
-    let acc = [], i = 0, cont = true;
-    while (cont) {
-      let c = data.codePointAt(d.offset);
+    const acc = [];
+    let i = 0;
+    while (true) {
+      const c = data.codePointAt(d.offset);
       if (c === void 0) {
         return value(acc.join(""), d);
       }
@@ -434,7 +411,7 @@
         return value(acc.join(""), d);
       }
       if (c === AMPERSAND) {
-        let charref2 = tokenize_charref(data, d.inc_col());
+        const charref2 = tokenize_charref(data, d.inc_col());
         acc[i++] = charref2.value;
       }
       acc[i++] = data[d.offset];
@@ -442,9 +419,9 @@
     }
   }
   function tokenize_data(data, d) {
-    let offsetStart = d.offset, cont = true;
-    while (cont) {
-      let c = data.codePointAt(d.offset);
+    const offsetStart = d.offset;
+    while (true) {
+      const c = data.codePointAt(d.offset);
       if (c === void 0 || c === LT || c === AMPERSAND) {
         return value(data.slice(offsetStart, d.offset), d);
       }
@@ -452,11 +429,11 @@
     }
   }
   function tokenize_literal(data, d, type) {
-    let literal = [], i = 0, cont = true, c = data.codePointAt(d.offset);
+    let literal = [], i = 0, c = data.codePointAt(d.offset);
     if (c === GT || c === SLASH || c === EQUALS) {
       return value(data.charAt(d.offset), d.inc_col());
     }
-    while (cont) {
+    while (true) {
       c = data.codePointAt(d.offset);
       if (c === AMPERSAND) {
         charref = tokenize_charref(data, d.inc_col());
@@ -480,9 +457,9 @@
     }
   }
   function tokenize_attributes(data, d) {
-    let cont = true, attributes2 = [], attribute, attribute_value;
-    while (cont) {
-      let c = data.codePointAt(d.offset);
+    const attributes2 = [];
+    while (true) {
+      const c = data.codePointAt(d.offset);
       if (c === void 0)
         return value(attributes2, d);
       if (c === GT || c === SLASH)
@@ -494,15 +471,15 @@
         d.inc_char(c);
         continue;
       }
-      attribute = tokenize_literal(data, d, "attributes");
-      attribute_value = tokenize_attr_value(attribute.value, data, d);
+      const attribute = tokenize_literal(data, d, "attributes");
+      const attribute_value = tokenize_attr_value(attribute.value, data, d);
       attributes2.push(tokenize_attribute_name(attribute.value));
       attributes2.push(attribute_value.value);
     }
   }
   function find_gt(data, d) {
-    let has_slash = false, c, cont = true;
-    while (cont) {
+    let has_slash = false, c;
+    while (true) {
       c = data.codePointAt(d.offset);
       if (c === SLASH) {
         has_slash = true;
@@ -519,13 +496,13 @@
     }
   }
   function find_qgt(data, d) {
-    let cont = true, offsetStart = d.offset, c1, c2;
-    while (cont) {
-      c1 = data.codePointAt(d.offset);
+    const offsetStart = d.offset;
+    while (true) {
+      const c1 = data.codePointAt(d.offset);
       if (c1 === void 0) {
         value(data.slice(offsetStart, d.offset), d);
       }
-      c2 = data.codePointAt(d.offset + 1);
+      const c2 = data.codePointAt(d.offset + 1);
       if (c1 === QUESTION_MARK && c2 === GT) {
         return value(data.slice(offsetStart, d.offset), d.adv_col(2));
       }
@@ -541,17 +518,15 @@
     }
   }
   function tokenize_attr_value(key3, data, d) {
-    let c;
     skip_whitespace(data, d);
-    c = data.codePointAt(d.offset);
+    const c = data.codePointAt(d.offset);
     if (c === EQUALS) {
       return tokenize_quoted_or_unquoted_attr_value(data, d.inc_col());
     }
     return value(key3, d);
   }
   function tokenize_quoted_or_unquoted_attr_value(data, d) {
-    let c;
-    c = data.codePointAt(d.offset);
+    const c = data.codePointAt(d.offset);
     if (c === void 0)
       return value("", d);
     if (c === QUOTE || c === SQUOTE) {
@@ -560,14 +535,15 @@
     return tokenize_unquoted_attr_value(data, d);
   }
   function tokenize_quoted_attr_value(data, start_quote, d) {
-    let v = [], i = 0, cont = true;
-    while (cont) {
-      let c = data.codePointAt(d.offset);
+    const v = [];
+    let i = 0;
+    while (true) {
+      const c = data.codePointAt(d.offset);
       if (c === void 0) {
         return value(v.join(""), d);
       }
       if (c === AMPERSAND) {
-        let charref2 = tokenize_charref(data, d.inc_col());
+        const charref2 = tokenize_charref(data, d.inc_col());
         v[i++] = charref2.value;
         continue;
       }
@@ -579,14 +555,15 @@
     }
   }
   function tokenize_unquoted_attr_value(data, d) {
-    let v = [], i = 0, cont = true;
-    while (cont) {
-      let c = data.codePointAt(d.offset);
+    const v = [];
+    let i = 0;
+    while (true) {
+      const c = data.codePointAt(d.offset);
       if (c === void 0) {
         return value(v.join(""), d);
       }
       if (c === AMPERSAND) {
-        let charref2 = tokenize_charref(data, d.inc_col());
+        const charref2 = tokenize_charref(data, d.inc_col());
         v[i++] = charref2.value;
         continue;
       }
@@ -601,19 +578,19 @@
     }
   }
   function tokenize_tag(tag) {
-    let ltag = tag.toLowerCase();
+    const ltag = tag.toLowerCase();
     if (is_html_tag(ltag))
       return ltag;
     return tag;
   }
   function tokenize_attribute_name(name) {
-    let lname = name.toLowerCase();
+    const lname = name.toLowerCase();
     if (is_html_attr(lname))
       return lname;
     return name;
   }
   function tokenize_charref(data, d) {
-    let column = d.column, line = d.line, offset = d.offset;
+    const column = d.column, line = d.line, offset = d.offset;
     try {
       return tokenize_charref1(data, d);
     } catch (err) {
@@ -626,9 +603,10 @@
     }
   }
   function tokenize_charref1(data, d) {
-    let cont = true, offsetStart = d.offset, u;
-    while (cont) {
-      let c = data.codePointAt(d.offset);
+    const offsetStart = d.offset;
+    let u;
+    while (true) {
+      const c = data.codePointAt(d.offset);
       if (c === void 0)
         throw "invalid_charref";
       if (is_whitespace(c) || c === QUOTE || c === SQUOTE || c === SLASH || c === LT || c === GT || c === AMPERSAND) {
@@ -655,13 +633,12 @@
     return is_whitespace(c);
   }
   function skip_whitespace(data, d) {
-    let cont = true;
-    while (cont) {
-      let c = data.codePointAt(d.offset);
+    while (true) {
+      const c = data.codePointAt(d.offset);
       if (is_whitespace(c)) {
         d.inc_char(c);
       }
-      cont = false;
+      break;
     }
   }
   function is_whitespace(c) {
@@ -671,13 +648,13 @@
     return c >= CHAR_A && c <= CHAR_Z || c >= CHAR_a && c <= CHAR_z || c === UNDERSCORE;
   }
   function is_html_tag(tag) {
-    return html_tags.hasOwnProperty(tag);
+    return !!Object.getOwnPropertyDescriptor(html_tags, tag);
   }
   function is_html_attr(name) {
-    return html_attrs.hasOwnProperty(name);
+    return !!Object.getOwnPropertyDescriptor(html_attrs, name);
   }
   function is_singleton(tag) {
-    let v = html_tags[tag];
+    const v = html_tags[tag];
     if (v === void 0)
       return false;
     return v;
@@ -954,12 +931,11 @@
     wrap: true
   };
   var charref = function() {
-    let element = document.createElement("div");
+    const element = document.createElement("div");
     const cache = {};
     return function(raw) {
       let d = cache[raw];
-      if (d !== void 0)
-        return d;
+      if (d !== void 0) return d;
       if (raw.slice(-1) === ";") {
         element.innerHTML = "&" + raw;
       } else {
@@ -1126,8 +1102,7 @@
   }
   function decodeResponse(data) {
     const d = new Uint8Array(data);
-    if (d[0] != V1)
-      throw new Error("Unexpected message");
+    if (d[0] != V1) throw new Error("Unexpected message");
     const nonce = d.slice(1, NONCE_BYTES + 1);
     let result = { nonce };
     const PAYLOAD = NONCE_BYTES + 1;
@@ -1206,10 +1181,8 @@
     return msg;
   }
   function decodeSecurePublish(data) {
-    if (data[0] != V1)
-      throw new Error("Unknown message");
-    if (data[1] != SECURE_PUBLISH)
-      throw new Error("Wrong message type");
+    if (data[0] != V1) throw new Error("Unknown message");
+    if (data[1] != SECURE_PUBLISH) throw new Error("Wrong message type");
     let iv = data.slice(2, IV_BYTES + 2);
     let message = data.slice(IV_BYTES + 2);
     return { type: SECURE_PUBLISH, iv, message };
@@ -2382,8 +2355,7 @@
     return matches3;
   }
   function collect_matches(path, trie, matches3) {
-    if (trie === void 0)
-      return;
+    if (trie === void 0) return;
     if (path.length === 0) {
       if (trie[VALUE] !== null) {
         matches3.push.apply(matches3, trie[VALUE]);
@@ -2391,8 +2363,7 @@
       }
     }
     const children = trie[CHILDREN];
-    if (children === null)
-      return;
+    if (children === null) return;
     const sub_path = path.slice(1);
     switch (path[0]) {
       case "+":
@@ -2462,14 +2433,12 @@
     return subs;
   }
   function collect_subscribers(path, trie, subs) {
-    if (trie === void 0)
-      return;
+    if (trie === void 0) return;
     if (path.length === 0 && trie[VALUE] !== null) {
       subs.push.apply(subs, trie[VALUE]);
     }
     let children = trie[CHILDREN];
-    if (children === null)
-      return;
+    if (children === null) return;
     if (path.length > 0) {
       let sub_path = path.slice(1);
       collect_subscribers(sub_path, children[path[0]], subs);
@@ -2482,8 +2451,7 @@
     }
   }
   receive(function(data, wid) {
-    if (!data.type)
-      return;
+    if (!data.type) return;
     switch (data.type) {
       case "connect":
         return handle_connect(wid, data);
@@ -2502,8 +2470,7 @@
   });
   function handle_connect(wid, data) {
     if (data.client_id !== wid) {
-      if (window.console)
-        window.console.error("Wrong client_id in connect from " + wid, data);
+      if (window.console) window.console.error("Wrong client_id in connect from " + wid, data);
     }
     clients[wid] = data;
     send(wid, { type: "connack", reason_code: 0 });
@@ -2547,8 +2514,7 @@
   }
   function subscribe(topics, callback, options) {
     options = options || {};
-    if (options.wid === void 0)
-      options.wid = null;
+    if (options.wid === void 0) options.wid = null;
     let subtopics = [];
     if (typeof topics === "string") {
       topics = [topics];
@@ -2711,8 +2677,7 @@
     } else if (sub.type === "page") {
       sub.callback(mqttmsg, extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
     } else {
-      if (window.console)
-        window.console.error("Unknown subscription type", sub);
+      if (window.console) window.console.error("Unknown subscription type", sub);
     }
   }
   function retain_key(topic) {
@@ -2770,8 +2735,7 @@
   function call(topic, payload2, options) {
     options = options || {};
     payload2 = payload2 || null;
-    if (options.qos === void 0)
-      options.qos = 1;
+    if (options.qos === void 0) options.qos = 1;
     let timeout = options.timeout || 15e3;
     let willRespond = new Promise(
       function(resolve, reject) {
@@ -5040,8 +5004,10 @@
             case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
               self.authUserPassword.username = void 0;
               self.authUserPassword.password = void 0;
+            /* falls through */
             case MQTT_RC_CLIENT_ID_INVALID:
               self.clientId = "";
+            /* falls through */
             default:
               publishStatus(false);
               sessionToBridge({
@@ -6024,11 +5990,9 @@
   }
   function doPossibleStateChange(model2, newState) {
     const transitions = validTransitions[model2.state];
-    if (transitions === void 0)
-      return;
+    if (transitions === void 0) return;
     const transitionPath = transitions[newState];
-    if (transitionPath === void 0)
-      return;
+    if (transitionPath === void 0) return;
     for (let i = 0; i < transitionPath.length; i++) {
       publish("model/lifecycle/event/state", transitionPath[i], { retain: true });
     }
