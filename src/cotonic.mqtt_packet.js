@@ -23,7 +23,7 @@
  * associated integer values.
  * @private
  */
-var MESSAGE_TYPE = {
+const MESSAGE_TYPE = {
     CONNECT: 1,
     CONNACK: 2,
     PUBLISH: 3,
@@ -41,7 +41,7 @@ var MESSAGE_TYPE = {
     AUTH : 15
 };
 
-var PROPERTY = {
+const PROPERTY = {
     payload_format_indicator:   [ 0x01, "bool", false ],
     message_expiry_interval:    [ 0x02, "uint32", false ],
     content_type:               [ 0x03, "utf8", false ],
@@ -72,10 +72,10 @@ var PROPERTY = {
 };
 
 // Filled in from PROPERTY by the init code
-var PROPERTY_DECODE = [];
+const PROPERTY_DECODE = [];
 
 //MQTT proto/version for v5          4    M    Q    T    T    5
-var MqttProtoIdentifierv5 = [0x00,0x04,0x4d,0x51,0x54,0x54,0x05];
+const MqttProtoIdentifierv5 = [0x00,0x04,0x4d,0x51,0x54,0x54,0x05];
 
 
 /******************************************************************/
@@ -86,7 +86,7 @@ var MqttProtoIdentifierv5 = [0x00,0x04,0x4d,0x51,0x54,0x54,0x05];
  * Encode a message into a binary packet
  * @public
  */
-var encoder = function(msg) {
+const encoder = function(msg) {
     switch (msg.type) {
         case "connect":
             return encodeConnect(msg);
@@ -121,15 +121,15 @@ var encoder = function(msg) {
 };
 
 function encodeConnect( msg ) {
-    var first = MESSAGE_TYPE.CONNECT << 4;
-    var willFlag = msg.will_flag || false;
-    var willRetain = msg.will_retain || false;
-    var willQoS = msg.will_qos || 0;
-    var cleanStart = msg.clean_start || false;
-    var v = new binary();
+    const first = MESSAGE_TYPE.CONNECT << 4;
+    const willFlag = msg.will_flag || false;
+    const willRetain = msg.will_retain || false;
+    const willQoS = msg.will_qos || 0;
+    const cleanStart = msg.clean_start || false;
+    const v = new binary();
     v.append(MqttProtoIdentifierv5);
 
-    var flags = 0;
+    let flags = 0;
     if (typeof msg.username == "string") {
         flags |= 1 << 7;
     }
@@ -160,9 +160,9 @@ function encodeConnect( msg ) {
 }
 
 function encodeConnack( msg ) {
-    var first = MESSAGE_TYPE.CONNACK << 4;
-    var flags = 0;
-    var v = new binary();
+    const first = MESSAGE_TYPE.CONNACK << 4;
+    let flags = 0;
+    const v = new binary();
     if (msg.session_present) {
         flags |= 1;
     }
@@ -173,11 +173,11 @@ function encodeConnack( msg ) {
 }
 
 function encodePublish( msg ) {
-    var first = MESSAGE_TYPE.PUBLISH << 4;
-    var v = new binary();
-    var qos = msg.qos || 0;
-    var dup = msg.dup || false;
-    var retain = msg.retain || false;
+    let first = MESSAGE_TYPE.PUBLISH << 4;
+    const v = new binary();
+    const qos = msg.qos || 0;
+    const dup = msg.dup || false;
+    const retain = msg.retain || false;
     first |= (dup ? 1 : 0) << 3;
     first |= (qos & 0x03) << 1;
     first |= (retain ? 1 : 0);
@@ -193,10 +193,10 @@ function encodePublish( msg ) {
 }
 
 function encodePubackEtAl( msg ) {
-    var first;
-    var v = new binary();
-    var rc = msg.reason_code || 0;
-    var ps = msg.properties || {};
+    let first;
+    const v = new binary();
+    const rc = msg.reason_code || 0;
+    const ps = msg.properties || {};
     switch (msg.type) {
         case 'puback':
             first |= MESSAGE_TYPE.PUBACK << 4;
@@ -220,8 +220,8 @@ function encodePubackEtAl( msg ) {
 }
 
 function encodeSubscribe( msg ) {
-    var first = MESSAGE_TYPE.SUBSCRIBE << 4;
-    var v = new binary();
+    let first = MESSAGE_TYPE.SUBSCRIBE << 4;
+    const v = new binary();
     first |= 1 << 1;
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
@@ -230,8 +230,8 @@ function encodeSubscribe( msg ) {
 }
 
 function encodeSuback( msg ) {
-    var first = MESSAGE_TYPE.SUBACK << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.SUBACK << 4;
+    const v = new binary();
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
     serializeSubscribeAcks(v, msg.acks);
@@ -239,8 +239,8 @@ function encodeSuback( msg ) {
 }
 
 function encodeUnsubscribe( msg ) {
-    var first = (MESSAGE_TYPE.UNSUBSCRIBE << 4) | 0x2;
-    var v = new binary();
+    const first = (MESSAGE_TYPE.UNSUBSCRIBE << 4) | 0x2;
+    const v = new binary();
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
     serializeUnsubscribeTopics(v, msg.topics);
@@ -248,8 +248,8 @@ function encodeUnsubscribe( msg ) {
 }
 
 function encodeUnsuback( msg ) {
-    var first = MESSAGE_TYPE.UNSUBACK << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.UNSUBACK << 4;
+    const v = new binary();
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
     serializeUnsubscribeAcks(v, msg.acks);
@@ -257,22 +257,22 @@ function encodeUnsuback( msg ) {
 }
 
 function encodePingReq( ) {
-    var first = MESSAGE_TYPE.PINGREQ << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.PINGREQ << 4;
+    const v = new binary();
     return packet(first, v);
 }
 
 function encodePingResp( ) {
-    var first = MESSAGE_TYPE.PINGRESP << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.PINGRESP << 4;
+    const v = new binary();
     return packet(first, v);
 }
 
 function encodeDisconnect( msg ) {
-    var first = MESSAGE_TYPE.DISCONNECT << 4;
-    var v = new binary();
-    var reason_code = msg.reason_code || 0;
-    var properties = msg.properties || {};
+    const first = MESSAGE_TYPE.DISCONNECT << 4;
+    const v = new binary();
+    const reason_code = msg.reason_code || 0;
+    const properties = msg.properties || {};
 
     if (reason_code != 0 || !isEmptyProperties(properties)) {
         v.append1(reason_code);
@@ -282,10 +282,10 @@ function encodeDisconnect( msg ) {
 }
 
 function encodeAuth( msg ) {
-    var first = MESSAGE_TYPE.AUTH << 4;
-    var v = new binary();
-    var reason_code = msg.reason_code || 0;
-    var properties = msg.properties || {};
+    const first = MESSAGE_TYPE.AUTH << 4;
+    const v = new binary();
+    const reason_code = msg.reason_code || 0;
+    const properties = msg.properties || {};
 
     if (reason_code != 0 || !isEmptyProperties(properties)) {
         v.append1(reason_code);
@@ -302,21 +302,21 @@ function encodeAuth( msg ) {
  * Decode a binary packet into a message
  * @public
  */
-var decoder = function( binary ) {
+const decoder = function( binary ) {
     // At least a byte and 0 length varint.
     if (binary.length < 2) {
         throw "incomplete_packet";
     }
     // The following might throw 'incomplete_packet'
-    var b = new decodeStream(binary);
-    var first = b.decode1();
-    var len = b.decodeVarint();
-    var variable = b.decodeBin(len);
-    var m;
+    const b = new decodeStream(binary);
+    const first = b.decode1();
+    const len = b.decodeVarint();
+    const variable = b.decodeBin(len);
+    let m;
 
     try {
         // Decode the complete packet
-        var vb = new decodeStream(variable);
+        const vb = new decodeStream(variable);
         switch (first >> 4) {
             case MESSAGE_TYPE.CONNECT:
                 m = decodeConnect(first, vb);
@@ -377,36 +377,36 @@ var decoder = function( binary ) {
     return [ m, b.remainingData() ];
 };
 
-function decodeConnect( first, vb ) {
-    var protocolName = vb.decodeUtf8();
-    var protocolLevel = vb.decode1();
+function decodeConnect( _first, vb ) {
+    const protocolName = vb.decodeUtf8();
+    const protocolLevel = vb.decode1();
 
     if (protocolName == "MQTT" && protocolLevel == 5) {
-        var flags = vb.decode1();
+        const flags = vb.decode1();
 
-        var usernameFlag = !!(flags & 0x80);
-        var passwordFlag = !!(flags & 0x40);
-        var willRetain   = !!(flags & 0x20);
-        var willQos      = (flags >> 3) & 0x3;
-        var willFlag     = !!(flags & 0x04);
-        var cleanStart   = !!(flags & 0x02);
+        const usernameFlag = !!(flags & 0x80);
+        const passwordFlag = !!(flags & 0x40);
+        const willRetain   = !!(flags & 0x20);
+        const willQos      = (flags >> 3) & 0x3;
+        const willFlag     = !!(flags & 0x04);
+        const cleanStart   = !!(flags & 0x02);
 
-        var keepAlive = vb.decodeUint16();
-        var props = vb.decodeProperties();
-        var clientId = vb.decodeUtf8();
-        var willProps = {};
-        var willTopic;
-        var willPayload;
+        const keepAlive = vb.decodeUint16();
+        const props = vb.decodeProperties();
+        const clientId = vb.decodeUtf8();
+        let willProps = {};
+        let willTopic;
+        let willPayload;
 
         if (willFlag) {
             willProps = vb.decodeProperties();
             willTopic = vb.decodeUtf8();
-            var willPayloadLen = vb.decodeUint16();
+            const willPayloadLen = vb.decodeUint16();
             willPayload = vb.decodeBin(willPayloadLen);
         }
 
-        var username;
-        var password;
+        let username;
+        let password;
         if (usernameFlag) {
             username = vb.decodeUtf8();
         }
@@ -436,11 +436,11 @@ function decodeConnect( first, vb ) {
     }
 }
 
-function decodeConnack( first, vb ) {
-    var flags = vb.decode1();
-    var sessionPresent = !!(flags & 1);
-    var connectReason = vb.decode1();
-    var props = vb.decodeProperties();
+function decodeConnack( _first, vb ) {
+    const flags = vb.decode1();
+    const sessionPresent = !!(flags & 1);
+    const connectReason = vb.decode1();
+    const props = vb.decodeProperties();
     return {
         type: 'connack',
         session_present: sessionPresent,
@@ -450,17 +450,17 @@ function decodeConnack( first, vb ) {
 }
 
 function decodePublish( first, vb ) {
-    var dup    = !!(first & 0x08);
-    var qos    = (first >> 1) & 0x03;
-    var retain = !!(first & 0x01);
-    var topic = vb.decodeUtf8();
-    var packetId = null;
+    const dup    = !!(first & 0x08);
+    const qos    = (first >> 1) & 0x03;
+    const retain = !!(first & 0x01);
+    const topic = vb.decodeUtf8();
+    let packetId = null;
 
     if (qos > 0) {
         packetId = vb.decodeUint16();
     }
-    var props = vb.decodeProperties();
-    var payload = vb.remainingData();
+    const props = vb.decodeProperties();
+    const payload = vb.remainingData();
     return {
         type: 'publish',
         dup: dup,
@@ -474,10 +474,10 @@ function decodePublish( first, vb ) {
 }
 
 function decodePubackEtAl( first, vb ) {
-    var packetId = vb.decodeUint16();
-    var reasonCode = 0;
-    var props = {};
-    var type;
+    const packetId = vb.decodeUint16();
+    let reasonCode = 0;
+    let props = {};
+    let type;
 
     if (vb.remainingLength() > 0) {
         reasonCode = vb.decode1();
