@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016-2024 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,25 +138,23 @@ function Decoder(builder) {
     };
 }
 
-let tokens = function (data, tokenBuilder) {
+const tokens = function (data, tokenBuilder) {
     if (tokenBuilder === undefined) {
         tokenBuilder = new TokenBuilder([]);
     }
 
-    let decoder = new Decoder(tokenBuilder);
+    const decoder = new Decoder(tokenBuilder);
     tokens3(data, tokenBuilder, decoder);
     return tokenBuilder.result;
 };
 
 function tokens3(data, builder, decoder) {
-    let cont=true;
-
-    while (cont) {
+    while (true) {
         if (data.length <= decoder.offset) {
             return;
         }
 
-        let rv = tokenize(data, builder, decoder);
+        const rv = tokenize(data, builder, decoder);
 
         if (rv === DONE) {
             return;
@@ -173,25 +171,24 @@ function tokens3(data, builder, decoder) {
 }
 
 function tokenize(data, builder, d) {
-    let tag, attributes, text_data, has_slash,
-        c0, c1, c2, c3, c4, c5, c6, c7, c8;
+    let tag, attributes, text_data, has_slash;
 
-    c0 = data.charAt(d.offset);
+    const c0 = data.charAt(d.offset);
     if (c0 === undefined)
         return DONE;
 
-    c1 = data.charAt(d.offset + 1);
-    c2 = data.charAt(d.offset + 2);
-    c3 = data.charAt(d.offset + 3);
+    const c1 = data.charAt(d.offset + 1);
+    const c2 = data.charAt(d.offset + 2);
+    const c3 = data.charAt(d.offset + 3);
 
     if (c0 === "<" && c1 === "!" && c2 === "-" && c3 === "-")
         return tokenize_comment(data, d.adv_col(4));
 
-    c4 = data.charAt(d.offset + 4);
-    c5 = data.charAt(d.offset + 5);
-    c6 = data.charAt(d.offset + 6);
-    c7 = data.charAt(d.offset + 7);
-    c8 = data.charAt(d.offset + 8);
+    const c4 = data.charAt(d.offset + 4);
+    const c5 = data.charAt(d.offset + 5);
+    const c6 = data.charAt(d.offset + 6);
+    const c7 = data.charAt(d.offset + 7);
+    const c8 = data.charAt(d.offset + 8);
 
     if (c0 === "<" && c1 === "!" && c2 === "D" && c3 === "O" && c4 === "C"
         && c5 === "T" && c6 === "Y" && c7 === "P" && c8 === "E")
@@ -266,9 +263,10 @@ function tokenize(data, builder, d) {
 }
 
 function tokenize_textarea(data, d) {
-    let cont=true, offsetStart = d.offset, lt, slash, n;
+    const offsetStart = d.offset;
+    let lt, slash, n;
 
-    while (cont) {
+    while (true) {
         lt = data.codePointAt(d.offset);
         if (lt === undefined) {
             if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
@@ -309,9 +307,10 @@ function tokenize_textarea(data, d) {
 
 
 function tokenize_script(data, d) {
-    let cont=true, offsetStart = d.offset, lt, slash, n;
+    const offsetStart = d.offset;
+    let lt, slash, n;
 
-    while (cont) {
+    while (true) {
         lt = data.codePointAt(d.offset);
         if (lt === undefined) {
             if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
@@ -351,9 +350,10 @@ function tokenize_script(data, d) {
  */
 
 function tokenize_doctype(data, d) {
-    let c, acc = [], word, cont=true;
+    const acc = [];
+    let c, word;
 
-    while (cont) {
+    while (true) {
         c = data.codePointAt(d.offset);
 
         if (c === undefined || c === GT) {
@@ -374,12 +374,12 @@ function tokenize_doctype(data, d) {
 }
 
 function tokenize_comment(data, d) {
-    let offsetStart = d.offset, cont=true;
+    const offsetStart = d.offset;
 
-    while (cont) {
-        let c1 = data.codePointAt(d.offset);
-        let c2 = data.codePointAt(d.offset + 1);
-        let c3 = data.codePointAt(d.offset + 2);
+    while (true) {
+        const c1 = data.codePointAt(d.offset);
+        const c2 = data.codePointAt(d.offset + 1);
+        const c3 = data.codePointAt(d.offset + 2);
 
         if (c1 === DASH && c2 === DASH && c3 === GT) {
             d.builder.comment(data.slice(offsetStart, d.offset));
@@ -402,7 +402,7 @@ function tokenize_cdata() {
 }
 
 function tokenize_word_or_literal(data, d) {
-    let c = data.codePointAt(d.offset);
+    const c = data.codePointAt(d.offset);
 
     if (c === QUOTE || c === SQUOTE)
         return tokenize_word(data, c, d.inc_col());
@@ -415,10 +415,11 @@ function tokenize_word_or_literal(data, d) {
 }
 
 function tokenize_word(data, quote, d) {
-    let acc = [], i=0, cont=true;
+    const acc = [];
+    let i=0;
 
-    while (cont) {
-        let c = data.codePointAt(d.offset);
+    while (true) {
+        const c = data.codePointAt(d.offset);
         if (c === undefined) {
             return value(acc.join(""), d);
         }
@@ -429,7 +430,7 @@ function tokenize_word(data, quote, d) {
         }
 
         if (c === AMPERSAND) {
-            let charref = tokenize_charref(data, d.inc_col());
+            const charref = tokenize_charref(data, d.inc_col());
             acc[i++] = charref.value;
         }
 
@@ -439,10 +440,10 @@ function tokenize_word(data, quote, d) {
 }
 
 function tokenize_data(data, d) {
-    let offsetStart = d.offset, cont=true;
+    const offsetStart = d.offset;
 
-    while (cont) {
-        let c = data.codePointAt(d.offset);
+    while (true) {
+        const c = data.codePointAt(d.offset);
         if (c === undefined || c === LT || c === AMPERSAND) {
             return value(data.slice(offsetStart, d.offset), d);
         }
@@ -452,7 +453,7 @@ function tokenize_data(data, d) {
 }
 
 function tokenize_literal(data, d, type) {
-    let literal = [], i=0, cont=true, c = data.codePointAt(d.offset);
+    let literal = [], i=0, c = data.codePointAt(d.offset);
 
     // Handle case where tokenize_literal would consume
     // 0 chars. http://github.com/mochi/mochiweb/pull/13
@@ -460,7 +461,7 @@ function tokenize_literal(data, d, type) {
         return value(data.charAt(d.offset), d.inc_col());
     }
 
-    while (cont) {
+    while (true) {
         c = data.codePointAt(d.offset);
 
         if (c === AMPERSAND) {
@@ -489,10 +490,10 @@ function tokenize_literal(data, d, type) {
 }
 
 function tokenize_attributes(data, d) {
-    let cont=true, attributes = [], attribute, attribute_value;
+    const attributes = [];
 
-    while (cont) {
-        let c = data.codePointAt(d.offset);
+    while (true) {
+        const c = data.codePointAt(d.offset);
 
         if (c === undefined)
             return value(attributes, d);
@@ -509,8 +510,8 @@ function tokenize_attributes(data, d) {
             continue;
         }
 
-        attribute = tokenize_literal(data, d, "attributes");
-        attribute_value = tokenize_attr_value(attribute.value, data, d);
+        const attribute = tokenize_literal(data, d, "attributes");
+        const attribute_value = tokenize_attr_value(attribute.value, data, d);
 
         attributes.push(tokenize_attribute_name(attribute.value));
         attributes.push(attribute_value.value);
@@ -518,9 +519,9 @@ function tokenize_attributes(data, d) {
 }
 
 function find_gt(data, d) {
-    let has_slash = false, c, cont=true;
+    let has_slash = false, c;
 
-    while (cont) {
+    while (true) {
         c = data.codePointAt(d.offset);
 
         if (c === SLASH) {
@@ -542,16 +543,16 @@ function find_gt(data, d) {
 }
 
 function find_qgt(data, d) {
-    let cont = true, offsetStart = d.offset, c1, c2;
+    const offsetStart = d.offset;
 
-    while (cont) {
-        c1 = data.codePointAt(d.offset);
+    while (true) {
+        const c1 = data.codePointAt(d.offset);
 
         if (c1 === undefined) {
             value(data.slice(offsetStart, d.offset), d);
         }
 
-        c2 = data.codePointAt(d.offset + 1);
+        const c2 = data.codePointAt(d.offset + 1);
 
         if (c1 === QUESTION_MARK && c2 === GT) {
             return value(data.slice(offsetStart, d.offset), d.adv_col(2));
@@ -573,11 +574,8 @@ function find_qgt(data, d) {
 }
 
 function tokenize_attr_value(key, data, d) {
-    let c;
-
     skip_whitespace(data, d);
-
-    c = data.codePointAt(d.offset);
+    const c = data.codePointAt(d.offset);
 
     if (c === EQUALS) {
         return tokenize_quoted_or_unquoted_attr_value(data, d.inc_col());
@@ -587,9 +585,7 @@ function tokenize_attr_value(key, data, d) {
 }
 
 function tokenize_quoted_or_unquoted_attr_value(data, d) {
-    let c;
-
-    c = data.codePointAt(d.offset);
+    const c = data.codePointAt(d.offset);
     if (c === undefined)
         return value("", d);
 
@@ -601,17 +597,18 @@ function tokenize_quoted_or_unquoted_attr_value(data, d) {
 }
 
 function tokenize_quoted_attr_value(data, start_quote, d) {
-    let v = [], i=0, cont = true;
+    const v = [];
+    let i=0;
 
-    while (cont) {
-        let c = data.codePointAt(d.offset);
+    while (true) {
+        const c = data.codePointAt(d.offset);
 
         if (c === undefined) {
             return value(v.join(""), d);
         }
 
         if (c === AMPERSAND) {
-            let charref = tokenize_charref(data, d.inc_col());
+            const charref = tokenize_charref(data, d.inc_col());
 
             v[i++] = charref.value;
             continue;
@@ -628,17 +625,18 @@ function tokenize_quoted_attr_value(data, start_quote, d) {
 }
 
 function tokenize_unquoted_attr_value(data, d) {
-    let v = [], i=0, cont = true;
+    const v = [];
+    let i=0;
 
-    while (cont) {
-        let c = data.codePointAt(d.offset);
+    while (true) {
+        const c = data.codePointAt(d.offset);
 
         if (c === undefined) {
             return value(v.join(""), d);
         }
 
         if (c === AMPERSAND) {
-            let charref = tokenize_charref(data, d.inc_col());
+            const charref = tokenize_charref(data, d.inc_col());
             v[i++] = charref.value;
             continue;
         }
@@ -658,26 +656,31 @@ function tokenize_unquoted_attr_value(data, d) {
 }
 
 function tokenize_tag(tag) {
-    let ltag = tag.toLowerCase();
-    if (is_html_tag(ltag)) return ltag;
+    const ltag = tag.toLowerCase();
+
+    if (is_html_tag(ltag))
+        return ltag;
 
     return tag;
 }
 
 function tokenize_attribute_name(name) {
-    let lname = name.toLowerCase();
-    if (is_html_attr(lname)) return lname;
+    const lname = name.toLowerCase();
+
+    if (is_html_attr(lname))
+        return lname;
 
     return name;
 }
 
 function tokenize_charref(data, d) {
-    let column = d.column, line = d.line, offset = d.offset;
+    const column = d.column, line = d.line, offset = d.offset;
 
     try {
         return tokenize_charref1(data, d);
     } catch (err) {
-        if (err !== "invalid_charref") throw err;
+        if (err !== "invalid_charref")
+            throw err;
 
         // Reset the offset;
         d.offset = offset;
@@ -689,10 +692,11 @@ function tokenize_charref(data, d) {
 }
 
 function tokenize_charref1(data, d) {
-    let cont = true, offsetStart = d.offset, u;
+    const offsetStart = d.offset;
+    let u;
 
-    while (cont) {
-        let c = data.codePointAt(d.offset);
+    while (true) {
+        const c = data.codePointAt(d.offset);
 
         if (c === undefined)
             throw "invalid_charref";
@@ -730,15 +734,14 @@ function is_probable_close(c) {
 }
 
 function skip_whitespace(data, d) {
-    let cont=true;
+    while (true) {
+        const c = data.codePointAt(d.offset);
 
-    while (cont) {
-        let c = data.codePointAt(d.offset);
         if (is_whitespace(c)) {
             d.inc_char(c);
         }
 
-        cont = false;
+        break;
     }
 }
 
@@ -753,15 +756,15 @@ function is_start_literal_safe(c) {
 }
 
 function is_html_tag(tag) {
-    return html_tags.hasOwnProperty(tag);
+    return !!Object.getOwnPropertyDescriptor(html_tags, tag);
 }
 
 function is_html_attr(name) {
-    return html_attrs.hasOwnProperty(name);
+    return !!Object.getOwnPropertyDescriptor(html_attrs, name);
 }
 
 function is_singleton(tag) {
-    let v = html_tags[tag];
+    const v = html_tags[tag];
 
     if (v === undefined)
         return false;
@@ -775,7 +778,7 @@ function value(val, line, column, offset) {
 
 // When an element is in the table it is a html tag, the boolean value
 // indicates wether the element is a sintleton tag.
-let html_tags = {
+const html_tags = {
     // A
     a: false,
     abbr: false,
@@ -933,7 +936,7 @@ let html_tags = {
     xmp: false
 };
 
-let html_attrs = {
+const html_attrs = {
     accept: true,
     "accept-charset": true,
     accesskey: true,
@@ -1069,8 +1072,7 @@ let html_attrs = {
  * Assumes the code can use document. Does not work inside a worker.
  */
 let charref = (function () {
-    let element = document.createElement("div");
-
+    const element = document.createElement("div");
     const cache = {};
 
     return function (raw) {
