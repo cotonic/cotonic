@@ -1218,7 +1218,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.7.1";
+  var VERSION = "1.7.2";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
