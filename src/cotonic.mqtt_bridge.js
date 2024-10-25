@@ -16,8 +16,8 @@
 
 import { fill, remove_named_wildcards } from "./cotonic.mqtt.js";
 import { subscribe, publish, publish_mqtt_message, find_subscriptions_below } from "./cotonic.broker.js";
-import * as mqtt_session from "./cotonic.mqtt_session.js";
-import * as mqtt_session_opener from "./cotonic.mqtt_session_opener.js";
+import * as mqtt_session_import from "./cotonic.mqtt_session.js";
+import * as mqtt_session_opener_import from "./cotonic.mqtt_session_opener.js";
 
 const BRIDGE_LOCAL_TOPIC = "bridge/+name/#topic";
 const BRIDGE_STATUS_TOPIC = "$bridge/+name/status";
@@ -31,17 +31,17 @@ const SESSION_CONTROL_TOPIC = "session/+name/control";
 const SESSION_EVENT_TOPIC = "session/+name/event";
 
 // Bridges to remote servers and clients
-var bridges = {};
+const bridges = {};
 
-var newBridge = function( remote, options ) {
+function newBridge( remote, options ) {
     remote = remote || 'origin';
     options = options || {};
 
     if(!options.mqtt_session) {
         if (remote == 'opener') {
-            options.mqtt_session = mqtt_session_opener;
+            options.mqtt_session = mqtt_session_opener_import;
         } else {
-            options.mqtt_session = mqtt_session;
+            options.mqtt_session = mqtt_session_import;
         }
     }
 
@@ -55,7 +55,7 @@ var newBridge = function( remote, options ) {
     return bridge;
 };
 
-var disconnectBridge = function( remote ) {
+function disconnectBridge( remote ) {
     const bridge = findBridge(remote);
 
     if(!bridge)
@@ -64,12 +64,12 @@ var disconnectBridge = function( remote ) {
     return bridge.disconnect();
 };
 
-var findBridge = function( remote ) {
+function findBridge( remote ) {
     remote = remote || 'origin';
     return bridges[remote];
 };
 
-var deleteBridge = function( remote ) {
+function deleteBridge( remote ) {
     remote = remote || 'origin';
     delete bridges[remote];
 };
@@ -81,62 +81,61 @@ var deleteBridge = function( remote ) {
 
 function mqttBridge () {
 
-    var remote;
-    var name;
-    var session;
-    var clientId;
-    var routingId = undefined;      // Must have same initial value as in mqtt_session
-    var local_topics = {};
-    var sessionTopic;
-    var is_connected = false;
-    var is_ui_state = false;
-    var session_present = false;
-    var self = this;
-    var wid;
+    let remote;
+    let name;
+    let session;
+    let clientId;
+    let routingId = undefined;      // Must have same initial value as in mqtt_session
+    const local_topics = {};
+    let is_connected = false;
+    let is_ui_state = false;
+    let session_present = false;
+    let wid;
+    let mqtt_session;
 
-    this.connect = function ( remote, options ) {
-        self.mqtt_session = options.mqtt_session;
-        self.name = (options.name || remote.replace(/[^0-9a-zA-Z\.]/g, '-'));
-        self.remote = remote;
-        self.wid = "bridge/" + self.name;
-        self.is_ui_state = options.is_ui_state || (remote == 'origin');
-        self.local_topics = {
+    this.connect = function ( rmt, options ) {
+        mqtt_session = options.mqtt_session;
+        name = (options.name || rmt.replace(/[^0-9a-zA-Z\.]/g, '-'));
+        remote = rmt;
+        wid = `bridge/${ name }`;
+        is_ui_state = options.is_ui_state || (rmt == 'origin');
+        Object.assign(local_topics, {
             // Comm between local broker and bridge
-            bridge_local: fill(BRIDGE_LOCAL_TOPIC, {name: self.name, topic: "#topic"}),
-            bridge_status: fill(BRIDGE_STATUS_TOPIC, {name: self.name}),
-            bridge_auth: fill(BRIDGE_AUTH_TOPIC, {name: self.name}),
-            bridge_control: fill(BRIDGE_CONTROL_TOPIC, {name: self.name}),
+            bridge_local: fill(BRIDGE_LOCAL_TOPIC, {name: name, topic: "#topic"}),
+            bridge_status: fill(BRIDGE_STATUS_TOPIC, {name: name}),
+            bridge_auth: fill(BRIDGE_AUTH_TOPIC, {name: name}),
+            bridge_control: fill(BRIDGE_CONTROL_TOPIC, {name: name}),
 
             // Comm between session and bridge
-            session_in: fill(SESSION_IN_TOPIC, {name: self.name}),
-            session_out: fill(SESSION_OUT_TOPIC, {name: self.name}),
-            session_status: fill(SESSION_STATUS_TOPIC, {name: self.name}),
-            session_control: fill(SESSION_CONTROL_TOPIC, {name: self.name}),
-            session_event: fill(SESSION_EVENT_TOPIC, {name: self.name})
-        };
+            session_in: fill(SESSION_IN_TOPIC, {name: name}),
+            session_out: fill(SESSION_OUT_TOPIC, {name: name}),
+            session_status: fill(SESSION_STATUS_TOPIC, {name: name}),
+            session_control: fill(SESSION_CONTROL_TOPIC, {name: name}),
+            session_event: fill(SESSION_EVENT_TOPIC, {name: name})
+        });
 
-        subscribe(self.local_topics.bridge_local, relayOut, {wid: self.wid, no_local: true});
-        subscribe(self.local_topics.bridge_control, bridgeControl);
-        subscribe(self.local_topics.session_in, relayIn);
-        subscribe(self.local_topics.session_status, sessionStatus);
+        subscribe(local_topics.bridge_local, relayOut, {wid: wid, no_local: true});
+        subscribe(local_topics.bridge_control, bridgeControl);
+        subscribe(local_topics.session_in, relayIn);
+        subscribe(local_topics.session_status, sessionStatus);
 
         // Start a mqtt_session for the remote
-        self.session = self.mqtt_session.newSession(remote, self.local_topics, options);
+        session = mqtt_session.newSession(rmt, local_topics, options);
 
         publishStatus();
     };
 
     // Disconnect the session of this bridge.
     this.disconnect = function() {
-        self.session.disconnect();
-        self.mqtt_session.deleteSession(self.remote);
-        self.session = undefined;
-        self.mqtt_session = undefined;
+        session.disconnect();
+        mqtt_session.deleteSession(remote);
+        session = undefined;
+        mqtt_session = undefined;
         publishStatus();
     };
 
     // Relay a publish message to the remote
-    function relayOut ( msg, props ) {
+    function relayOut ( msg, _props ) {
         // console.log("handleBridgeLocal", msg, props)
         switch (msg.type) {
             case 'publish':
@@ -147,7 +146,7 @@ function mqttBridge () {
                 if (msg.properties && msg.properties.response_topic) {
                     msg.properties.response_topic = remoteRoutingTopic(msg.properties.response_topic);
                 }
-                publish(self.local_topics.session_out, msg);
+                publish(local_topics.session_out, msg);
                 break;
             default:
                 console.log("Bridge relayOut received unknown message", msg);
@@ -157,35 +156,37 @@ function mqttBridge () {
 
     // Handle a message from the session, maybe relay to the local broker
     function relayIn ( msg ) {
-        let relay = msg.payload;
+        const relay = msg.payload;
         switch (relay.type) {
             case 'publish':
-                let topic = relay.topic;
-                let m = topic.match(/^bridge\/([^\/]+)\/(.*)/);
-                if (m) {
-                    if (m[1] != self.clientId && m[1] != self.routingId) {
-                        console.log("Bridge relay for unknown routing-id", topic);
-                        return;
+                {
+                    const topic = relay.topic;
+                    const m = topic.match(/^bridge\/([^\/]+)\/(.*)/);
+                    if (m) {
+                        if (m[1] != clientId && m[1] != routingId) {
+                            console.log("Bridge relay for unknown routing-id", topic);
+                            return;
+                        }
+                        relay.topic = m[2];
+                    } else {
+                        relay.topic = localRoutingTopic(relay.topic);
                     }
-                    relay.topic = m[2];
-                } else {
-                    relay.topic = localRoutingTopic(relay.topic);
+                    if (relay.properties && relay.properties.response_topic) {
+                        relay.properties.response_topic = localRoutingTopic(relay.properties.response_topic);
+                    }
+                    publish_mqtt_message(relay, { wid: wid });
                 }
-                if (relay.properties && relay.properties.response_topic) {
-                    relay.properties.response_topic = localRoutingTopic(relay.properties.response_topic);
-                }
-                publish_mqtt_message(relay, { wid: self.wid });
                 break;
             case 'connack':
                 sessionConnack(relay);
                 break;
             case 'disconnect':
-                self.is_connected = false;
+                is_connected = false;
                 publishStatus();
                 break;
             case 'auth':
                 // Publish authentication status changes, might need user interaction
-                publish(self.local_topics.bridge_auth, relay, { wid: self.wid });
+                publish(local_topics.bridge_auth, relay, { wid: wid });
                 break;
             case 'suback':
                 // suback (multiple topics)
@@ -210,7 +211,7 @@ function mqttBridge () {
 
     // Bridge control, called by broker on subscribe, unsubscribe, and for auth
     function bridgeControl ( msg ) {
-        let payload = msg.payload;
+        const payload = msg.payload;
         switch (payload.type) {
             case 'subscribe':
                 // Fetch topics
@@ -222,7 +223,7 @@ function mqttBridge () {
                 //  - drop if qos <= or retain_handling >=
                 //  - subscribe if new or qos > or retain_handling <
                 // Relay subscribe with new topic list
-                publish(self.local_topics.session_out, payload);
+                publish(local_topics.session_out, payload);
                 break;
             case 'unsubscribe':
                 // Fetch topics
@@ -234,7 +235,7 @@ function mqttBridge () {
                 break;
             case 'auth':
                 // Forward AUTH messages as-is via the session to the remote server
-                publish(self.local_topics.session_out, payload);
+                publish(local_topics.session_out, payload);
                 break;
             default:
                 console.log("Bridge bridgeControl received unknown message", msg);
@@ -244,49 +245,49 @@ function mqttBridge () {
 
     function sessionConnack ( msg ) {
         // 1. Register the clientId and the optional 'cotonic-routing-id' property
-        self.is_connected = msg.is_connected;
+        is_connected = msg.is_connected;
         if (msg.is_connected) {
             // Either the existing client-id or an assigned client-id
-            self.clientId = msg.client_id;
+            clientId = msg.client_id;
 
             // Optional routing-id, assigned by the server
-            let props = msg.connack.properties;
+            const props = msg.connack.properties;
             if (props && props['cotonic-routing-id']) {
-                self.routingId = props['cotonic-routing-id'];
+                routingId = props['cotonic-routing-id'];
             } else {
-                self.routingId = msg.client_id;
+                routingId = msg.client_id;
             }
 
             if (!msg.connack.session_present) {
                 // Subscribe to the client + routing forward topics
-                let topics = [
-                    { topic: "bridge/" + self.clientId + "/#", qos: 2, no_local: true }
+                const topics = [
+                    { topic: `bridge/${ clientId }/#`, qos: 2, no_local: true }
                 ];
-                if (self.clientId != self.routingId) {
-                    topics.push({ topic: "bridge/" + self.routingId + "/#", qos: 2, no_local: true });
+                if (clientId != routingId) {
+                    topics.push({ topic: `bridge/${ routingId }/#`, qos: 2, no_local: true });
                 }
-                let subscribe = {
+                const subscribe = {
                     type: "subscribe",
                     topics: topics,
                 };
-                publish(self.local_topics.session_out, subscribe);
+                publish(local_topics.session_out, subscribe);
                 resubscribeTopics();
-                self.session_present = !!msg.connack.session_present;
+                session_present = !!msg.connack.session_present;
             } else {
-                self.session_present = true;
+                session_present = true;
             }
         }
         publishStatus();
     }
 
     function resubscribeTopics ( ) {
-        let subs = find_subscriptions_below("bridge/" + self.name);
-        let topics = {};
+        const subs = find_subscriptions_below(`bridge/${ name }`);
+        const topics = {};
         for (let i = 0; i < subs.length; i++) {
-            if (subs[i].wid == self.wid) {
+            if (subs[i].wid == wid) {
                 continue;
             }
-            let sub = Object.assign({}, subs[i].sub);
+            const sub = Object.assign({}, subs[i].sub);
             sub.topic = remove_named_wildcards(sub.topic);
             if (!topics[sub.topic]) {
                 topics[sub.topic] = sub;
@@ -294,8 +295,8 @@ function mqttBridge () {
                 mergeSubscription(topics[sub.topic], sub);
             }
         }
-        let ts = [];
-        for (let t in topics) {
+        const ts = [];
+        for (const t in topics) {
             ts.push(topics[t]);
         }
         if (ts.length > 0) {
@@ -303,47 +304,30 @@ function mqttBridge () {
         }
     }
 
-    function mergeSubscription ( subA, subB ) {
-        let qosA = subA.qos || 0;
-        let qosB = subB.qos || 0;
-        subA.qos = Math.max(qosA, qosB);
-
-        let rhA = subA.retain_handling || 0;
-        let rhB = subB.retain_handling || 0;
-        subA.retain_handling = Math.min(rhA, rhB);
-
-        subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false;
-        subA.no_local = subA.no_local && subB.no_local;
-    }
-
     // Session status changes
     function sessionStatus ( msg ) {
-        self.is_connected = msg.is_connected;
+        is_connected = msg.is_connected;
     }
 
     function remoteRoutingTopic ( topic ) {
-        return "bridge/" + self.routingId + "/" + topic;
+        return `bridge/${ routingId }/${ topic }`;
     }
 
     function remoteClientTopic ( topic ) {
-        return "bridge/" + self.clientId + "/" + topic;
+        return `bridge/${ clientId }/${ topic }`;
     }
 
     function localRoutingTopic ( topic ) {
-        return "bridge/" + self.name + "/" + topic;
-    }
-
-    function dropRoutingTopic ( topic ) {
-        return topic.replace(/^bridge\/[^\/]+\//, '');
+        return `bridge/${ name }/${ topic }`;
     }
 
     function publishStatus() {
         publish(
-            self.local_topics.bridge_status,
+            local_topics.bridge_status,
             {
-                is_connected: self.is_connected,
-                session_present: self.session_present,
-                client_id: self.clientId
+                is_connected: is_connected,
+                session_present: session_present,
+                client_id: clientId
             },
             { retain: true });
 
@@ -351,15 +335,15 @@ function mqttBridge () {
             'model/sessionStorage/post/mqtt$clientBridgeTopic',
             remoteClientTopic(""));
 
-        if (self.is_ui_state) {
-            let ui = {
+        if (is_ui_state) {
+            const ui = {
                 classes: [],
                 status: {
-                    'remote': self.remote,
-                    'name': self.name
+                    'remote': remote,
+                    'name': name
                 }
             };
-            if (self.is_connected) {
+            if (is_connected) {
                 ui.classes.push('connected');
             } else {
                 ui.classes.push('disconnected');
@@ -368,5 +352,23 @@ function mqttBridge () {
         }
     }
 }
+
+function mergeSubscription ( subA, subB ) {
+    const qosA = subA.qos || 0;
+    const qosB = subB.qos || 0;
+    subA.qos = Math.max(qosA, qosB);
+
+    const rhA = subA.retain_handling || 0;
+    const rhB = subB.retain_handling || 0;
+    subA.retain_handling = Math.min(rhA, rhB);
+
+    subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false;
+    subA.no_local = subA.no_local && subB.no_local;
+}
+
+function dropRoutingTopic ( topic ) {
+    return topic.replace(/^bridge\/[^\/]+\//, '');
+}
+
 
 export {newBridge, disconnectBridge, findBridge, deleteBridge, bridges};
