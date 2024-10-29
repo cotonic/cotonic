@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2024 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,17 @@ function exec(pattern, topic) {
 }
 
 function matches(pattern, topic) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
+    const patternSegments = pattern.split(SEPARATOR);
+    const topicSegments = topic.split(SEPARATOR);
 
-    var patternLength = patternSegments.length;
-    var topicLength = topicSegments.length;
-    var lastIndex = patternLength - 1;
+    const patternLength = patternSegments.length;
+    const topicLength = topicSegments.length;
+    const lastIndex = patternLength - 1;
 
-    for(var i = 0; i < patternLength; i++){
-        var currentPattern = patternSegments[i];
-        var patternChar = currentPattern[0];
-        var currentTopic = topicSegments[i];
+    for(let i = 0; i < patternLength; i++){
+        const currentPattern = patternSegments[i];
+        const patternChar = currentPattern[0];
+        const currentTopic = topicSegments[i];
 
         if(!currentTopic && !currentPattern)
             continue;
@@ -54,16 +54,16 @@ function matches(pattern, topic) {
 }
 
 function fill(pattern, params){
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
+    const patternSegments = pattern.split(SEPARATOR);
+    const patternLength = patternSegments.length;
 
-    var result = [];
+    const result = [];
 
-    for (var i = 0; i < patternLength; i++) {
-        var currentPattern = patternSegments[i];
-        var patternChar = currentPattern[0];
-        var patternParam = currentPattern.slice(1);
-        var paramValue = params[patternParam];
+    for (let i = 0; i < patternLength; i++) {
+        const currentPattern = patternSegments[i];
+        const patternChar = currentPattern[0];
+        const patternParam = currentPattern.slice(1);
+        const paramValue = params[patternParam];
 
         if(patternChar === ALL){
             // Check that it isn't undefined
@@ -82,15 +82,15 @@ function fill(pattern, params){
 }
 
 function extract(pattern, topic) {
-    var params = {};
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
+    const params = {};
+    const patternSegments = pattern.split(SEPARATOR);
+    const topicSegments = topic.split(SEPARATOR);
 
-    var patternLength = patternSegments.length;
+    const patternLength = patternSegments.length;
 
-    for(var i = 0; i < patternLength; i++){
-        var currentPattern = patternSegments[i];
-        var patternChar = currentPattern[0];
+    for(let i = 0; i < patternLength; i++){
+        const currentPattern = patternSegments[i];
+        const patternChar = currentPattern[0];
 
         if(currentPattern.length === 1)
             continue;
@@ -107,13 +107,13 @@ function extract(pattern, topic) {
 }
 
 function remove_named_wildcards(pattern) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var mqttPattern = [];
+    const patternSegments = pattern.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    const mqttPattern = [];
 
-    for(var i = 0; i < patternLength; i++) {
-        var currentPattern = patternSegments[i];
-        var patternChar = currentPattern[0];
+    for(let i = 0; i < patternLength; i++) {
+        const currentPattern = patternSegments[i];
+        const patternChar = currentPattern[0];
 
         if(patternChar === ALL || patternChar == SINGLE) {
             mqttPattern.push(patternChar);

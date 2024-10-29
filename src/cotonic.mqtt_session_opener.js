@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { publish as brokerPublish, subscribe as brokerSubscribe, call as brokerCall } from "./cotonic.broker.js";
+import { publish as brokerPublish, subscribe as brokerSubscribe } from "./cotonic.broker.js";
 
 const console = globalThis.console;
 
@@ -33,34 +33,26 @@ const console = globalThis.console;
 // One of them is 'origin' (which is a special case)
 const sessions = {};
 
-const MQTT_KEEP_ALIVE = 300;                  // Default PINGREQ interval in seconds
-const MQTT_SESSION_EXPIRY = 1800;             // Expire the session if we couldn't reconnect in 30 minutes
+const MQTT_KEEP_ALIVE = 300; // Default PINGREQ interval in seconds
 
-const MQTT_RC_SUCCESS                  = 0;
-const MQTT_RC_DISCONNECT_WITH_WILL     = 4;
-const MQTT_RC_CLIENT_ID_INVALID        = 133;
-const MQTT_RC_BAD_USERNAME_OR_PASSWORD = 134;
-const MQTT_RC_PACKET_ID_IN_USE         = 145;
-const MQTT_RC_PACKET_ID_NOT_FOUND      = 146;
-
-var newSession = function( remote, bridgeTopics, options ) {
+function newSession( remote, bridgeTopics, options ) {
     remote = remote || 'opener';
     if (sessions[remote]) {
         return sessions[remote];
     } else {
-        let ch = new mqttSession(bridgeTopics);
+        const ch = new mqttSession(bridgeTopics);
         sessions[remote] = ch;
         ch.connect(remote, options);
         return ch;
     }
 };
 
-var findSession = function( remote ) {
+function findSession( remote ) {
     remote = remote || 'opener';
     return sessions[remote];
 };
 
-var deleteSession = function( remote ) {
+function deleteSession( remote ) {
     remote = remote || 'opener';
 
     delete sessions[remote];
@@ -85,13 +77,11 @@ function mqttSession( mqttBridgeTopics ) {
     this.keepAliveTimer = false;
     this.keepAliveInterval = MQTT_KEEP_ALIVE;
 
-    var self = this;
-
     /**
      * A message sent from the bridge, to be relayed to the server
      * The bridge took care of rewriting topics
      */
-    function sessionToRemote( msg ) {
+    const sessionToRemote = ( msg ) => {
         switch (msg.payload.type) {
             case "publish":
                 publish(msg.payload);
@@ -103,7 +93,7 @@ function mqttSession( mqttBridgeTopics ) {
                 unsubscribe(msg.payload);
                 break;
             case "auth":
-                self.sendMessage(msg.payload);
+                this.sendMessage(msg.payload);
                 break;
             default:
                 // Error: unknown msg to relay
@@ -112,29 +102,21 @@ function mqttSession( mqttBridgeTopics ) {
     }
 
     /**
-     * Relay a publish to the bridge, the bridge will rewrite the topic
-     * and republish it locally.
-     */
-    function sessionToBridge( msg ) {
-        localPublish(self.bridgeTopics.session_in, msg);
-    }
-
-    /**
      * Control messages from the bridge for this session
      */
-    function sessionControl( msg ) {
+    function sessionControl( _msg ) {
     }
 
     /**
      * Start a transport to the remote
      * Called by the bridge or other components that manage a MQTT connection
      */
-    this.connect = function( remote, options ) {
+    this.connect = ( _remote, options ) => {
         options = options || {};
         if (typeof options.client_id === "string") {
-            self.clientId = options.client_id;
+            this.clientId = options.client_id;
         }
-        if (window.opener) {
+        if (globalThis.opener) {
             resetKeepAliveTimer();
             publishEvent("transport/connected");
         } else {
@@ -143,13 +125,13 @@ function mqttSession( mqttBridgeTopics ) {
         }
     };
 
-    this.disconnect = function (reasonCode) {
+    this.disconnect = ( _reasonCode ) => {
         stopKeepAliveTimer();
         publishStatus(false);
     };
 
-    this.reconnect = function( remote ) {
-        if (window.opener) {
+    this.reconnect = ( _remote ) => {
+        if (globalThis.opener) {
             resetKeepAliveTimer();
             publishEvent("transport/connected");
         } else {
@@ -158,23 +140,23 @@ function mqttSession( mqttBridgeTopics ) {
         }
     };
 
-    this.isConnected = function() {
-        if (window.opener) {
+    this.isConnected = () => {
+        if (globalThis.opener) {
             return true;
         } else {
             return false;
         }
     };
 
-    function publish( pubmsg ) {
+    const publish = ( pubmsg ) => {
         const payload = pubmsg.payload;
-        let properties = pubmsg.properties || {};
+        const properties = pubmsg.properties || {};
 
         if (typeof payload != "undefined" && payload !== null) {
-            let contentType = properties.content_type || guessContentType(payload);
+            const contentType = properties.content_type || guessContentType(payload);
             properties.content_type = contentType;
         }
-        let msg = {
+        const msg = {
             type: 'publish',
             topic: pubmsg.topic,
             payload: pubmsg.payload,
@@ -182,27 +164,27 @@ function mqttSession( mqttBridgeTopics ) {
             retain: pubmsg.retain || 0,
             properties: properties
         };
-        self.sendMessage(msg);
+        this.sendMessage(msg);
     }
 
-    function subscribe ( submsg ) {
+    const subscribe = ( _submsg ) => {
         // TODO
     }
 
-    function unsubscribe ( unsubmsg ) {
+    const unsubscribe = ( _unsubmsg ) => {
         // TODO
     }
 
-    this.keepAlive = function() {
-        if (!window.opener) {
+    this.keepAlive = () => {
+        if (!globalThis.opener) {
             stopKeepAliveTimer();
             publishStatus(false);
         }
     };
 
-    this.sendMessage = function ( msg ) {
-        if (window.opener) {
-            window.opener.cotonic.broker.publish_mqtt_message(msg);
+    this.sendMessage = ( msg ) => {
+        if (globalThis.opener) {
+            globalThis.opener.cotonic.broker.publish_mqtt_message(msg);
             return true;
         } else {
             return false;
@@ -212,11 +194,8 @@ function mqttSession( mqttBridgeTopics ) {
     /**
      * State functions
      */
-    function isStateConnected() {
-        return !!window.opener;
-    }
 
-    function guessContentType( payload ) {
+    const guessContentType = ( payload ) => {
         switch (typeof(payload)) {
             case "string":
                 return "text/plain";
@@ -242,68 +221,58 @@ function mqttSession( mqttBridgeTopics ) {
         }
     }
 
-    function resetKeepAliveTimer() {
+    const resetKeepAliveTimer = () => {
         stopKeepAliveTimer();
-        if (self.keepAliveInterval > 0) {
-            self.keepAliveTimer = setInterval(function() { self.keepAlive(); }, self.keepAliveInterval * 1000);
+        if (this.keepAliveInterval > 0) {
+            this.keepAliveTimer = setInterval(() => { this.keepAlive(); }, this.keepAliveInterval * 1000);
         }
     }
 
-    function stopKeepAliveTimer() {
-        if (self.keepAliveTimer) {
-            clearTimeout(self.keepAliveTimer);
-            self.keepAliveTimer = false;
+    const stopKeepAliveTimer = () => {
+        if (this.keepAliveTimer) {
+            clearTimeout(this.keepAliveTimer);
+            this.keepAliveTimer = false;
         }
-    }
-
-    /**
-     * Force all connections closed - happens on:
-     * - receive of 'DISCONNECT'
-     * - keep-alive timeout
-     */
-    function closeConnections() {
-        stopKeepAliveTimer();
-        publishStatus(false);
     }
 
     /**
      * Publish a message to the broker
      */
-    function localPublish( topic, msg, opts ) {
+    const localPublish = ( topic, msg, opts ) => {
         brokerPublish(topic, msg, opts);
     }
 
     /**
      * Subscribe to a topic on the broker
      */
-    function localSubscribe( topic, callback ) {
+    const localSubscribe = ( topic, callback ) => {
         brokerSubscribe(topic, callback);
     }
 
     /**
      * Publish the current connection status
      */
-    function publishStatus( isConnected ) {
+    const publishStatus = ( isConnected ) => {
         localPublish(
-            self.bridgeTopics.session_status,
-            { is_connected: isConnected, client_id: self.clientId  },
+            this.bridgeTopics.session_status,
+            { is_connected: isConnected, client_id: this.clientId  },
             { retain: true });
     }
 
     /**
      * Publish a session event
      */
-    function publishEvent( event ) {
-        localPublish(`${ self.bridgeTopics.session_event }/${ event }`, {});
+    const publishEvent = ( event ) => {
+        localPublish(`${ this.bridgeTopics.session_event }/${ event }`, {});
     }
 
     /**
      * Initialize, connect to local topics
      */
-    function init() {
+    const init = () => {
         publishStatus( false );
-        localSubscribe(self.bridgeTopics.session_out, sessionToRemote);
-        localSubscribe(self.bridgeTopics.session_control, sessionControl);
+        localSubscribe(this.bridgeTopics.session_out, sessionToRemote);
+        localSubscribe(this.bridgeTopics.session_control, sessionControl);
     }
 
     init();
