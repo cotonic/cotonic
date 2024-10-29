@@ -21,15 +21,15 @@
     return matches(pattern, topic) ? extract(pattern, topic) : null;
   }
   function matches(pattern, topic) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var topicLength = topicSegments.length;
-    var lastIndex = patternLength - 1;
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      var currentTopic = topicSegments[i];
+    const patternSegments = pattern.split(SEPARATOR);
+    const topicSegments = topic.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    const topicLength = topicSegments.length;
+    const lastIndex = patternLength - 1;
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
+      const currentTopic = topicSegments[i];
       if (!currentTopic && !currentPattern)
         continue;
       if (!currentTopic && currentPattern !== ALL)
@@ -42,14 +42,14 @@
     return patternLength === topicLength;
   }
   function fill(pattern, params) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var result = [];
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      var patternParam = currentPattern.slice(1);
-      var paramValue = params[patternParam];
+    const patternSegments = pattern.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    const result = [];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
+      const patternParam = currentPattern.slice(1);
+      const paramValue = params[patternParam];
       if (patternChar === ALL) {
         if (paramValue !== void 0)
           result.push([].concat(paramValue).join(SEPARATOR));
@@ -61,13 +61,13 @@
     return result.join(SEPARATOR);
   }
   function extract(pattern, topic) {
-    var params = {};
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
+    const params = {};
+    const patternSegments = pattern.split(SEPARATOR);
+    const topicSegments = topic.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
       if (currentPattern.length === 1)
         continue;
       if (patternChar === ALL) {
@@ -80,12 +80,12 @@
     return params;
   }
   function remove_named_wildcards(pattern) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var mqttPattern = [];
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
+    const patternSegments = pattern.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    const mqttPattern = [];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
       if (patternChar === ALL || patternChar == SINGLE) {
         mqttPattern.push(patternChar);
       } else {

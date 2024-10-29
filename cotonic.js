@@ -21,15 +21,15 @@
     return matches(pattern, topic) ? extract(pattern, topic) : null;
   }
   function matches(pattern, topic) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var topicLength = topicSegments.length;
-    var lastIndex = patternLength - 1;
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      var currentTopic = topicSegments[i];
+    const patternSegments = pattern.split(SEPARATOR);
+    const topicSegments = topic.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    const topicLength = topicSegments.length;
+    const lastIndex = patternLength - 1;
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
+      const currentTopic = topicSegments[i];
       if (!currentTopic && !currentPattern)
         continue;
       if (!currentTopic && currentPattern !== ALL)
@@ -42,14 +42,14 @@
     return patternLength === topicLength;
   }
   function fill(pattern, params) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var result = [];
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
-      var patternParam = currentPattern.slice(1);
-      var paramValue = params[patternParam];
+    const patternSegments = pattern.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    const result = [];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
+      const patternParam = currentPattern.slice(1);
+      const paramValue = params[patternParam];
       if (patternChar === ALL) {
         if (paramValue !== void 0)
           result.push([].concat(paramValue).join(SEPARATOR));
@@ -61,13 +61,13 @@
     return result.join(SEPARATOR);
   }
   function extract(pattern, topic) {
-    var params = {};
-    var patternSegments = pattern.split(SEPARATOR);
-    var topicSegments = topic.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
+    const params = {};
+    const patternSegments = pattern.split(SEPARATOR);
+    const topicSegments = topic.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
       if (currentPattern.length === 1)
         continue;
       if (patternChar === ALL) {
@@ -80,12 +80,12 @@
     return params;
   }
   function remove_named_wildcards(pattern) {
-    var patternSegments = pattern.split(SEPARATOR);
-    var patternLength = patternSegments.length;
-    var mqttPattern = [];
-    for (var i = 0; i < patternLength; i++) {
-      var currentPattern = patternSegments[i];
-      var patternChar = currentPattern[0];
+    const patternSegments = pattern.split(SEPARATOR);
+    const patternLength = patternSegments.length;
+    const mqttPattern = [];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
+      const patternChar = currentPattern[0];
       if (patternChar === ALL || patternChar == SINGLE) {
         mqttPattern.push(patternChar);
       } else {
@@ -1218,7 +1218,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.7.2";
+  var VERSION = "1.7.3";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -3328,14 +3328,14 @@
     }
   };
   function encodeConnect(msg) {
-    var first = MESSAGE_TYPE.CONNECT << 4;
-    var willFlag = msg.will_flag || false;
-    var willRetain = msg.will_retain || false;
-    var willQoS = msg.will_qos || 0;
-    var cleanStart = msg.clean_start || false;
-    var v = new binary();
+    const first = MESSAGE_TYPE.CONNECT << 4;
+    const willFlag = msg.will_flag || false;
+    const willRetain = msg.will_retain || false;
+    const willQoS = msg.will_qos || 0;
+    const cleanStart = msg.clean_start || false;
+    const v = new binary();
     v.append(MqttProtoIdentifierv5);
-    var flags = 0;
+    let flags = 0;
     if (typeof msg.username == "string") {
       flags |= 1 << 7;
     }
@@ -3364,9 +3364,9 @@
     return packet(first, v);
   }
   function encodeConnack(msg) {
-    var first = MESSAGE_TYPE.CONNACK << 4;
-    var flags = 0;
-    var v = new binary();
+    const first = MESSAGE_TYPE.CONNACK << 4;
+    let flags = 0;
+    const v = new binary();
     if (msg.session_present) {
       flags |= 1;
     }
@@ -3376,11 +3376,11 @@
     return packet(first, v);
   }
   function encodePublish2(msg) {
-    var first = MESSAGE_TYPE.PUBLISH << 4;
-    var v = new binary();
-    var qos = msg.qos || 0;
-    var dup = msg.dup || false;
-    var retain2 = msg.retain || false;
+    let first = MESSAGE_TYPE.PUBLISH << 4;
+    const v = new binary();
+    const qos = msg.qos || 0;
+    const dup = msg.dup || false;
+    const retain2 = msg.retain || false;
     first |= (dup ? 1 : 0) << 3;
     first |= (qos & 3) << 1;
     first |= retain2 ? 1 : 0;
@@ -3395,10 +3395,10 @@
     return packet(first, v);
   }
   function encodePubackEtAl(msg) {
-    var first;
-    var v = new binary();
-    var rc = msg.reason_code || 0;
-    var ps = msg.properties || {};
+    let first;
+    const v = new binary();
+    const rc = msg.reason_code || 0;
+    const ps = msg.properties || {};
     switch (msg.type) {
       case "puback":
         first |= MESSAGE_TYPE.PUBACK << 4;
@@ -3421,8 +3421,8 @@
     return packet(first, v);
   }
   function encodeSubscribe2(msg) {
-    var first = MESSAGE_TYPE.SUBSCRIBE << 4;
-    var v = new binary();
+    let first = MESSAGE_TYPE.SUBSCRIBE << 4;
+    const v = new binary();
     first |= 1 << 1;
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
@@ -3430,44 +3430,44 @@
     return packet(first, v);
   }
   function encodeSuback(msg) {
-    var first = MESSAGE_TYPE.SUBACK << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.SUBACK << 4;
+    const v = new binary();
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
     serializeSubscribeAcks(v, msg.acks);
     return packet(first, v);
   }
   function encodeUnsubscribe(msg) {
-    var first = MESSAGE_TYPE.UNSUBSCRIBE << 4 | 2;
-    var v = new binary();
+    const first = MESSAGE_TYPE.UNSUBSCRIBE << 4 | 2;
+    const v = new binary();
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
     serializeUnsubscribeTopics(v, msg.topics);
     return packet(first, v);
   }
   function encodeUnsuback(msg) {
-    var first = MESSAGE_TYPE.UNSUBACK << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.UNSUBACK << 4;
+    const v = new binary();
     v.appendUint16(msg.packet_id);
     v.appendProperties(msg.properties || {});
     serializeUnsubscribeAcks(v, msg.acks);
     return packet(first, v);
   }
   function encodePingReq() {
-    var first = MESSAGE_TYPE.PINGREQ << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.PINGREQ << 4;
+    const v = new binary();
     return packet(first, v);
   }
   function encodePingResp() {
-    var first = MESSAGE_TYPE.PINGRESP << 4;
-    var v = new binary();
+    const first = MESSAGE_TYPE.PINGRESP << 4;
+    const v = new binary();
     return packet(first, v);
   }
   function encodeDisconnect(msg) {
-    var first = MESSAGE_TYPE.DISCONNECT << 4;
-    var v = new binary();
-    var reason_code = msg.reason_code || 0;
-    var properties = msg.properties || {};
+    const first = MESSAGE_TYPE.DISCONNECT << 4;
+    const v = new binary();
+    const reason_code = msg.reason_code || 0;
+    const properties = msg.properties || {};
     if (reason_code != 0 || !isEmptyProperties(properties)) {
       v.append1(reason_code);
       v.appendProperties(properties);
@@ -3475,10 +3475,10 @@
     return packet(first, v);
   }
   function encodeAuth(msg) {
-    var first = MESSAGE_TYPE.AUTH << 4;
-    var v = new binary();
-    var reason_code = msg.reason_code || 0;
-    var properties = msg.properties || {};
+    const first = MESSAGE_TYPE.AUTH << 4;
+    const v = new binary();
+    const reason_code = msg.reason_code || 0;
+    const properties = msg.properties || {};
     if (reason_code != 0 || !isEmptyProperties(properties)) {
       v.append1(reason_code);
       v.appendProperties(properties);
@@ -3489,13 +3489,13 @@
     if (binary2.length < 2) {
       throw "incomplete_packet";
     }
-    var b = new decodeStream(binary2);
-    var first = b.decode1();
-    var len = b.decodeVarint();
-    var variable = b.decodeBin(len);
-    var m;
+    const b = new decodeStream(binary2);
+    const first = b.decode1();
+    const len = b.decodeVarint();
+    const variable = b.decodeBin(len);
+    let m;
     try {
-      var vb = new decodeStream(variable);
+      const vb = new decodeStream(variable);
       switch (first >> 4) {
         case MESSAGE_TYPE.CONNECT:
           m = decodeConnect(first, vb);
@@ -3553,31 +3553,31 @@
     }
     return [m, b.remainingData()];
   };
-  function decodeConnect(first, vb) {
-    var protocolName = vb.decodeUtf8();
-    var protocolLevel = vb.decode1();
+  function decodeConnect(_first, vb) {
+    const protocolName = vb.decodeUtf8();
+    const protocolLevel = vb.decode1();
     if (protocolName == "MQTT" && protocolLevel == 5) {
-      var flags = vb.decode1();
-      var usernameFlag = !!(flags & 128);
-      var passwordFlag = !!(flags & 64);
-      var willRetain = !!(flags & 32);
-      var willQos = flags >> 3 & 3;
-      var willFlag = !!(flags & 4);
-      var cleanStart = !!(flags & 2);
-      var keepAlive = vb.decodeUint16();
-      var props = vb.decodeProperties();
-      var clientId = vb.decodeUtf8();
-      var willProps = {};
-      var willTopic;
-      var willPayload;
+      const flags = vb.decode1();
+      const usernameFlag = !!(flags & 128);
+      const passwordFlag = !!(flags & 64);
+      const willRetain = !!(flags & 32);
+      const willQos = flags >> 3 & 3;
+      const willFlag = !!(flags & 4);
+      const cleanStart = !!(flags & 2);
+      const keepAlive = vb.decodeUint16();
+      const props = vb.decodeProperties();
+      const clientId = vb.decodeUtf8();
+      let willProps = {};
+      let willTopic;
+      let willPayload;
       if (willFlag) {
         willProps = vb.decodeProperties();
         willTopic = vb.decodeUtf8();
-        var willPayloadLen = vb.decodeUint16();
+        const willPayloadLen = vb.decodeUint16();
         willPayload = vb.decodeBin(willPayloadLen);
       }
-      var username;
-      var password;
+      let username;
+      let password;
       if (usernameFlag) {
         username = vb.decodeUtf8();
       }
@@ -3605,11 +3605,11 @@
       throw "unknown_protocol";
     }
   }
-  function decodeConnack(first, vb) {
-    var flags = vb.decode1();
-    var sessionPresent = !!(flags & 1);
-    var connectReason = vb.decode1();
-    var props = vb.decodeProperties();
+  function decodeConnack(_first, vb) {
+    const flags = vb.decode1();
+    const sessionPresent = !!(flags & 1);
+    const connectReason = vb.decode1();
+    const props = vb.decodeProperties();
     return {
       type: "connack",
       session_present: sessionPresent,
@@ -3618,16 +3618,16 @@
     };
   }
   function decodePublish(first, vb) {
-    var dup = !!(first & 8);
-    var qos = first >> 1 & 3;
-    var retain2 = !!(first & 1);
-    var topic = vb.decodeUtf8();
-    var packetId = null;
+    const dup = !!(first & 8);
+    const qos = first >> 1 & 3;
+    const retain2 = !!(first & 1);
+    const topic = vb.decodeUtf8();
+    let packetId = null;
     if (qos > 0) {
       packetId = vb.decodeUint16();
     }
-    var props = vb.decodeProperties();
-    var payload2 = vb.remainingData();
+    const props = vb.decodeProperties();
+    const payload2 = vb.remainingData();
     return {
       type: "publish",
       dup,
@@ -3640,10 +3640,10 @@
     };
   }
   function decodePubackEtAl(first, vb) {
-    var packetId = vb.decodeUint16();
-    var reasonCode = 0;
-    var props = {};
-    var type;
+    const packetId = vb.decodeUint16();
+    let reasonCode = 0;
+    let props = {};
+    let type;
     if (vb.remainingLength() > 0) {
       reasonCode = vb.decode1();
       props = vb.decodeProperties();
@@ -3669,13 +3669,13 @@
       properties: props
     };
   }
-  function decodeSubscribe(first, vb) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var topics = [];
+  function decodeSubscribe(_first, vb) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const topics = [];
     while (vb.remainingLength() > 0) {
-      var name = vb.decodeUtf8();
-      var flags = vb.decode1();
+      const name = vb.decodeUtf8();
+      const flags = vb.decode1();
       topics.push({
         topic: name,
         retain_handling: (flags >> 4) % 3,
@@ -3691,12 +3691,12 @@
       properties: props
     };
   }
-  function decodeSuback(first, vb) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var acks = [];
+  function decodeSuback(_first, vb) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const acks = [];
     while (vb.remainingLength() > 0) {
-      var ack = vb.decode1();
+      const ack = vb.decode1();
       if (ack > 2 && ack < 128) {
         throw "Illegal suback";
       }
@@ -3709,12 +3709,12 @@
       acks
     };
   }
-  function decodeUnsubscribe(first, vb) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var topics = [];
+  function decodeUnsubscribe(_first, vb) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const topics = [];
     while (vb.remainingLength() > 0) {
-      var topic = vb.decodeUtf8();
+      const topic = vb.decodeUtf8();
       topics.push(topic);
     }
     return {
@@ -3724,12 +3724,12 @@
       topics
     };
   }
-  function decodeUnsuback(first, vb) {
-    var packetId = vb.decodeUint16();
-    var props = vb.decodeProperties();
-    var acks = [];
+  function decodeUnsuback(_first, vb) {
+    const packetId = vb.decodeUint16();
+    const props = vb.decodeProperties();
+    const acks = [];
     while (vb.remainingLength() > 0) {
-      var ack = vb.decode1();
+      const ack = vb.decode1();
       if (ack != 0 && ack != 17 && ack < 128) {
         throw "Illegal unsuback";
       }
@@ -3742,7 +3742,7 @@
       acks
     };
   }
-  function decodePingReq(first, vb) {
+  function decodePingReq(_first, vb) {
     if (vb.remainingLength() > 0) {
       throw "pingreq with variable part";
     }
@@ -3750,7 +3750,7 @@
       type: "pingreq"
     };
   }
-  function decodePingResp(first, vb) {
+  function decodePingResp(_first, vb) {
     if (vb.remainingLength() > 0) {
       throw "pingresp with variable part";
     }
@@ -3758,9 +3758,9 @@
       type: "pingresp"
     };
   }
-  function decodeDisconnect(first, vb) {
-    var reasonCode;
-    var props;
+  function decodeDisconnect(_first, vb) {
+    let reasonCode;
+    let props;
     if (vb.remainingLength() == 0) {
       reasonCode = 0;
       props = {};
@@ -3774,9 +3774,9 @@
       properties: props
     };
   }
-  function decodeAuth(first, vb) {
-    var reasonCode;
-    var props;
+  function decodeAuth(_first, vb) {
+    let reasonCode;
+    let props;
     if (vb.remainingLength() == 0) {
       reasonCode = 0;
       props = {};
@@ -3793,110 +3793,111 @@
   function decodeStream(binary2) {
     this.offset = 0;
     this.buf = binary2;
-    var self = this;
-    this.remainingLength = function() {
-      return self.buf.length - self.offset;
+    this.remainingLength = () => {
+      return this.buf.length - this.offset;
     };
-    this.remainingData = function() {
-      if (self.buf.length == self.offset) {
+    this.remainingData = () => {
+      if (this.buf.length == this.offset) {
         return new Uint8Array(0);
       } else {
-        return self.buf.slice(self.offset, self.buf.length);
+        return this.buf.slice(this.offset, this.buf.length);
       }
     };
-    this.ensure = function(n) {
-      if (self.offset + n > self.buf.length) {
+    this.ensure = (n) => {
+      if (this.offset + n > this.buf.length) {
         throw "incomplete_packet";
       }
     };
-    this.decodeVarint = function() {
-      var multiplier = 1;
-      var n = 0;
-      var digits = 0;
-      var digit;
+    this.decodeVarint = () => {
+      let multiplier = 1;
+      let n = 0;
+      let digits = 0;
+      let digit;
       do {
-        self.ensure(1);
+        this.ensure(1);
         if (++digits > 4) {
           throw "malformed";
         }
-        digit = self.buf[self.offset++];
+        digit = this.buf[this.offset++];
         n += (digit & 127) * multiplier;
         multiplier *= 128;
       } while ((digit & 128) !== 0);
       return n;
     };
-    this.decode1 = function() {
-      self.ensure(1);
-      return self.buf[self.offset++];
+    this.decode1 = () => {
+      this.ensure(1);
+      return this.buf[this.offset++];
     };
-    this.decodeUint16 = function() {
-      self.ensure(2);
-      var msb = self.buf[self.offset++];
-      var lsb = self.buf[self.offset++];
+    this.decodeUint16 = () => {
+      this.ensure(2);
+      const msb = this.buf[this.offset++];
+      const lsb = this.buf[this.offset++];
       return (msb << 8) + lsb;
     };
-    this.decodeUint32 = function() {
-      self.ensure(4);
-      var b1 = self.buf[self.offset++];
-      var b2 = self.buf[self.offset++];
-      var b3 = self.buf[self.offset++];
-      var b4 = self.buf[self.offset++];
+    this.decodeUint32 = () => {
+      this.ensure(4);
+      const b1 = this.buf[this.offset++];
+      const b2 = this.buf[this.offset++];
+      const b3 = this.buf[this.offset++];
+      const b4 = this.buf[this.offset++];
       return (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
     };
-    this.decodeBin = function(length) {
+    this.decodeBin = (length) => {
       if (length == 0) {
         return new Uint8Array(0);
       } else {
-        self.ensure(length);
-        var offs = self.offset;
-        self.offset += length;
-        return self.buf.slice(offs, self.offset);
+        this.ensure(length);
+        const offs = this.offset;
+        this.offset += length;
+        return this.buf.slice(offs, this.offset);
       }
     };
-    this.decodeUtf8 = function() {
-      var length = self.decodeUint16();
-      return UTF8ToString(self.decodeBin(length));
+    this.decodeUtf8 = () => {
+      const length = this.decodeUint16();
+      return UTF8ToString(this.decodeBin(length));
     };
-    this.decodeProperties = function() {
-      if (self.remainingLength() == 0) {
+    this.decodeProperties = () => {
+      if (this.remainingLength() == 0) {
         return {};
       }
-      var len = self.decodeVarint();
-      var end = self.offset + len;
-      var props = {};
-      while (self.offset < end) {
-        var c = self.decode1();
-        var p = PROPERTY_DECODE[c];
+      const len = this.decodeVarint();
+      const end = this.offset + len;
+      const props = {};
+      while (this.offset < end) {
+        const c = this.decode1();
+        const p = PROPERTY_DECODE[c];
         if (p) {
-          var v;
-          var k = p[0];
+          let v;
+          let k = p[0];
           switch (p[1]) {
             case "bool":
-              v = !!self.decode1();
+              v = !!this.decode1();
               break;
             case "uint32":
-              v = self.decodeUint32();
+              v = this.decodeUint32();
               break;
             case "uint16":
-              v = self.decodeUint16();
+              v = this.decodeUint16();
               break;
             case "uint8":
-              v = self.decode1();
+              v = this.decode1();
               break;
             case "utf8":
-              v = self.decodeUtf8();
+              v = this.decodeUtf8();
               break;
             case "bin":
-              var count = self.decodeUint16();
-              v = self.decodeBin(count);
+              v = this.decodeBin(
+                this.decodeUint16()
+                /* count */
+              );
               break;
             case "varint":
-              v = self.decodeVarint();
+              v = this.decodeVarint();
               break;
             case "user":
             default:
-              k = self.decodeUtf8();
-              v = self.decodeUtf8();
+              k = this.decodeUtf8();
+              v = this.decodeUtf8();
               break;
           }
           if (p[2]) {
@@ -3908,7 +3909,7 @@
                 props[k].push(v);
                 break;
               default:
-                props[k] = new Array(props[k], v);
+                props[k] = [props[k], v];
                 break;
             }
           } else {
@@ -3922,16 +3923,16 @@
     };
   }
   function serializeSubscribeTopics(v, topics) {
-    for (var i = 0; i < topics.length; i++) {
-      var topic = topics[i];
+    for (let i = 0; i < topics.length; i++) {
+      let topic = topics[i];
       if (typeof topic == "string") {
         topic = { topic };
       }
-      var qos = topic.qos || 0;
-      var noLocal = topic.no_local || false;
-      var retainAsPublished = topic.retain_as_published || false;
-      var retainHandling = topic.retain_handling || 0;
-      var flags = 0;
+      const qos = topic.qos || 0;
+      const noLocal = topic.no_local || false;
+      const retainAsPublished = topic.retain_as_published || false;
+      const retainHandling = topic.retain_handling || 0;
+      let flags = 0;
       flags |= retainHandling << 4;
       flags |= (retainAsPublished ? 1 : 0) << 3;
       flags |= (noLocal ? 1 : 0) << 2;
@@ -3941,8 +3942,8 @@
     }
   }
   function serializeSubscribeAcks(v, acks) {
-    for (var i = 0; i < acks.length; i++) {
-      var ack = acks[i];
+    for (let i = 0; i < acks.length; i++) {
+      const ack = acks[i];
       if (ack >= 0 && ack <= 2) {
         v.append1(ack);
       } else if (ack >= 128 && ack <= 255) {
@@ -3953,13 +3954,13 @@
     }
   }
   function serializeUnsubscribeTopics(v, topics) {
-    for (var i = 0; i < topics.length; i++) {
+    for (let i = 0; i < topics.length; i++) {
       v.appendUTF8(topics[i]);
     }
   }
   function serializeUnsubscribeAcks(v, acks) {
-    for (var i = 0; i < acks.length; i++) {
-      var ack = acks[i];
+    for (let i = 0; i < acks.length; i++) {
+      const ack = acks[i];
       if (ack == 0 || ack == 17) {
         v.append1(ack);
       } else if (ack >= 128 && ack <= 255) {
@@ -3970,10 +3971,10 @@
     }
   }
   function packet(first, binary2) {
-    var mbi = encodeMBI(binary2.length());
-    var pack = new Uint8Array(1 + mbi.length + binary2.length());
+    const mbi = encodeMBI(binary2.length());
+    const pack = new Uint8Array(1 + mbi.length + binary2.length());
     pack[0] = first;
-    for (var i = 0; i < mbi.length; i++) {
+    for (let i = 0; i < mbi.length; i++) {
       pack[1 + i] = mbi[i];
     }
     binary2.copyInto(pack, 1 + mbi.length);
@@ -3983,70 +3984,69 @@
     this.size = 64;
     this.buf = new Uint8Array(this.size);
     this.len = 0;
-    var self = this;
-    this.length = function() {
+    this.length = () => {
       return this.len;
     };
-    this.copyInto = function(buf, offset) {
-      for (var i = self.len - 1; i >= 0; i--) {
-        buf[i + offset] = self.buf[i];
+    this.copyInto = (buf, offset) => {
+      for (let i = this.len - 1; i >= 0; i--) {
+        buf[i + offset] = this.buf[i];
       }
     };
-    this.val = function() {
-      return self.buf.slice(0, self.len);
+    this.val = () => {
+      return this.buf.slice(0, this.len);
     };
-    this.append = function(bytes) {
-      self.reserve(bytes.length);
-      for (var i = 0; i < bytes.length; i++) {
-        self.buf[self.len++] = bytes[i];
+    this.append = (bytes) => {
+      this.reserve(bytes.length);
+      for (let i = 0; i < bytes.length; i++) {
+        this.buf[this.len++] = bytes[i];
       }
     };
-    this.append1 = function(byte) {
-      self.reserve(1);
-      self.buf[self.len++] = byte;
+    this.append1 = (byte) => {
+      this.reserve(1);
+      this.buf[this.len++] = byte;
     };
-    this.appendUint32 = function(input) {
-      self.reserve(4);
+    this.appendUint32 = (input) => {
+      this.reserve(4);
       if (input < 0) {
         throw "Value uint32 below 0";
       }
-      self.buf[self.len++] = input >> 24 & 255;
-      self.buf[self.len++] = input >> 16 & 255;
-      self.buf[self.len++] = input >> 8 & 255;
-      self.buf[self.len++] = input & 255;
+      this.buf[this.len++] = input >> 24 & 255;
+      this.buf[this.len++] = input >> 16 & 255;
+      this.buf[this.len++] = input >> 8 & 255;
+      this.buf[this.len++] = input & 255;
     };
-    this.appendUint16 = function(input) {
-      self.reserve(2);
+    this.appendUint16 = (input) => {
+      this.reserve(2);
       if (input < 0 || input >= 65536) {
         throw "Value too large for uint16";
       }
-      self.buf[self.len++] = input >> 8;
-      self.buf[self.len++] = input & 255;
+      this.buf[this.len++] = input >> 8;
+      this.buf[this.len++] = input & 255;
     };
-    this.appendVarint = function(number) {
+    this.appendVarint = (number) => {
       if (number < 0) {
         throw "Negative varint";
       }
-      var numBytes = 0;
+      let numBytes = 0;
       do {
-        self.reserve(1);
-        var digit = number % 128;
+        this.reserve(1);
+        let digit = number % 128;
         number = number >> 7;
         if (number > 0) {
           digit |= 128;
         }
-        self.buf[self.len++] = digit;
+        this.buf[this.len++] = digit;
       } while (number > 0 && ++numBytes < 4);
     };
-    this.appendUTF8 = function(s) {
-      var b = stringToUTF8(s);
-      self.appendUint16(b.length);
-      self.reserve(b.length);
-      for (var i = 0; i < b.length; i++) {
-        self.buf[self.len++] = b[i];
+    this.appendUTF8 = (s) => {
+      const b = stringToUTF8(s);
+      this.appendUint16(b.length);
+      this.reserve(b.length);
+      for (let i = 0; i < b.length; i++) {
+        this.buf[this.len++] = b[i];
       }
     };
-    this.appendBin = function(b, addlen) {
+    this.appendBin = (b, addlen) => {
       switch (typeof b) {
         case "undefined":
           if (addlen) {
@@ -4056,34 +4056,34 @@
         case "string":
           b = stringToUTF8(b);
           if (addlen) {
-            self.appendUint16(b.length);
+            this.appendUint16(b.length);
           }
-          self.reserve(b.length);
-          for (var i = 0; i < b.length; i++) {
-            self.buf[self.len++] = b[i];
+          this.reserve(b.length);
+          for (let i = 0; i < b.length; i++) {
+            this.buf[this.len++] = b[i];
           }
           break;
         case "object":
           if (b instanceof binary) {
             if (addlen) {
-              self.appendUint16(b.length());
+              this.appendUint16(b.length());
             }
-            self.reserve(b.length());
-            b.copyInto(self.buf, self.len);
-            self.len += b.length();
+            this.reserve(b.length());
+            b.copyInto(this.buf, this.len);
+            this.len += b.length();
           } else if (typeof b.BYTES_PER_ELEMENT == "number") {
-            var v;
+            let v;
             if (b.BYTES_PER_ELEMENT == 1) {
               v = b;
             } else {
               v = new Uint8Array(b.buffer);
             }
-            self.reserve(v.length + 2);
+            this.reserve(v.length + 2);
             if (addlen) {
-              self.appendUint16(v.length);
+              this.appendUint16(v.length);
             }
-            for (let i2 = 0; i2 < v.length; i2++) {
-              self.buf[self.len++] = v[i2];
+            for (let i = 0; i < v.length; i++) {
+              this.buf[this.len++] = v[i];
             }
           } else {
             throw "Can't serialize unknown object";
@@ -4093,29 +4093,29 @@
           throw "Can't serialize unsupported type: " + typeof b;
       }
     };
-    this.appendProperties = function(props) {
-      var b = serializeProperties(props);
-      self.appendVarint(b.length());
-      self.appendBin(b);
+    this.appendProperties = (props) => {
+      const b = serializeProperties(props);
+      this.appendVarint(b.length());
+      this.appendBin(b);
     };
-    this.reserve = function(count) {
-      if (self.size < self.len + count) {
-        var newsize = self.size * 2;
-        while (newsize < self.size + count) {
+    this.reserve = (count) => {
+      if (this.size < this.len + count) {
+        let newsize = this.size * 2;
+        while (newsize < this.size + count) {
           newsize = newsize * 2;
         }
-        var newbuf = new Uint8Array(newsize);
-        for (var i = self.len - 1; i >= 0; i--) {
-          newbuf[i] = self.buf[i];
+        const newbuf = new Uint8Array(newsize);
+        for (let i = this.len - 1; i >= 0; i--) {
+          newbuf[i] = this.buf[i];
         }
-        self.size = newsize;
-        self.buf = newbuf;
+        this.size = newsize;
+        this.buf = newbuf;
       }
     };
   }
   function isEmptyProperties(props) {
-    for (var k in props) {
-      if (!props.hasOwnProperty(k)) {
+    for (const k in props) {
+      if (!Object.prototype.hasOwnProperty.call(props, k)) {
         continue;
       }
       return false;
@@ -4123,14 +4123,14 @@
     return true;
   }
   function serializeProperties(props) {
-    var b = new binary();
-    for (var k in props) {
-      if (!props.hasOwnProperty(k)) {
+    const b = new binary();
+    for (const k in props) {
+      if (!Object.prototype.hasOwnProperty.call(props, k)) {
         continue;
       }
-      var p = PROPERTY[k] || PROPERTY.__user;
+      const p = PROPERTY[k] || PROPERTY.__user;
       if (p[2] && props[k].constructor === Array) {
-        for (var i = 0; i < props[k].length; i++) {
+        for (let i = 0; i < props[k].length; i++) {
           b.append1(p[0]);
           serializeProperty(p[1], k, props[k][i], b);
         }
@@ -4178,10 +4178,10 @@
     return new TextEncoder("utf-8").encode(input);
   }
   function encodeMBI(number) {
-    var output = new Array(1);
-    var numBytes = 0;
+    const output = new Array(1);
+    let numBytes = 0;
     do {
-      var digit = number % 128;
+      let digit = number % 128;
       number = number >> 7;
       if (number > 0) {
         digit |= 128;
@@ -4191,8 +4191,8 @@
     return output;
   }
   function init() {
-    for (var k in PROPERTY) {
-      var p = PROPERTY[k];
+    for (const k in PROPERTY) {
+      const p = PROPERTY[k];
       PROPERTY_DECODE[p[0]] = [k, p[1], p[2]];
     }
   }
@@ -4225,149 +4225,142 @@
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
     const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
     const protocol = options.protocol || (document.location.protocol === "http:" ? "ws" : "wss");
-    var self = this;
-    this.sendMessage = function(message) {
+    this.sendMessage = (message) => {
       if (isStateConnected()) {
-        var b = encoder(message);
-        self.socket.send(b.buffer);
+        const b = encoder(message);
+        this.socket.send(b.buffer);
         if (message.type == "disconnect") {
-          self.closeConnection();
+          this.closeConnection();
         }
         return true;
       } else {
         return false;
       }
     };
-    this.name = function() {
+    this.name = () => {
       return "mqtt_transport.ws: " + this.remoteUrl;
     };
-    this.closeConnection = function() {
+    this.closeConnection = () => {
       if (isStateConnected() || isStateConnecting()) {
-        self.socket.close();
-        self.isConnected = false;
-        self.isForceClosed = true;
-        unsubscribe("model/lifecycle/event/state", { wid: self.name() });
+        this.socket.close();
+        this.isConnected = false;
+        this.isForceClosed = true;
+        unsubscribe("model/lifecycle/event/state", { wid: this.name() });
       }
     };
-    this.closeReconnect = function(isNoBackOff) {
+    this.closeReconnect = (isNoBackOff) => {
       if (isStateConnected() || isStateConnecting()) {
-        self.socket.close();
-        self.isConnected = false;
+        this.socket.close();
+        this.isConnected = false;
       }
-      self.isForceClosed = false;
+      this.isForceClosed = false;
       if (isNoBackOff === true) {
-        self.backoff = 0;
+        this.backoff = 0;
         connect();
       } else {
         setBackoff();
       }
     };
-    this.openConnection = function() {
-      self.isForceClosed = false;
+    this.openConnection = () => {
+      this.isForceClosed = false;
       connect();
     };
-    function isStateConnected() {
-      return !self.awaitPong && self.isConnected && self.socket && self.socket.readyState == 1;
-    }
-    function isStateConnecting() {
-      return !self.isConnected || self.awaitPing || self.socket && self.socket.readyState == 0;
-    }
-    function isStateClosing() {
-      return self.socket && self.socket.readyState == 2;
-    }
-    function isStateClosed() {
-      return !self.socket || self.socket.readyState == 3;
-    }
-    function isStateForceClosed() {
-      return self.isForceClosed;
-    }
-    function isStateBackoff() {
-      return self.backoff > 0;
-    }
-    function periodic() {
+    const isStateConnected = () => {
+      return !this.awaitPong && this.isConnected && this.socket && this.socket.readyState == 1;
+    };
+    const isStateConnecting = () => {
+      return !this.isConnected || this.awaitPing || this.socket && this.socket.readyState == 0;
+    };
+    const isStateClosed = () => {
+      return !this.socket || this.socket.readyState == 3;
+    };
+    const isStateForceClosed = () => {
+      return this.isForceClosed;
+    };
+    const periodic = () => {
       if (isStateClosed() && !isStateForceClosed()) {
-        if (self.backoff > 0) {
-          self.backoff--;
+        if (this.backoff > 0) {
+          this.backoff--;
         } else {
           connect();
         }
       }
-    }
-    function handleError(reason) {
-      console.log("Closing websocket connection to " + self.remoteUrl + " due to " + reason);
-      self.errorsSinceLastData++;
+    };
+    const handleError = (reason) => {
+      console.log("Closing websocket connection to " + this.remoteUrl + " due to " + reason);
+      this.errorsSinceLastData++;
       if (isStateConnected()) {
-        self.socket.close();
-        self.isConnected = false;
+        this.socket.close();
+        this.isConnected = false;
       } else {
-        self.isConnected = self.socket.readyState == 1;
+        this.isConnected = this.socket.readyState == 1;
       }
       setBackoff();
-      self.session.disconnected("ws", reason);
-    }
-    function connect() {
+      this.session.disconnected("ws", reason);
+    };
+    const connect = () => {
       if (!isStateClosed()) {
         return false;
       }
       if (isStateForceClosed()) {
         return false;
       }
-      self.data = new Uint8Array(0);
-      self.isConnected = false;
-      self.awaitPong = true;
-      self.socket = void 0;
+      this.data = new Uint8Array(0);
+      this.isConnected = false;
+      this.awaitPong = true;
+      this.socket = void 0;
       let callOnOpen = false;
-      let onopen = function() {
-        self.isConnected = true;
-        if (self.socket.protocol == "mqtt.cotonic.org") {
-          self.randomPing = new Uint8Array([
+      const onopen = () => {
+        this.isConnected = true;
+        if (this.socket.protocol == "mqtt.cotonic.org") {
+          this.randomPing = new Uint8Array([
             255,
             254,
             42,
             Math.floor(Math.random() * 100),
             Math.floor(Math.random() * 100)
           ]);
-          self.socket.send(self.randomPing.buffer);
-          self.awaitPong = true;
+          this.socket.send(this.randomPing.buffer);
+          this.awaitPong = true;
         } else {
-          self.awaitPong = false;
-          self.session.connected("ws");
+          this.awaitPong = false;
+          this.session.connected("ws");
         }
       };
-      if (globalThis.cotonic && globalThis.cotonic.bridgeSocket && globalThis.cotonic.bridgeSocket.url == self.remoteUrl) {
+      if (globalThis.cotonic && globalThis.cotonic.bridgeSocket && globalThis.cotonic.bridgeSocket.url == this.remoteUrl) {
         switch (globalThis.cotonic.bridgeSocket.readyState) {
           case 0:
-            self.socket = cotonic.bridgeSocket;
+            this.socket = cotonic.bridgeSocket;
             break;
           case 1:
             callOnOpen = true;
-            self.socket = cotonic.bridgeSocket;
+            this.socket = cotonic.bridgeSocket;
             break;
           default:
             break;
         }
         globalThis.cotonic.bridgeSocket = void 0;
       }
-      if (!self.socket) {
-        self.socket = new WebSocket(self.remoteUrl, ["mqtt"]);
+      if (!this.socket) {
+        this.socket = new WebSocket(this.remoteUrl, ["mqtt"]);
       }
-      self.socket.binaryType = "arraybuffer";
-      self.socket.onopen = onopen;
-      self.socket.onclose = function() {
+      this.socket.binaryType = "arraybuffer";
+      this.socket.onopen = onopen;
+      this.socket.onclose = function() {
         handleError("ws-close");
       };
       ;
-      self.socket.onerror = function() {
+      this.socket.onerror = function() {
         handleError("ws-error");
       };
       ;
-      self.socket.onmessage = function(message) {
+      this.socket.onmessage = (message) => {
         if (message.data instanceof ArrayBuffer) {
-          var data = new Uint8Array(message.data);
-          if (self.awaitPong) {
-            if (equalData(data, self.randomPing)) {
-              self.awaitPong = false;
-              self.session.connected("ws");
+          const data = new Uint8Array(message.data);
+          if (this.awaitPong) {
+            if (equalData(data, this.randomPing)) {
+              this.awaitPong = false;
+              this.session.connected("ws");
             } else {
               handleError("ws-pongdata");
             }
@@ -4381,18 +4374,18 @@
       }
       subscribe(
         "model/lifecycle/event/state",
-        function(m) {
+        (m) => {
           if (m.payload === "active") {
-            self.backoff = 0;
+            this.backoff = 0;
           }
         },
-        { wid: self.name() }
+        { wid: this.name() }
       );
       return true;
-    }
+    };
     function equalData(a, b) {
       if (a.length == b.length) {
-        for (var i = 0; i < a.length; i++) {
+        for (let i = 0; i < a.length; i++) {
           if (a[i] != b[i]) {
             return false;
           }
@@ -4402,31 +4395,30 @@
         return false;
       }
     }
-    function receiveData(rcvd) {
-      if (self.data.length == 0) {
-        self.data = rcvd;
+    const receiveData = (rcvd) => {
+      if (this.data.length == 0) {
+        this.data = rcvd;
       } else {
-        var i;
-        var k = 0;
-        var newdata = new Uint8Array(self.data.length, rcvd.length);
-        for (i = 0; i < self.data.length; i++) {
-          newdata[k++] = self.data[i];
+        let k = 0;
+        const newdata = new Uint8Array(this.data.length, rcvd.length);
+        for (let i = 0; i < this.data.length; i++) {
+          newdata[k++] = this.data[i];
         }
-        for (i = 0; i < rcvd.length; i++) {
+        for (let i = 0; i < rcvd.length; i++) {
           newdata[k++] = rcvd[i];
         }
-        self.data = newdata;
+        this.data = newdata;
       }
       decodeReceivedData();
-    }
-    function decodeReceivedData() {
-      var ok = true;
-      while (ok && self.data.length > 0) {
+    };
+    const decodeReceivedData = () => {
+      let ok = true;
+      while (ok && this.data.length > 0) {
         try {
-          var result = decoder(self.data);
+          const result = decoder(this.data);
           handleBackoff(result[0]);
-          self.data = result[1];
-          self.session.receiveMessage(result[0]);
+          this.data = result[1];
+          this.session.receiveMessage(result[0]);
         } catch (e) {
           if (e != "incomplete_packet") {
             handleError(e);
@@ -4434,34 +4426,34 @@
           ok = false;
         }
       }
-    }
-    function setBackoff() {
-      self.backoff = Math.min(30, self.errorsSinceLastData * self.errorsSinceLastData);
-    }
-    function handleBackoff(msg) {
+    };
+    const setBackoff = () => {
+      this.backoff = Math.min(30, this.errorsSinceLastData * this.errorsSinceLastData);
+    };
+    const handleBackoff = (msg) => {
       switch (msg.type) {
         case "connack":
           if (msg.reason_code > 0) {
-            self.errorsSinceLastData++;
+            this.errorsSinceLastData++;
           }
           break;
         case "disconnect":
           break;
         default:
-          self.errorsSinceLastData = 0;
+          this.errorsSinceLastData = 0;
           break;
       }
-    }
-    function init8() {
+    };
+    const init8 = () => {
       if (remote == "origin") {
-        self.remoteHost = document.location.host;
+        this.remoteHost = document.location.host;
       } else {
-        self.remoteHost = remote;
+        this.remoteHost = remote;
       }
-      self.remoteUrl = protocol + "://" + self.remoteHost + controller_path;
+      this.remoteUrl = protocol + "://" + this.remoteHost + controller_path;
       setTimeout(connect, connect_delay);
       setInterval(periodic, periodic_delay);
-    }
+    };
     init8();
   }
 
@@ -4482,25 +4474,25 @@
   var MQTT_RC_BAD_USERNAME_OR_PASSWORD = 134;
   var MQTT_RC_PACKET_ID_IN_USE = 145;
   var MQTT_RC_PACKET_ID_NOT_FOUND = 146;
-  var newSession = function(remote, bridgeTopics, options) {
+  function newSession(remote, bridgeTopics, options) {
     remote = remote || "origin";
     if (sessions[remote]) {
       return sessions[remote];
     } else {
-      let ch = new mqttSession(bridgeTopics);
+      const ch = new mqttSession(bridgeTopics);
       sessions[remote] = ch;
       ch.connect(remote, options);
       return ch;
     }
-  };
-  var findSession = function(remote) {
+  }
+  function findSession(remote) {
     remote = remote || "origin";
     return sessions[remote];
-  };
-  var deleteSession = function(remote) {
+  }
+  function deleteSession(remote) {
     remote = remote || "origin";
     delete sessions[remote];
-  };
+  }
   function init2() {
     subscribe("model/auth/event/auth-changing", function(_msg) {
       if (sessions["origin"]) {
@@ -4515,12 +4507,12 @@
     subscribe("model/auth/event/auth", function(msg) {
       if (typeof msg.payload == "object") {
         if (sessions["origin"] && sessions["origin"].isConnected()) {
-          let data = {
+          const data = {
             user_id: msg.payload.user_id,
             options: msg.payload.options || {},
             preferences: msg.payload.preferences || {}
           };
-          let topic = "bridge/origin/$client/" + sessions["origin"].clientId + "/auth";
+          const topic = "bridge/origin/$client/" + sessions["origin"].clientId + "/auth";
           publish(topic, data, { qos: 0 });
         }
       }
@@ -4528,10 +4520,10 @@
     subscribe("model/sessionId/event", function(msg) {
       if (typeof msg.payload == "string") {
         if (sessions["origin"] && sessions["origin"].isConnected()) {
-          let data = {
+          const data = {
             options: { sid: msg.payload }
           };
-          let topic = "bridge/origin/$client/" + sessions["origin"].clientId + "/sid";
+          const topic = "bridge/origin/$client/" + sessions["origin"].clientId + "/sid";
           publish(topic, data, { qos: 0 });
         }
       }
@@ -4557,8 +4549,7 @@
     this.awaitingRel = {};
     this.authUserPassword = { username: void 0, password: void 0 };
     this.disconnectReason = "";
-    var self = this;
-    function sessionToRemote(msg) {
+    const sessionToRemote = (msg) => {
       switch (msg.payload.type) {
         case "publish":
           publish2(msg.payload);
@@ -4570,32 +4561,32 @@
           unsubscribe2(msg.payload);
           break;
         case "auth":
-          self.sendMessage(msg.payload);
+          this.sendMessage(msg.payload);
           break;
         default:
           break;
       }
-    }
-    function sessionToBridge(msg) {
-      localPublish(self.bridgeTopics.session_in, msg);
-    }
-    function sessionControl(msg) {
-    }
-    this.connect = function(remote, options) {
+    };
+    const sessionToBridge = (msg) => {
+      localPublish(this.bridgeTopics.session_in, msg);
+    };
+    const sessionControl = (_msg) => {
+    };
+    this.connect = (remote, options) => {
       options = options || {};
       if (typeof options.client_id === "string") {
-        self.clientId = options.client_id;
+        this.clientId = options.client_id;
       }
       if (typeof options.clean_start === "boolean") {
-        self.cleanStart = options.clean_start;
+        this.cleanStart = options.clean_start;
       }
       if (typeof options.username === "string") {
-        self.authUserPassword.username = options.username;
-        self.authUserPassword.password = options.password || void 0;
+        this.authUserPassword.username = options.username;
+        this.authUserPassword.password = options.password || void 0;
       }
-      self.connections["ws"] = newTransport(remote, self, options);
+      this.connections["ws"] = newTransport(remote, this, options);
     };
-    this.disconnect = function(reasonCode) {
+    this.disconnect = (reasonCode) => {
       if (reasonCode === void 0) {
         reasonCode = MQTT_RC_SUCCESS;
       }
@@ -4603,63 +4594,63 @@
         type: "disconnect",
         reason_code: reasonCode
       };
-      self.sendMessage(msg);
-      self.clientId = "";
+      this.sendMessage(msg);
+      this.clientId = "";
       if (reasonCode === MQTT_RC_SUCCESS) {
-        const transport = self.connections["ws"];
+        const transport = this.connections["ws"];
         if (transport) {
           transport.closeConnection();
-          delete self.connections["ws"];
+          delete this.connections["ws"];
           publishStatus(false);
         }
       }
       sessionToBridge({ type: "disconnect" });
     };
-    this.reconnect = function(remote) {
-      if (remote == "origin" && self.connections["ws"]) {
-        self.connections["ws"].openConnection();
+    this.reconnect = (remote) => {
+      if (remote == "origin" && this.connections["ws"]) {
+        this.connections["ws"].openConnection();
       }
     };
-    this.isConnected = function() {
+    this.isConnected = () => {
       return isStateConnected();
     };
-    this.connected = function(transportName) {
+    this.connected = (transportName) => {
       if (transportName === "ws") {
         if (isStateNew()) {
-          call("model/sessionId/get").then(function(msg) {
-            let connectMessage = {
+          call("model/sessionId/get").then((msg) => {
+            const connectMessage = {
               type: "connect",
-              client_id: self.clientId,
-              clean_start: self.cleanStart,
+              client_id: this.clientId,
+              clean_start: this.cleanStart,
               keep_alive: MQTT_KEEP_ALIVE,
-              username: self.authUserPassword.username,
-              password: self.authUserPassword.password,
+              username: this.authUserPassword.username,
+              password: this.authUserPassword.password,
               properties: {
                 session_expiry_interval: MQTT_SESSION_EXPIRY,
                 cotonic_sid: msg.payload
               }
             };
-            self.isSentConnect = self.sendMessage(connectMessage, true);
-            if (self.isSentConnect) {
-              self.isWaitConnack = true;
+            this.isSentConnect = this.sendMessage(connectMessage, true);
+            if (this.isSentConnect) {
+              this.isWaitConnack = true;
             }
           });
         }
       }
       publishEvent("transport/connected");
     };
-    function publish2(pubmsg) {
+    const publish2 = (pubmsg) => {
       const payload2 = pubmsg.payload;
-      let properties = pubmsg.properties || {};
+      const properties = pubmsg.properties || {};
       let encodedPayload;
       if (typeof payload2 == "undefined" || payload2 === null) {
         encodedPayload = new Uint8Array(0);
       } else {
-        let contentType = properties.content_type || guessContentType(payload2);
+        const contentType = properties.content_type || guessContentType(payload2);
         encodedPayload = encodePayload(payload2, contentType);
         properties.content_type = contentType;
       }
-      let msg = {
+      const msg = {
         type: "publish",
         topic: pubmsg.topic,
         payload: encodedPayload,
@@ -4667,68 +4658,68 @@
         retain: pubmsg.retain || 0,
         properties
       };
-      self.sendMessage(msg);
-    }
-    function subscribe2(submsg) {
+      this.sendMessage(msg);
+    };
+    const subscribe2 = (submsg) => {
       let topics = submsg.topics;
       if (typeof topics == "string") {
         topics = [{ topic: topics }];
       }
-      let msg = {
+      const msg = {
         type: "subscribe",
         packet_id: nextPacketId(),
         topics,
         properties: submsg.properties || {}
       };
-      self.awaitingAck[msg.packet_id] = {
+      this.awaitingAck[msg.packet_id] = {
         type: "suback",
-        nr: self.messageNr++,
+        nr: this.messageNr++,
         msg
       };
-      self.sendMessage(msg);
-    }
-    function unsubscribe2(unsubmsg) {
+      this.sendMessage(msg);
+    };
+    const unsubscribe2 = (unsubmsg) => {
       let topics = unsubmsg.topics;
       if (typeof topics == "string") {
         topics = [topics];
       }
-      let msg = {
+      const msg = {
         type: "unsubscribe",
         packet_id: nextPacketId(),
         topics,
         properties: unsubmsg.properties || {}
       };
-      self.awaitingAck[msg.packet_id] = {
+      this.awaitingAck[msg.packet_id] = {
         type: "unsuback",
-        nr: self.messageNr++,
+        nr: this.messageNr++,
         msg
       };
-      self.sendMessage(msg);
-    }
-    this.keepAlive = function() {
+      this.sendMessage(msg);
+    };
+    this.keepAlive = () => {
       if (isStateWaitingPingResp()) {
         closeConnections();
       } else {
-        self.isWaitPingResp = true;
-        self.sendMessage({ type: "pingreq" });
+        this.isWaitPingResp = true;
+        this.sendMessage({ type: "pingreq" });
       }
     };
-    this.receiveMessage = function(msg) {
-      self.receiveQueue.push(msg);
-      if (!self.receiveTimer) {
-        self.receiveTimer = setTimeout(function() {
+    this.receiveMessage = (msg) => {
+      this.receiveQueue.push(msg);
+      if (!this.receiveTimer) {
+        this.receiveTimer = setTimeout(() => {
           doReceive();
         }, 1);
       }
     };
-    this.sendMessage = function(msg, connecting) {
+    this.sendMessage = (msg, connecting) => {
       let isSent = false;
       if (isStateConnected() || connecting && isStateNew()) {
         switch (msg.type) {
           case "subscribe":
-            msg.packet_id = nextPacketId(), self.awaitingAck[msg.packet_id] = {
+            msg.packet_id = nextPacketId(), this.awaitingAck[msg.packet_id] = {
               type: "suback",
-              nr: self.messageNr++,
+              nr: this.messageNr++,
               msg
             };
             break;
@@ -4738,17 +4729,17 @@
                 break;
               case 1:
                 msg.packet_id = nextPacketId();
-                self.awaitingAck[msg.packet_id] = {
+                this.awaitingAck[msg.packet_id] = {
                   type: "puback",
-                  nr: self.messageNr++,
+                  nr: this.messageNr++,
                   msg
                 };
                 break;
               case 2:
                 msg.packet_id = nextPacketId();
-                self.awaitingAck[msg.packet_id] = {
+                this.awaitingAck[msg.packet_id] = {
                   type: "pubrec",
-                  nr: self.messageNr++,
+                  nr: this.messageNr++,
                   msg
                 };
                 break;
@@ -4757,56 +4748,56 @@
           default:
             break;
         }
-        isSent = self.sendTransport(msg);
+        isSent = this.sendTransport(msg);
       }
       if (!isSent) {
-        self.queueMessage(msg);
+        this.queueMessage(msg);
       }
       return isSent;
     };
-    this.sendTransport = function(msg) {
+    this.sendTransport = (msg) => {
       let isSent = false;
-      for (let conn in self.connections) {
+      for (const conn in this.connections) {
         if (!isSent) {
-          isSent = self.connections[conn].sendMessage(msg);
+          isSent = this.connections[conn].sendMessage(msg);
         }
       }
       return isSent;
     };
-    this.queueMessage = function(msg) {
+    this.queueMessage = (msg) => {
       switch (msg.type) {
         case "pingresp":
         case "pingreq":
           break;
         default:
-          self.sendQueue.push(msg);
+          this.sendQueue.push(msg);
           break;
       }
     };
-    this.disconnected = function() {
-      setTimeout(function() {
+    this.disconnected = () => {
+      setTimeout(() => {
         if (isStateWaitingConnAck()) {
-          self.clientId = "";
+          this.clientId = "";
         }
-        self.isSentConnect = false;
-        self.isWaitConnack = false;
-        self.keepAliveInterval = 0;
+        this.isSentConnect = false;
+        this.isWaitConnack = false;
+        this.keepAliveInterval = 0;
         stopKeepAliveTimer();
       });
       publishEvent("transport/disconnected");
     };
-    function isStateNew() {
-      return !self.isSentConnect;
-    }
-    function isStateWaitingConnAck() {
-      return self.isSentConnect && self.isWaitConnack;
-    }
-    function isStateConnected() {
-      return self.isSentConnect && !self.isWaitConnack;
-    }
-    function isStateWaitingPingResp() {
-      return self.isWaitPingResp && isStateConnected();
-    }
+    const isStateNew = () => {
+      return !this.isSentConnect;
+    };
+    const isStateWaitingConnAck = () => {
+      return this.isSentConnect && this.isWaitConnack;
+    };
+    const isStateConnected = () => {
+      return this.isSentConnect && !this.isWaitConnack;
+    };
+    const isStateWaitingPingResp = () => {
+      return this.isWaitPingResp && isStateConnected();
+    };
     function encodePayload(payload2, contentType) {
       switch (contentType) {
         case "binary/octet-stream":
@@ -4871,35 +4862,35 @@
           return "application/json";
       }
     }
-    function doReceive() {
-      for (let i = 0; i < self.receiveQueue.length; i++) {
-        handleReceivedMessage(self.receiveQueue[i]);
+    const doReceive = () => {
+      for (let i = 0; i < this.receiveQueue.length; i++) {
+        handleReceivedMessage(this.receiveQueue[i]);
       }
-      self.receiveQueue = [];
-      self.receiveTimer = false;
-      self.isPacketReceived = true;
-    }
-    function resetKeepAliveTimer() {
+      this.receiveQueue = [];
+      this.receiveTimer = false;
+      this.isPacketReceived = true;
+    };
+    const resetKeepAliveTimer = () => {
       stopKeepAliveTimer();
-      if (self.keepAliveInterval > 0) {
-        self.keepAliveTimer = setInterval(function() {
-          self.keepAlive();
-        }, self.keepAliveInterval * 1e3);
+      if (this.keepAliveInterval > 0) {
+        this.keepAliveTimer = setInterval(() => {
+          this.keepAlive();
+        }, this.keepAliveInterval * 1e3);
       }
-    }
-    function stopKeepAliveTimer() {
-      if (self.keepAliveTimer) {
-        clearTimeout(self.keepAliveTimer);
-        self.keepAliveTimer = false;
+    };
+    const stopKeepAliveTimer = () => {
+      if (this.keepAliveTimer) {
+        clearTimeout(this.keepAliveTimer);
+        this.keepAliveTimer = false;
       }
-      self.isWaitPingResp = false;
-    }
-    function cleanupSendQueue(previousRoutingId) {
+      this.isWaitPingResp = false;
+    };
+    const cleanupSendQueue = (previousRoutingId) => {
       const previousBridgePrefix = "bridge/" + previousRoutingId + "/";
-      const bridgePrefix = "bridge/" + self.routingId + "/";
-      let q = [];
-      for (let k in self.sendQueue) {
-        let msg = self.sendQueue[k];
+      const bridgePrefix = "bridge/" + this.routingId + "/";
+      const q = [];
+      for (const k in this.sendQueue) {
+        const msg = this.sendQueue[k];
         switch (msg.type) {
           case "publish":
             if (msg.properties && msg.properties.response_topic && msg.properties.response_topic.startsWith(previousBridgePrefix)) {
@@ -4913,19 +4904,19 @@
             break;
         }
       }
-      self.sendQueue = q;
-    }
-    function sendQueuedMessages() {
-      let queue = self.sendQueue;
-      self.sendQueue = [];
+      this.sendQueue = q;
+    };
+    const sendQueuedMessages = () => {
+      const queue = this.sendQueue;
+      this.sendQueue = [];
       for (let k = 0; k < queue.length; k++) {
-        self.sendMessage(queue[k]);
+        this.sendMessage(queue[k]);
       }
-    }
-    function resendUnacknowledged() {
-      let msgs = [];
-      for (let packetId in self.awaitingAck) {
-        const unack = self.awaitingAck[packetId];
+    };
+    const resendUnacknowledged = () => {
+      const msgs = [];
+      for (const packetId in this.awaitingAck) {
+        const unack = this.awaitingAck[packetId];
         let msg;
         switch (unack.type) {
           case "puback":
@@ -4954,59 +4945,61 @@
       msgs.sort(function(a, b) {
         return a.nr - b.nr;
       });
-      for (let k in msgs) {
-        self.sendMessage(msgs[k].msg);
+      for (const k in msgs) {
+        this.sendMessage(msgs[k].msg);
       }
-    }
-    function handleReceivedMessage(msg) {
+    };
+    const handleReceivedMessage = (msg) => {
       let replyMsg;
       switch (msg.type) {
         case "connack":
           if (!isStateWaitingConnAck()) {
             console2.log("Unexpected CONNACK", msg);
           }
-          self.isWaitConnack = false;
+          this.isWaitConnack = false;
           switch (msg.reason_code) {
             case MQTT_RC_SUCCESS:
-              const previousRoutingId = self.routingId;
-              self.connectProps = msg.properties;
-              if (msg.properties.assigned_client_identifier) {
-                self.clientId = msg.properties.assigned_client_identifier;
+              {
+                const previousRoutingId = this.routingId;
+                this.connectProps = msg.properties;
+                if (msg.properties.assigned_client_identifier) {
+                  this.clientId = msg.properties.assigned_client_identifier;
+                }
+                if (msg.properties["cotonic-routing-id"]) {
+                  this.routingId = msg.properties["cotonic-routing-id"];
+                } else {
+                  this.routingId = this.clientId;
+                }
+                cleanupSendQueue(previousRoutingId);
+                if (msg.session_present) {
+                  resendUnacknowledged();
+                } else {
+                  this.awaitingRel = {};
+                  this.awaitingAck = {};
+                  this.cleanStart = false;
+                }
+                if (typeof this.connectProps.server_keep_alive == "number") {
+                  this.keepAliveInterval = this.connectProps.server_keep_alive;
+                } else {
+                  this.keepAliveInterval = MQTT_KEEP_ALIVE;
+                }
+                resetKeepAliveTimer();
+                publishStatus(true);
+                sessionToBridge({
+                  type: "connack",
+                  is_connected: true,
+                  client_id: this.clientId,
+                  connack: msg
+                });
+                sendQueuedMessages();
               }
-              if (msg.properties["cotonic-routing-id"]) {
-                self.routingId = msg.properties["cotonic-routing-id"];
-              } else {
-                self.routingId = self.clientId;
-              }
-              cleanupSendQueue(previousRoutingId);
-              if (msg.session_present) {
-                resendUnacknowledged();
-              } else {
-                self.awaitingRel = {};
-                self.awaitingAck = {};
-                self.cleanStart = false;
-              }
-              if (typeof self.connectProps.server_keep_alive == "number") {
-                self.keepAliveInterval = self.connectProps.server_keep_alive;
-              } else {
-                self.keepAliveInterval = MQTT_KEEP_ALIVE;
-              }
-              resetKeepAliveTimer();
-              publishStatus(true);
-              sessionToBridge({
-                type: "connack",
-                is_connected: true,
-                client_id: self.clientId,
-                connack: msg
-              });
-              sendQueuedMessages();
               break;
             case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
-              self.authUserPassword.username = void 0;
-              self.authUserPassword.password = void 0;
+              this.authUserPassword.username = void 0;
+              this.authUserPassword.password = void 0;
             /* falls through */
             case MQTT_RC_CLIENT_ID_INVALID:
-              self.clientId = "";
+              this.clientId = "";
             /* falls through */
             default:
               publishStatus(false);
@@ -5018,127 +5011,129 @@
           }
           break;
         case "puback":
-          if (self.awaitingAck[msg.packet_id]) {
-            if (self.awaitingAck[msg.packet_id].type != "puback") {
-              console2.log("MQTT: Unexpected puback for ", self.awaitingAck[msg.packet_id]);
+          if (this.awaitingAck[msg.packet_id]) {
+            if (this.awaitingAck[msg.packet_id].type != "puback") {
+              console2.log("MQTT: Unexpected puback for ", this.awaitingAck[msg.packet_id]);
             } else {
             }
-            delete self.awaitingAck[msg.packet_id];
+            delete this.awaitingAck[msg.packet_id];
           } else {
             console2.log("MQTT: puback for unknown packet_id", msg.packet_id);
           }
           break;
         case "pubrec":
-          if (self.awaitingAck[msg.packet_id]) {
+          if (this.awaitingAck[msg.packet_id]) {
           }
           if (msg.reason_code < 128) {
-            if (self.awaitingAck[msg.packet_id]) {
-              if (self.awaitingAck[msg.packet_id].type != "pubrec") {
-                console2.log("MQTT: Unexpected pubrec for ", self.awaitingAck[msg.packet_id]);
+            if (this.awaitingAck[msg.packet_id]) {
+              if (this.awaitingAck[msg.packet_id].type != "pubrec") {
+                console2.log("MQTT: Unexpected pubrec for ", this.awaitingAck[msg.packet_id]);
               }
-              self.awaitingAck[msg.packet_id].type = "pubcomp";
-              self.awaitingAck[msg.packet_id].msg = void 0;
+              this.awaitingAck[msg.packet_id].type = "pubcomp";
+              this.awaitingAck[msg.packet_id].msg = void 0;
               replyMsg = { type: "pubrel", packet_id: msg.packet_id };
             } else {
               replyMsg = { type: "pubrel", packet_id: msg.packet_id, reason_code: MQTT_RC_PACKET_ID_NOT_FOUND };
             }
           } else {
-            if (self.awaitingAck[msg.packet_id]) {
-              delete self.awaitingAck[msg.packet_id];
+            if (this.awaitingAck[msg.packet_id]) {
+              delete this.awaitingAck[msg.packet_id];
             }
           }
           break;
         case "pubcomp":
-          if (self.awaitingAck[msg.packet_id]) {
-            if (self.awaitingAck[msg.packet_id].type != "pubcomp") {
-              console2.log("MQTT: Unexpected pubcomp for ", self.awaitingAck[msg.packet_id]);
+          if (this.awaitingAck[msg.packet_id]) {
+            if (this.awaitingAck[msg.packet_id].type != "pubcomp") {
+              console2.log("MQTT: Unexpected pubcomp for ", this.awaitingAck[msg.packet_id]);
             }
-            delete self.awaitingAck[msg.packet_id];
+            delete this.awaitingAck[msg.packet_id];
           }
           break;
         case "suback":
-          if (self.awaitingAck[msg.packet_id]) {
-            if (self.awaitingAck[msg.packet_id].type != "suback") {
-              console2.log("MQTT: Unexpected suback for ", self.awaitingAck[msg.packet_id]);
+          if (this.awaitingAck[msg.packet_id]) {
+            if (this.awaitingAck[msg.packet_id].type != "suback") {
+              console2.log("MQTT: Unexpected suback for ", this.awaitingAck[msg.packet_id]);
             } else {
-              let ackMsg = {
+              const ackMsg = {
                 type: "suback",
-                topics: self.awaitingAck[msg.packet_id].topics,
+                topics: this.awaitingAck[msg.packet_id].topics,
                 acks: msg.acks
               };
               sessionToBridge(ackMsg);
             }
-            delete self.awaitingAck[msg.packet_id];
+            delete this.awaitingAck[msg.packet_id];
           }
           break;
         case "unsuback":
-          if (self.awaitingAck[msg.packet_id]) {
-            if (self.awaitingAck[msg.packet_id].type != "unsuback") {
-              console2.log("MQTT: Unexpected unsuback for ", self.awaitingAck[msg.packet_id]);
+          if (this.awaitingAck[msg.packet_id]) {
+            if (this.awaitingAck[msg.packet_id].type != "unsuback") {
+              console2.log("MQTT: Unexpected unsuback for ", this.awaitingAck[msg.packet_id]);
             } else {
-              let ackMsg = {
+              const ackMsg = {
                 type: "unsuback",
-                topics: self.awaitingAck[msg.packet_id].topics,
+                topics: this.awaitingAck[msg.packet_id].topics,
                 acks: msg.acks
               };
               sessionToBridge(ackMsg);
             }
-            delete self.awaitingAck[msg.packet_id];
+            delete this.awaitingAck[msg.packet_id];
           }
           break;
         case "publish":
-          let isPubOk = false;
-          let awaitRel;
-          switch (msg.qos) {
-            case 0:
-              isPubOk = true;
-              break;
-            case 1:
-              if (self.awaitingRel[msg.packet_id]) {
-                replyMsg = {
-                  type: "puback",
-                  packet_id: msg.packet_id,
-                  reason_code: MQTT_RC_PACKET_ID_IN_USE
-                };
-              } else {
+          {
+            let isPubOk = false;
+            let awaitRel;
+            switch (msg.qos) {
+              case 0:
                 isPubOk = true;
+                break;
+              case 1:
+                if (this.awaitingRel[msg.packet_id]) {
+                  replyMsg = {
+                    type: "puback",
+                    packet_id: msg.packet_id,
+                    reason_code: MQTT_RC_PACKET_ID_IN_USE
+                  };
+                } else {
+                  isPubOk = true;
+                  replyMsg = {
+                    type: "puback",
+                    packet_id: msg.packet_id
+                  };
+                }
+                break;
+              case 2:
                 replyMsg = {
-                  type: "puback",
+                  type: "pubrec",
                   packet_id: msg.packet_id
                 };
-              }
-              break;
-            case 2:
-              replyMsg = {
-                type: "pubrec",
-                packet_id: msg.packet_id
-              };
-              if (self.awaitingRel[msg.packet_id]) {
-                awaitRel = self.awaitingRel[msg.packet_id];
-                replyMsg.reason_code = awaitRel.reason_code;
-              } else {
-                isPubOk = true;
-              }
-              self.awaitingRel[msg.packet_id] = {
-                type: "pubrel",
-                nr: self.messageNr++
-              };
-          }
-          if (isPubOk) {
-            let ct = msg.properties.content_type;
-            msg.payload = decodePayload(msg.payload, ct);
-            sessionToBridge(msg);
-            if (replyMsg) {
-              replyMsg.reason_code = MQTT_RC_SUCCESS;
+                if (this.awaitingRel[msg.packet_id]) {
+                  awaitRel = this.awaitingRel[msg.packet_id];
+                  replyMsg.reason_code = awaitRel.reason_code;
+                } else {
+                  isPubOk = true;
+                }
+                this.awaitingRel[msg.packet_id] = {
+                  type: "pubrel",
+                  nr: this.messageNr++
+                };
             }
-            if (awaitRel) {
-              awaitRel.reason_code = MQTT_RC_SUCCESS;
+            if (isPubOk) {
+              const ct = msg.properties.content_type;
+              msg.payload = decodePayload(msg.payload, ct);
+              sessionToBridge(msg);
+              if (replyMsg) {
+                replyMsg.reason_code = MQTT_RC_SUCCESS;
+              }
+              if (awaitRel) {
+                awaitRel.reason_code = MQTT_RC_SUCCESS;
+              }
             }
           }
           break;
         case "pubrel":
-          if (self.awaitingRel[msg.packet_id]) {
-            delete self.awaitingRel[msg.packet_id];
+          if (this.awaitingRel[msg.packet_id]) {
+            delete this.awaitingRel[msg.packet_id];
             replyMsg = {
               type: "pubcomp",
               packet_id: msg.packet_id
@@ -5152,10 +5147,10 @@
           }
           break;
         case "pingreq":
-          self.sendMessage({ type: "pingresp" });
+          this.sendMessage({ type: "pingresp" });
           break;
         case "pingresp":
-          self.isWaitPingResp = false;
+          this.isWaitPingResp = false;
           break;
         case "disconnect":
           closeConnections();
@@ -5167,53 +5162,53 @@
           break;
       }
       if (replyMsg) {
-        setTimeout(function() {
-          self.sendMessage(replyMsg);
+        setTimeout(() => {
+          this.sendMessage(replyMsg);
         }, 0);
       }
-    }
-    function closeConnections() {
-      for (let k in self.connection) {
-        self.connection[k].closeConnection();
+    };
+    const closeConnections = () => {
+      for (const k in this.connection) {
+        this.connection[k].closeConnection();
       }
-      self.connection = {};
-      self.isWaitPingResp = false;
-      self.isSentConnect = false;
-      self.isWaitConnack = false;
-      self.keepAliveInterval = 0;
+      this.connection = {};
+      this.isWaitPingResp = false;
+      this.isSentConnect = false;
+      this.isWaitConnack = false;
+      this.keepAliveInterval = 0;
       stopKeepAliveTimer();
       publishStatus(false);
-    }
-    function nextPacketId() {
+    };
+    const nextPacketId = () => {
       do {
-        self.packetId++;
-        if (self.packetId > 65535) {
-          self.packetId = 1;
+        this.packetId++;
+        if (this.packetId > 65535) {
+          this.packetId = 1;
         }
-      } while (self.awaitingAck[self.packetId]);
-      return self.packetId;
-    }
+      } while (this.awaitingAck[this.packetId]);
+      return this.packetId;
+    };
     function localPublish(topic, msg, opts) {
       publish(topic, msg, opts);
     }
     function localSubscribe(topic, callback) {
       subscribe(topic, callback);
     }
-    function publishStatus(isConnected) {
+    const publishStatus = (isConnected) => {
       localPublish(
-        self.bridgeTopics.session_status,
-        { is_connected: isConnected, client_id: self.clientId },
+        this.bridgeTopics.session_status,
+        { is_connected: isConnected, client_id: this.clientId },
         { retain: true }
       );
-    }
-    function publishEvent(event) {
-      localPublish(`${self.bridgeTopics.session_event}/${event}`, {});
-    }
-    function init8() {
+    };
+    const publishEvent = (event) => {
+      localPublish(`${this.bridgeTopics.session_event}/${event}`, {});
+    };
+    const init8 = () => {
       publishStatus(false);
-      localSubscribe(self.bridgeTopics.session_out, sessionToRemote);
-      localSubscribe(self.bridgeTopics.session_control, sessionControl);
-    }
+      localSubscribe(this.bridgeTopics.session_out, sessionToRemote);
+      localSubscribe(this.bridgeTopics.session_control, sessionControl);
+    };
     init8();
   }
   init2();
@@ -5228,25 +5223,25 @@
   var console3 = globalThis.console;
   var sessions2 = {};
   var MQTT_KEEP_ALIVE2 = 300;
-  var newSession2 = function(remote, bridgeTopics, options) {
+  function newSession2(remote, bridgeTopics, options) {
     remote = remote || "opener";
     if (sessions2[remote]) {
       return sessions2[remote];
     } else {
-      let ch = new mqttSession2(bridgeTopics);
+      const ch = new mqttSession2(bridgeTopics);
       sessions2[remote] = ch;
       ch.connect(remote, options);
       return ch;
     }
-  };
-  var findSession2 = function(remote) {
+  }
+  function findSession2(remote) {
     remote = remote || "opener";
     return sessions2[remote];
-  };
-  var deleteSession2 = function(remote) {
+  }
+  function deleteSession2(remote) {
     remote = remote || "opener";
     delete sessions2[remote];
-  };
+  }
   function mqttSession2(mqttBridgeTopics) {
     this.bridgeTopics = mqttBridgeTopics;
     this.clientId = "";
@@ -5254,8 +5249,7 @@
     this.disconnectReason = "";
     this.keepAliveTimer = false;
     this.keepAliveInterval = MQTT_KEEP_ALIVE2;
-    var self = this;
-    function sessionToRemote(msg) {
+    const sessionToRemote = (msg) => {
       switch (msg.payload.type) {
         case "publish":
           publish2(msg.payload);
@@ -5267,23 +5261,20 @@
           unsubscribe2(msg.payload);
           break;
         case "auth":
-          self.sendMessage(msg.payload);
+          this.sendMessage(msg.payload);
           break;
         default:
           break;
       }
+    };
+    function sessionControl(_msg) {
     }
-    function sessionToBridge(msg) {
-      localPublish(self.bridgeTopics.session_in, msg);
-    }
-    function sessionControl(msg) {
-    }
-    this.connect = function(remote, options) {
+    this.connect = (_remote, options) => {
       options = options || {};
       if (typeof options.client_id === "string") {
-        self.clientId = options.client_id;
+        this.clientId = options.client_id;
       }
-      if (window.opener) {
+      if (globalThis.opener) {
         resetKeepAliveTimer();
         publishEvent("transport/connected");
       } else {
@@ -5291,12 +5282,12 @@
         publishEvent("transport/disconnected");
       }
     };
-    this.disconnect = function(reasonCode) {
+    this.disconnect = (_reasonCode) => {
       stopKeepAliveTimer();
       publishStatus(false);
     };
-    this.reconnect = function(remote) {
-      if (window.opener) {
+    this.reconnect = (_remote) => {
+      if (globalThis.opener) {
         resetKeepAliveTimer();
         publishEvent("transport/connected");
       } else {
@@ -5304,21 +5295,21 @@
         publishEvent("transport/disconnected");
       }
     };
-    this.isConnected = function() {
-      if (window.opener) {
+    this.isConnected = () => {
+      if (globalThis.opener) {
         return true;
       } else {
         return false;
       }
     };
-    function publish2(pubmsg) {
+    const publish2 = (pubmsg) => {
       const payload2 = pubmsg.payload;
-      let properties = pubmsg.properties || {};
+      const properties = pubmsg.properties || {};
       if (typeof payload2 != "undefined" && payload2 !== null) {
-        let contentType = properties.content_type || guessContentType(payload2);
+        const contentType = properties.content_type || guessContentType(payload2);
         properties.content_type = contentType;
       }
-      let msg = {
+      const msg = {
         type: "publish",
         topic: pubmsg.topic,
         payload: pubmsg.payload,
@@ -5326,30 +5317,27 @@
         retain: pubmsg.retain || 0,
         properties
       };
-      self.sendMessage(msg);
-    }
-    function subscribe2(submsg) {
-    }
-    function unsubscribe2(unsubmsg) {
-    }
-    this.keepAlive = function() {
-      if (!window.opener) {
+      this.sendMessage(msg);
+    };
+    const subscribe2 = (_submsg) => {
+    };
+    const unsubscribe2 = (_unsubmsg) => {
+    };
+    this.keepAlive = () => {
+      if (!globalThis.opener) {
         stopKeepAliveTimer();
         publishStatus(false);
       }
     };
-    this.sendMessage = function(msg) {
-      if (window.opener) {
-        window.opener.cotonic.broker.publish_mqtt_message(msg);
+    this.sendMessage = (msg) => {
+      if (globalThis.opener) {
+        globalThis.opener.cotonic.broker.publish_mqtt_message(msg);
         return true;
       } else {
         return false;
       }
     };
-    function isStateConnected() {
-      return !!window.opener;
-    }
-    function guessContentType(payload2) {
+    const guessContentType = (payload2) => {
       switch (typeof payload2) {
         case "string":
           return "text/plain";
@@ -5374,46 +5362,42 @@
           console3.log("Do not know how to serialize a ", typeof payload2);
           return "application/json";
       }
-    }
-    function resetKeepAliveTimer() {
+    };
+    const resetKeepAliveTimer = () => {
       stopKeepAliveTimer();
-      if (self.keepAliveInterval > 0) {
-        self.keepAliveTimer = setInterval(function() {
-          self.keepAlive();
-        }, self.keepAliveInterval * 1e3);
+      if (this.keepAliveInterval > 0) {
+        this.keepAliveTimer = setInterval(() => {
+          this.keepAlive();
+        }, this.keepAliveInterval * 1e3);
       }
-    }
-    function stopKeepAliveTimer() {
-      if (self.keepAliveTimer) {
-        clearTimeout(self.keepAliveTimer);
-        self.keepAliveTimer = false;
+    };
+    const stopKeepAliveTimer = () => {
+      if (this.keepAliveTimer) {
+        clearTimeout(this.keepAliveTimer);
+        this.keepAliveTimer = false;
       }
-    }
-    function closeConnections() {
-      stopKeepAliveTimer();
-      publishStatus(false);
-    }
-    function localPublish(topic, msg, opts) {
+    };
+    const localPublish = (topic, msg, opts) => {
       publish(topic, msg, opts);
-    }
-    function localSubscribe(topic, callback) {
+    };
+    const localSubscribe = (topic, callback) => {
       subscribe(topic, callback);
-    }
-    function publishStatus(isConnected) {
+    };
+    const publishStatus = (isConnected) => {
       localPublish(
-        self.bridgeTopics.session_status,
-        { is_connected: isConnected, client_id: self.clientId },
+        this.bridgeTopics.session_status,
+        { is_connected: isConnected, client_id: this.clientId },
         { retain: true }
       );
-    }
-    function publishEvent(event) {
-      localPublish(`${self.bridgeTopics.session_event}/${event}`, {});
-    }
-    function init8() {
+    };
+    const publishEvent = (event) => {
+      localPublish(`${this.bridgeTopics.session_event}/${event}`, {});
+    };
+    const init8 = () => {
       publishStatus(false);
-      localSubscribe(self.bridgeTopics.session_out, sessionToRemote);
-      localSubscribe(self.bridgeTopics.session_control, sessionControl);
-    }
+      localSubscribe(this.bridgeTopics.session_out, sessionToRemote);
+      localSubscribe(this.bridgeTopics.session_control, sessionControl);
+    };
     init8();
   }
 
@@ -5436,7 +5420,7 @@
   var SESSION_CONTROL_TOPIC = "session/+name/control";
   var SESSION_EVENT_TOPIC = "session/+name/event";
   var bridges = {};
-  var newBridge = function(remote, options) {
+  function newBridge(remote, options) {
     remote = remote || "origin";
     options = options || {};
     if (!options.mqtt_session) {
@@ -5453,75 +5437,74 @@
       bridge.connect(remote, options);
     }
     return bridge;
-  };
-  var disconnectBridge = function(remote) {
+  }
+  function disconnectBridge(remote) {
     const bridge = findBridge(remote);
     if (!bridge)
       return;
     return bridge.disconnect();
-  };
-  var findBridge = function(remote) {
+  }
+  function findBridge(remote) {
     remote = remote || "origin";
     return bridges[remote];
-  };
-  var deleteBridge = function(remote) {
+  }
+  function deleteBridge(remote) {
     remote = remote || "origin";
     delete bridges[remote];
-  };
+  }
   function mqttBridge() {
-    var remote;
-    var name;
-    var session;
-    var clientId;
-    var routingId = void 0;
-    var local_topics = {};
-    var sessionTopic;
-    var is_connected = false;
-    var is_ui_state = false;
-    var session_present = false;
-    var self = this;
-    var wid;
-    this.connect = function(remote2, options) {
-      self.mqtt_session = options.mqtt_session;
-      self.name = options.name || remote2.replace(/[^0-9a-zA-Z\.]/g, "-");
-      self.remote = remote2;
-      self.wid = "bridge/" + self.name;
-      self.is_ui_state = options.is_ui_state || remote2 == "origin";
-      self.local_topics = {
+    let remote;
+    let name;
+    let session;
+    let clientId;
+    let routingId = void 0;
+    const local_topics = {};
+    let is_connected = false;
+    let is_ui_state = false;
+    let session_present = false;
+    let wid;
+    let mqtt_session;
+    this.connect = function(rmt, options) {
+      mqtt_session = options.mqtt_session;
+      name = options.name || rmt.replace(/[^0-9a-zA-Z\.]/g, "-");
+      remote = rmt;
+      wid = `bridge/${name}`;
+      is_ui_state = options.is_ui_state || rmt == "origin";
+      Object.assign(local_topics, {
         // Comm between local broker and bridge
-        bridge_local: fill(BRIDGE_LOCAL_TOPIC, { name: self.name, topic: "#topic" }),
-        bridge_status: fill(BRIDGE_STATUS_TOPIC, { name: self.name }),
-        bridge_auth: fill(BRIDGE_AUTH_TOPIC, { name: self.name }),
-        bridge_control: fill(BRIDGE_CONTROL_TOPIC, { name: self.name }),
+        bridge_local: fill(BRIDGE_LOCAL_TOPIC, { name, topic: "#topic" }),
+        bridge_status: fill(BRIDGE_STATUS_TOPIC, { name }),
+        bridge_auth: fill(BRIDGE_AUTH_TOPIC, { name }),
+        bridge_control: fill(BRIDGE_CONTROL_TOPIC, { name }),
         // Comm between session and bridge
-        session_in: fill(SESSION_IN_TOPIC, { name: self.name }),
-        session_out: fill(SESSION_OUT_TOPIC, { name: self.name }),
-        session_status: fill(SESSION_STATUS_TOPIC, { name: self.name }),
-        session_control: fill(SESSION_CONTROL_TOPIC, { name: self.name }),
-        session_event: fill(SESSION_EVENT_TOPIC, { name: self.name })
-      };
-      subscribe(self.local_topics.bridge_local, relayOut, { wid: self.wid, no_local: true });
-      subscribe(self.local_topics.bridge_control, bridgeControl);
-      subscribe(self.local_topics.session_in, relayIn);
-      subscribe(self.local_topics.session_status, sessionStatus);
-      self.session = self.mqtt_session.newSession(remote2, self.local_topics, options);
+        session_in: fill(SESSION_IN_TOPIC, { name }),
+        session_out: fill(SESSION_OUT_TOPIC, { name }),
+        session_status: fill(SESSION_STATUS_TOPIC, { name }),
+        session_control: fill(SESSION_CONTROL_TOPIC, { name }),
+        session_event: fill(SESSION_EVENT_TOPIC, { name })
+      });
+      subscribe(local_topics.bridge_local, relayOut, { wid, no_local: true });
+      subscribe(local_topics.bridge_control, bridgeControl);
+      subscribe(local_topics.session_in, relayIn);
+      subscribe(local_topics.session_status, sessionStatus);
+      session = mqtt_session.newSession(rmt, local_topics, options);
       publishStatus();
     };
     this.disconnect = function() {
-      self.session.disconnect();
-      self.mqtt_session.deleteSession(self.remote);
-      self.session = void 0;
-      self.mqtt_session = void 0;
+      session.disconnect();
+      mqtt_session.deleteSession(remote);
+      session = void 0;
+      mqtt_session = void 0;
       publishStatus();
     };
-    function relayOut(msg, props) {
+    function relayOut(msg, _props) {
       switch (msg.type) {
         case "publish":
           msg.topic = dropRoutingTopic(msg.topic);
           if (msg.properties && msg.properties.response_topic) {
             msg.properties.response_topic = remoteRoutingTopic(msg.properties.response_topic);
           }
-          publish(self.local_topics.session_out, msg);
+          publish(local_topics.session_out, msg);
           break;
         default:
           console.log("Bridge relayOut received unknown message", msg);
@@ -5529,34 +5512,36 @@
       }
     }
     function relayIn(msg) {
-      let relay = msg.payload;
+      const relay = msg.payload;
       switch (relay.type) {
         case "publish":
-          let topic = relay.topic;
-          let m = topic.match(/^bridge\/([^\/]+)\/(.*)/);
-          if (m) {
-            if (m[1] != self.clientId && m[1] != self.routingId) {
-              console.log("Bridge relay for unknown routing-id", topic);
-              return;
+          {
+            const topic = relay.topic;
+            const m = topic.match(/^bridge\/([^\/]+)\/(.*)/);
+            if (m) {
+              if (m[1] != clientId && m[1] != routingId) {
+                console.log("Bridge relay for unknown routing-id", topic);
+                return;
+              }
+              relay.topic = m[2];
+            } else {
+              relay.topic = localRoutingTopic(relay.topic);
             }
-            relay.topic = m[2];
-          } else {
-            relay.topic = localRoutingTopic(relay.topic);
+            if (relay.properties && relay.properties.response_topic) {
+              relay.properties.response_topic = localRoutingTopic(relay.properties.response_topic);
+            }
+            publish_mqtt_message(relay, { wid });
           }
-          if (relay.properties && relay.properties.response_topic) {
-            relay.properties.response_topic = localRoutingTopic(relay.properties.response_topic);
-          }
-          publish_mqtt_message(relay, { wid: self.wid });
           break;
         case "connack":
           sessionConnack(relay);
           break;
         case "disconnect":
-          self.is_connected = false;
+          is_connected = false;
           publishStatus();
           break;
         case "auth":
-          publish(self.local_topics.bridge_auth, relay, { wid: self.wid });
+          publish(local_topics.bridge_auth, relay, { wid });
           break;
         case "suback":
           for (let k = 0; k < relay.acks; k++) {
@@ -5573,18 +5558,18 @@
       }
     }
     function bridgeControl(msg) {
-      let payload2 = msg.payload;
+      const payload2 = msg.payload;
       switch (payload2.type) {
         case "subscribe":
           for (let k = 0; k < payload2.topics.length; k++) {
             payload2.topics[k].topic = dropRoutingTopic(payload2.topics[k].topic);
           }
-          publish(self.local_topics.session_out, payload2);
+          publish(local_topics.session_out, payload2);
           break;
         case "unsubscribe":
           break;
         case "auth":
-          publish(self.local_topics.session_out, payload2);
+          publish(local_topics.session_out, payload2);
           break;
         default:
           console.log("Bridge bridgeControl received unknown message", msg);
@@ -5592,43 +5577,43 @@
       }
     }
     function sessionConnack(msg) {
-      self.is_connected = msg.is_connected;
+      is_connected = msg.is_connected;
       if (msg.is_connected) {
-        self.clientId = msg.client_id;
-        let props = msg.connack.properties;
+        clientId = msg.client_id;
+        const props = msg.connack.properties;
         if (props && props["cotonic-routing-id"]) {
-          self.routingId = props["cotonic-routing-id"];
+          routingId = props["cotonic-routing-id"];
         } else {
-          self.routingId = msg.client_id;
+          routingId = msg.client_id;
         }
         if (!msg.connack.session_present) {
-          let topics = [
-            { topic: "bridge/" + self.clientId + "/#", qos: 2, no_local: true }
+          const topics = [
+            { topic: `bridge/${clientId}/#`, qos: 2, no_local: true }
           ];
-          if (self.clientId != self.routingId) {
-            topics.push({ topic: "bridge/" + self.routingId + "/#", qos: 2, no_local: true });
+          if (clientId != routingId) {
+            topics.push({ topic: `bridge/${routingId}/#`, qos: 2, no_local: true });
           }
-          let subscribe2 = {
+          const subscribe2 = {
             type: "subscribe",
             topics
           };
-          publish(self.local_topics.session_out, subscribe2);
+          publish(local_topics.session_out, subscribe2);
           resubscribeTopics();
-          self.session_present = !!msg.connack.session_present;
+          session_present = !!msg.connack.session_present;
         } else {
-          self.session_present = true;
+          session_present = true;
         }
       }
       publishStatus();
     }
     function resubscribeTopics() {
-      let subs = find_subscriptions_below("bridge/" + self.name);
-      let topics = {};
+      const subs = find_subscriptions_below(`bridge/${name}`);
+      const topics = {};
       for (let i = 0; i < subs.length; i++) {
-        if (subs[i].wid == self.wid) {
+        if (subs[i].wid == wid) {
           continue;
         }
-        let sub = Object.assign({}, subs[i].sub);
+        const sub = Object.assign({}, subs[i].sub);
         sub.topic = remove_named_wildcards(sub.topic);
         if (!topics[sub.topic]) {
           topics[sub.topic] = sub;
@@ -5636,46 +5621,33 @@
           mergeSubscription(topics[sub.topic], sub);
         }
       }
-      let ts = [];
-      for (let t in topics) {
+      const ts = [];
+      for (const t in topics) {
         ts.push(topics[t]);
       }
       if (ts.length > 0) {
         bridgeControl({ type: "publish", payload: { type: "subscribe", topics: ts } });
       }
     }
-    function mergeSubscription(subA, subB) {
-      let qosA = subA.qos || 0;
-      let qosB = subB.qos || 0;
-      subA.qos = Math.max(qosA, qosB);
-      let rhA = subA.retain_handling || 0;
-      let rhB = subB.retain_handling || 0;
-      subA.retain_handling = Math.min(rhA, rhB);
-      subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false;
-      subA.no_local = subA.no_local && subB.no_local;
-    }
     function sessionStatus(msg) {
-      self.is_connected = msg.is_connected;
+      is_connected = msg.is_connected;
     }
     function remoteRoutingTopic(topic) {
-      return "bridge/" + self.routingId + "/" + topic;
+      return `bridge/${routingId}/${topic}`;
     }
     function remoteClientTopic(topic) {
-      return "bridge/" + self.clientId + "/" + topic;
+      return `bridge/${clientId}/${topic}`;
     }
     function localRoutingTopic(topic) {
-      return "bridge/" + self.name + "/" + topic;
-    }
-    function dropRoutingTopic(topic) {
-      return topic.replace(/^bridge\/[^\/]+\//, "");
+      return `bridge/${name}/${topic}`;
     }
     function publishStatus() {
       publish(
-        self.local_topics.bridge_status,
+        local_topics.bridge_status,
         {
-          is_connected: self.is_connected,
-          session_present: self.session_present,
-          client_id: self.clientId
+          is_connected,
+          session_present,
+          client_id: clientId
         },
         { retain: true }
       );
@@ -5683,15 +5655,15 @@
         "model/sessionStorage/post/mqtt$clientBridgeTopic",
         remoteClientTopic("")
       );
-      if (self.is_ui_state) {
-        let ui = {
+      if (is_ui_state) {
+        const ui = {
           classes: [],
           status: {
-            "remote": self.remote,
-            "name": self.name
+            "remote": remote,
+            "name": name
           }
         };
-        if (self.is_connected) {
+        if (is_connected) {
           ui.classes.push("connected");
         } else {
           ui.classes.push("disconnected");
@@ -5699,6 +5671,19 @@
         publish("model/bridge/event/ui-status", ui);
       }
     }
+  }
+  function mergeSubscription(subA, subB) {
+    const qosA = subA.qos || 0;
+    const qosB = subB.qos || 0;
+    subA.qos = Math.max(qosA, qosB);
+    const rhA = subA.retain_handling || 0;
+    const rhB = subB.retain_handling || 0;
+    subA.retain_handling = Math.min(rhA, rhB);
+    subA.retain_as_published = subA.retain_as_published || subB.retain_as_published || false;
+    subA.no_local = subA.no_local && subB.no_local;
+  }
+  function dropRoutingTopic(topic) {
+    return topic.replace(/^bridge\/[^\/]+\//, "");
   }
 
   // src/cotonic.event.js
