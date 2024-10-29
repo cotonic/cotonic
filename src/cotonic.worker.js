@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2023 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2016-2024 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,8 +186,8 @@ model.present = function(data) {
         if(data.type === "publish") {
             if(data.from == "client") {
                 // publish to broker
-                let options = data.options || {};
-                let msg = {
+                const options = data.options || {};
+                const msg = {
                     type: "publish",
                     topic: data.topic,
                     payload: data.payload,
@@ -208,11 +208,11 @@ model.present = function(data) {
                     }
                 } else {
                     // Receive publish from broker, call matching subscription callbacks
-                    for(let pattern in model.subscriptions) {
+                    for(const pattern in model.subscriptions) {
                         if(matches(pattern, data.topic)) {
-                            let subs = model.subscriptions[pattern];
+                            const subs = model.subscriptions[pattern];
                             for(let i=0; i < subs.length; i++) {
-                                let subscription = subs[i];
+                                const subscription = subs[i];
                                 try {
                                     subscription.callback(data,
                                         extract(
@@ -229,25 +229,25 @@ model.present = function(data) {
 
         // SUBSCRIBE
         if(data.type === "subscribe" && data.from === "client") {
-            let new_subs = [];
-            let new_topics = [];
-            let packet_id = model.packet_id++;
+            const new_subs = [];
+            const new_topics = [];
+            const packet_id = model.packet_id++;
 
             for (let k = 0; k < data.topics.length; k++) {
-                let t = data.topics[k];
-                let mqtt_topic = remove_named_wildcards(t.topic);
+                const t = data.topics[k];
+                const mqtt_topic = remove_named_wildcards(t.topic);
 
                 // Check if there is a subscription with the same MQTT topic.
                 if (model.subscriptions[mqtt_topic]) {
                     // TODO: check qos / retain_handling
                     //       if qos > or retain_handling < then resubscribe
-                    let subs = model.subscriptions[mqtt_topic];
+                    const subs = model.subscriptions[mqtt_topic];
                     subs.push({topic: t.topic, callback: data.callback});
                     if(data.ack_callback) {
                         setTimeout(data.ack_callback, 0);
                     }
                 } else {
-                    let newsub = {
+                    const newsub = {
                         topic: mqtt_topic,
                         qos: t.qos || 0,
                         retain_handling: t.retain_handling || 0,
@@ -269,13 +269,13 @@ model.present = function(data) {
 
         // SUBACK
         if(data.type === "suback" && data.from === "broker") {
-            let pending = model.pending_acks[data.packet_id];
+            const pending = model.pending_acks[data.packet_id];
             if(pending) {
                 delete model.pending_acks[data.packet_id];
 
                 for(let k = 0; k < pending.topics.length; k++) {
-                    let subreq = pending.subs[k];
-                    let mqtt_topic = subreq.topic;
+                    const subreq = pending.subs[k];
+                    const mqtt_topic = subreq.topic;
                     if(model.subscriptions[mqtt_topic] === undefined) {
                         model.subscriptions[mqtt_topic] = [];
                     }
@@ -301,11 +301,11 @@ model.present = function(data) {
         // TODO: use a subscriber tag to know which subscription is canceled
         //       now we unsubscribe all subscribers
         if(data.type === "unsubscribe" && data.from === "client") {
-            let packet_id = model.packet_id++;
-            let mqtt_topics = [];
+            const packet_id = model.packet_id++;
+            const mqtt_topics = [];
             for (let k = 0; k < data.topics.length; k++) {
-                let t = data.topics[k];
-                let mqtt_topic = remove_named_wildcards(t);
+                const t = data.topics[k];
+                const mqtt_topic = remove_named_wildcards(t);
                 mqtt_topics.push(mqtt_topic);
             }
             self.postMessage({type: "unsubscribe", topics: mqtt_topics, packet_id: packet_id});
@@ -315,14 +315,14 @@ model.present = function(data) {
 
         // UNSUBACK
         if(data.type === "unsuback" && data.from === "broker") {
-            let pending = model.pending_acks[data.packet_id];
+            const pending = model.pending_acks[data.packet_id];
             if(pending) {
                 delete model.pending_acks[data.packet_id];
 
                 for(let i = 0; i < pending.mqtt_topics.length; i++) {
-                    let mqtt_topic = pending.mqtt_topics[i];
+                    const mqtt_topic = pending.mqtt_topics[i];
                     if (data.acks[i] < 0x80) {
-                        let subs = model.subscriptions[mqtt_topic];
+                        const subs = model.subscriptions[mqtt_topic];
                         for (let k = subs.length-1; k >= 0; k--) {
                             delete subs[k].callback;
                             delete subs[k];
@@ -418,14 +418,14 @@ model.present = function(data) {
 };
 
 /** View */
-let view = {};
+const view = {};
 
 view.display = function() {
     // TODO. Could be used to represent debug information.
 };
 
 /** State */
-let state = {view: view};
+const state = {view: view};
 
 state.representation = function() {
     // TODO, could be debug information.
@@ -465,7 +465,7 @@ state.isProvidePublished = function(provides, model) {
 
 /** Actions */
 
-let actions = {};
+const actions = {};
 
 function client_cmd(type, data, present) {
     present = present || model.present;
@@ -475,7 +475,7 @@ function client_cmd(type, data, present) {
 }
 
 actions.on_message = function(e) {
-    let data = e.data;
+    const data = e.data;
     if(data.type) {
         data.from = "broker";
         model.present(e.data);
@@ -485,7 +485,7 @@ actions.on_message = function(e) {
 actions.on_error = function() {
 };
 
-actions.import_done = function(e) {
+actions.import_done = function(_e) {
     model.present({import_done:true});
 }
 
@@ -508,7 +508,7 @@ actions.remove_response_handler = client_cmd.bind(null, "remove_response_handler
 
 actions.connect_timeout = function(data, present) {
     present = present || model.present;
-    let d = data, p = present;
+    const d = data, p = present;
 
     setTimeout(function() {
         d.connect_timeout = true;
@@ -642,10 +642,10 @@ self.call = function(topic, payload, options) {
     const timeout = options.timeout || 15000;
     const willRespond = new Promise(
         function(resolve, reject) {
-            let response_topic = model.response_topic_prefix + model.response_topic_nr;
-            let timer = setTimeout(function() {
+            const response_topic = model.response_topic_prefix + model.response_topic_nr;
+            const timer = setTimeout(function() {
                 actions.remove_response_handler({ topic: response_topic });
-                let reason = new Error("Worker timeout waiting for response on " + topic);
+                const reason = new Error("Worker timeout waiting for response on " + topic);
                 reject(reason);
             }, timeout);
             const handler = {

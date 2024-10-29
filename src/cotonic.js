@@ -33,8 +33,8 @@ const config = (globalThis.cotonic && globalThis.cotonic.config) ? globalThis.co
 })();
 
 let next_worker_id = 1;
-let workers = {};
-let named_worker_ids = {};
+const workers = {};
+const named_worker_ids = {};
 let receive_handler = null;
 
 /**
@@ -42,7 +42,7 @@ let receive_handler = null;
  * can call this function to add their default config settings
  */
 function load_config_defaults(options) {
-    for(let key in options) {
+    for(const key in options) {
         if(!config.hasOwnProperty(key)) {
             config[key] = options[key];
         }
@@ -53,7 +53,7 @@ function load_config_defaults(options) {
  * Handle incoming messages from workers
  */
 function message_from_worker(wid, msg) {
-    var data = msg.data;
+    const data = msg.data;
 
     if(receive_handler) {
         receive_handler(data, wid);
@@ -192,9 +192,9 @@ function cleanupSessionStorage() {
         window.name = makeid(32);
     }
     if (sessionStorage.getItem('windowName') != window.name) {
-        let keys = Object.keys(sessionStorage);
-        for (let i in keys) {
-            let k = keys[i];
+        const keys = Object.keys(sessionStorage);
+        for (const i in keys) {
+            const k = keys[i];
             if (!k.match(/^persist-/)) {
                 sessionStorage.removeItem(k);
             }
@@ -208,8 +208,8 @@ function cleanupSessionStorage() {
  */
 function makeid(length) {
     let result     = '';
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let len        = characters.length;
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const len        = characters.length;
     for (let i = 0; i < length; i++ ) {
         result += characters.charAt(Math.floor(Math.random() * len));
     }
@@ -234,4 +234,4 @@ cleanupSessionStorage();
 
 export { VERSION, config };
 export { ready, readyResolve };
-export { load_config_defaults, spawn, spawn_named, whereis, send, receive };
+export { load_config_defaults, spawn, spawn_named, exit, whereis, send, receive };
