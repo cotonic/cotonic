@@ -101,3 +101,84 @@ QUnit.test("Idom skip node", function(assert) {
 
     
 });
+
+QUnit.test("Idom iframe node", function(assert) {
+    let element = document.getElementById("iframe-test");
+
+    idom.patchInner(element, [
+        {type: "open", tag: "div", attributes: []},
+
+        {type: "open", tag: "span", attributes: ["id", "before-iframe"]},
+            {type: "text", data: "Before frame!"},
+        {type: "close", tag: "span"},
+
+        {type: "open", tag: "cotonic-idom-iframe", attributes: ["id", "the-iframe"]},
+            {type: "text", data: "\n"}, // Should be skipped.
+            {type: "open", tag: "html"},
+            {type: "open", tag: "body", attributes: ["id", "body-in-iframe"]},
+                {type: "text", data: "Hela hola, tijd voor chips en cola!"},
+            {type: "close", tag: "body"},
+            {type: "close", tag: "html"},
+            {type: "text", data: "\n"}, // Trailing things should be skipped.
+        {type: "close", tag: "cotonic-idom-iframe"},
+
+        {type: "open", tag: "span", attributes: ["id", "after-iframe"]},
+            {type: "text", data: "After frame!"},
+        {type: "close", tag: "span"},
+
+        {type: "close", tag: "div"}
+    ]);
+
+    assert.ok(document.getElementById("before-iframe"));
+    assert.ok(document.getElementById("after-iframe"));
+
+    const iframe = document.getElementById("the-iframe");
+    assert.ok(iframe);
+
+    const doc = iframe.contentDocument;
+    assert.equal("Hela hola, tijd voor chips en cola!", doc.body.innerHTML);
+});
+
+QUnit.test("Idom nested iframe nodes", function(assert) {
+    let element = document.getElementById("nested-iframe-test");
+
+    idom.patchInner(element, [
+        {type: "open", tag: "div", attributes: []},
+
+        {type: "open", tag: "span", attributes: ["id", "before-nested-iframe"]},
+            {type: "text", data: "Before nested frame!"},
+        {type: "close", tag: "span"},
+
+        {type: "open", tag: "cotonic-idom-iframe", attributes: ["id", "top-iframe"]},
+            {type: "open", tag: "html"},
+            {type: "open", tag: "body"},
+
+            {type: "open", tag: "cotonic-idom-iframe", attributes: ["id", "nested-iframe"]},
+                {type: "open", tag: "html"},
+                    {type: "open", tag: "body"},
+                        {type: "text", data: "Hela hola, tijd voor chips en cola!\n"},
+                    {type: "close", tag: "body"},
+                {type: "close", tag: "html"},
+            {type: "close", tag: "cotonic-idom-iframe"},
+            {type: "close", tag: "body"},
+            {type: "close", tag: "html"},
+        {type: "close", tag: "cotonic-idom-iframe"},
+
+        {type: "open", tag: "span", attributes: ["id", "after-nested-iframe"]},
+            {type: "text", data: "After nested frame!"},
+        {type: "close", tag: "span"},
+
+        {type: "close", tag: "div"}
+    ]);
+
+    assert.ok(document.getElementById("before-nested-iframe"));
+    assert.ok(document.getElementById("after-nested-iframe"));
+
+    const topIframe = document.getElementById("top-iframe");
+    assert.ok(topIframe);
+
+    const topDoc = topIframe.contentDocument;
+
+    assert.ok(topDoc.getElementById("nested-iframe"));
+});
+
