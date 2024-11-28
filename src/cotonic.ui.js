@@ -387,6 +387,28 @@ function topicTargetValueList(topicTarget) {
     }
 }
 
+function fieldValue(field) {
+    if (field.type == 'select-multiple') {
+        v = [];
+        l = form.elements[i].options.length;
+        for (let j=0; j<l; j++) {
+            if(field.options[j].selected) {
+                v[v.length] = field.options[j].value;
+            }
+        }
+        return v;
+    } else if (field.type == 'checkbox') {
+        if (field.checked) {
+            return field.value;
+        } else {
+            return "";
+        }
+    } else if (field.type != 'radio' || field.checked) {
+        return field.value;
+    }
+    return false;
+}
+
 // From https://plainjs.com/javascript/ajax/serialize-form-data-into-an-array-46/
 function serializeFormToObject(form) {
     let field, l, v, s = {};
@@ -402,24 +424,15 @@ function serializeFormToObject(form) {
                 && field.type != 'submit'
                 && field.type != 'button')
             {
-                if (field.type == 'select-multiple') {
-                    v = [];
-                    l = form.elements[i].options.length;
-                    for (let j=0; j<l; j++) {
-                        if(field.options[j].selected) {
-                            v[v.length] = field.options[j].value;
-                        }
+                if (field.dataset.submitIf) {
+                    const ifelt = form.elements[field.dataset.submitIf];
+                    if (!ifelt || !fieldValue(ifelt)) {
+                        continue;
                     }
-                    s[field.name] = v;
-
-                } else if (field.type == 'checkbox') {
-                    if (field.checked) {
-                        s[field.name] = field.value;
-                    } else {
-                        s[field.name] = "";
-                    }
-                } else if (field.type != 'radio' || field.checked) {
-                    s[field.name] = field.value;
+                }
+                const val = fieldValue(field);
+                if (val !== false) {
+                    s[field.name] = val;
                 }
             }
         }
@@ -441,6 +454,13 @@ function serializeFormToList(form) {
                 && field.type != 'submit'
                 && field.type != 'button')
             {
+                if (field.dataset.submitIf) {
+                    const ifelt = form.elements[field.dataset.submitIf];
+                    if (!ifelt || !fieldValue(ifelt)) {
+                        continue;
+                    }
+                }
+
                 if (skipped && field.name != skipped) {
                     s.push([skipped, ""]);
                     skipped = false;
