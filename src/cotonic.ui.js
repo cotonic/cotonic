@@ -400,7 +400,7 @@ function fieldValue(field) {
     } else if (field.type == 'checkbox') {
         if (field.checked) {
             return field.value;
-        } else if (field.hasAttribute('value-unchecked'))
+        } else if (field.hasAttribute('value-unchecked')) {
             return field.getAttribute('value-unchecked');
         } else {
             return "";
@@ -491,7 +491,7 @@ function serializeFormToList(form) {
                             skipped = false;
                         }
                         s.push([field.name, field.value]);
-                    } else if (field.hasAttribute('value-unchecked'))
+                    } else if (field.hasAttribute('value-unchecked')) {
                         if (prev == field.name) {
                             skipped = false;
                         }
