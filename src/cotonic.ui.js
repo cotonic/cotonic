@@ -409,6 +409,24 @@ function fieldValue(field) {
     return false;
 }
 
+function fieldSubmitIfOk(field, form) {
+    if (field.dataset.submitIf) {
+        const submitIf = form.elements[field.dataset.submitIf]
+                         ?? document.getElementById(field.dataset.submitIf);
+        if (!submitIf || !fieldValue(submitIf)) {
+            return false;
+        }
+    }
+    if (field.dataset.submitIfNot) {
+        const submitIfNot = form.elements[field.dataset.submitIfNot]
+                            ?? document.getElementById(field.dataset.submitIf);
+        if (submitIfNot && !!fieldValue(submitIfNot)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // From https://plainjs.com/javascript/ajax/serialize-form-data-into-an-array-46/
 function serializeFormToObject(form) {
     let field, l, v, s = {};
@@ -424,11 +442,8 @@ function serializeFormToObject(form) {
                 && field.type != 'submit'
                 && field.type != 'button')
             {
-                if (field.dataset.submitIf) {
-                    const ifelt = form.elements[field.dataset.submitIf];
-                    if (!ifelt || !fieldValue(ifelt)) {
-                        continue;
-                    }
+                if (!fieldSubmitIfOk(field, form)) {
+                    continue;
                 }
                 const val = fieldValue(field);
                 if (val !== false) {
@@ -454,13 +469,9 @@ function serializeFormToList(form) {
                 && field.type != 'submit'
                 && field.type != 'button')
             {
-                if (field.dataset.submitIf) {
-                    const ifelt = form.elements[field.dataset.submitIf];
-                    if (!ifelt || !fieldValue(ifelt)) {
-                        continue;
-                    }
+                if (!fieldSubmitIfOk(field, form)) {
+                    continue;
                 }
-
                 if (skipped && field.name != skipped) {
                     s.push([skipped, ""]);
                     skipped = false;
