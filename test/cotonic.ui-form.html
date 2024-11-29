@@ -73,5 +73,26 @@
             <input type="checkbox" name="v[]" value="4">
 
         </form>
+
+        <form id="form-c">
+
+            <input type="text" name="t1" value="">
+            <input type="text" name="t2" id="idoft2" value="1">
+            <input type="text" class="nosubmit" name="t3" id="idoft2" value="1">
+
+            <input type="hidden" name="if1" value="1" data-submit-if="t1">
+            <input type="hidden" name="if1not" value="1" data-submit-if-not="t1">
+
+            <input type="hidden" name="if2" value="2" data-submit-if="t2">
+            <input type="hidden" name="if2not" value="2" data-submit-if-not="t2">
+
+            <input type="hidden" name="ifid2" value="3" data-submit-if="idoft2">
+            <input type="hidden" name="ifid2not" value="3" data-submit-if-not="idoft2">
+
+            <input type="hidden" name="ifnone" value="4" data-submit-if="not-here">
+            <input type="hidden" name="ifnonenot" value="4" data-submit-if-not="not-here">
+
+        </form>
+
     </body>
 </html>

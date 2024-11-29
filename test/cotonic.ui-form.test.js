@@ -43,6 +43,19 @@ QUnit.test("Form serialize test", function(assert) {
         ],
         s);
 
-    assert.ok(true);
-});
+    form = document.getElementById("form-c");
+    s = ui.serializeFormToList(form);
 
+    assert.deepEqual([
+            [ "t1", "" ],
+            [ "t2", "1" ],
+            [ "if1not", "1" ],
+            [ "if2", "2" ],
+            [ "ifid2not", "3" ],
+            [ "ifnonenot", "4" ]
+        ],
+        s);
+
+    assert.ok(true);
+
+});
