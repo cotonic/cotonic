@@ -26,16 +26,16 @@
     const patternLength = patternSegments.length;
     const topicLength = topicSegments.length;
     const lastIndex = patternLength - 1;
-    for (let i = 0; i < patternLength; i++) {
-      const currentPattern = patternSegments[i];
+    for (let i2 = 0; i2 < patternLength; i2++) {
+      const currentPattern = patternSegments[i2];
       const patternChar = currentPattern[0];
-      const currentTopic = topicSegments[i];
+      const currentTopic = topicSegments[i2];
       if (!currentTopic && !currentPattern)
         continue;
       if (!currentTopic && currentPattern !== ALL)
         return false;
       if (patternChar === ALL)
-        return i === lastIndex;
+        return i2 === lastIndex;
       if (patternChar !== SINGLE && currentPattern !== currentTopic)
         return false;
     }
@@ -45,8 +45,8 @@
     const patternSegments = pattern.split(SEPARATOR);
     const patternLength = patternSegments.length;
     const result = [];
-    for (let i = 0; i < patternLength; i++) {
-      const currentPattern = patternSegments[i];
+    for (let i2 = 0; i2 < patternLength; i2++) {
+      const currentPattern = patternSegments[i2];
       const patternChar = currentPattern[0];
       const patternParam = currentPattern.slice(1);
       const paramValue = params[patternParam];
@@ -56,7 +56,8 @@
         break;
       } else if (patternChar === SINGLE)
         result.push("" + paramValue);
-      else result.push(currentPattern);
+      else
+        result.push(currentPattern);
     }
     return result.join(SEPARATOR);
   }
@@ -65,16 +66,16 @@
     const patternSegments = pattern.split(SEPARATOR);
     const topicSegments = topic.split(SEPARATOR);
     const patternLength = patternSegments.length;
-    for (let i = 0; i < patternLength; i++) {
-      const currentPattern = patternSegments[i];
+    for (let i2 = 0; i2 < patternLength; i2++) {
+      const currentPattern = patternSegments[i2];
       const patternChar = currentPattern[0];
       if (currentPattern.length === 1)
         continue;
       if (patternChar === ALL) {
-        params[currentPattern.slice(1)] = topicSegments.slice(i);
+        params[currentPattern.slice(1)] = topicSegments.slice(i2);
         break;
       } else if (patternChar === SINGLE) {
-        params[currentPattern.slice(1)] = topicSegments[i];
+        params[currentPattern.slice(1)] = topicSegments[i2];
       }
     }
     return params;
@@ -83,8 +84,8 @@
     const patternSegments = pattern.split(SEPARATOR);
     const patternLength = patternSegments.length;
     const mqttPattern = [];
-    for (let i = 0; i < patternLength; i++) {
-      const currentPattern = patternSegments[i];
+    for (let i2 = 0; i2 < patternLength; i2++) {
+      const currentPattern = patternSegments[i2];
       const patternChar = currentPattern[0];
       if (patternChar === ALL || patternChar == SINGLE) {
         mqttPattern.push(patternChar);
@@ -126,9 +127,9 @@
   var NORMAL = 3;
   function TokenBuilder(acc) {
     function addKey(token, attributes2) {
-      for (let i = 0; i < attributes2.length; i = i + 2) {
-        if (attributes2[i] === "key") {
-          token.key = attributes2[i + 1];
+      for (let i2 = 0; i2 < attributes2.length; i2 = i2 + 2) {
+        if (attributes2[i2] === "key") {
+          token.key = attributes2[i2 + 1];
           break;
         }
       }
@@ -270,8 +271,10 @@
       } else {
         builder.elementOpen(tag.value, attributes2.value);
       }
-      if (tag.value === "textarea") return TEXTAREA;
-      if (tag.value === "script") return SCRIPT;
+      if (tag.value === "textarea")
+        return TEXTAREA;
+      if (tag.value === "script")
+        return SCRIPT;
       return NORMAL;
     }
     text_data = tokenize_data(data, d);
@@ -284,32 +287,44 @@
     while (true) {
       lt = data.codePointAt(d.offset);
       if (lt === void 0) {
-        if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+        if (offsetStart !== d.offset)
+          d.builder.text(data.slice(offsetStart, d.offset));
         return;
       }
       lookahead: {
-        if (lt !== LT) break lookahead;
+        if (lt !== LT)
+          break lookahead;
         slash = data.codePointAt(d.offset + 1);
-        if (slash !== SLASH) break lookahead;
+        if (slash !== SLASH)
+          break lookahead;
         n = data[d.offset + 2];
-        if (!(n === "t" || n === "T")) break lookahead;
+        if (!(n === "t" || n === "T"))
+          break lookahead;
         n = data[d.offset + 3];
-        if (!(n === "e" || n === "E")) break lookahead;
+        if (!(n === "e" || n === "E"))
+          break lookahead;
         n = data[d.offset + 4];
-        if (!(n === "x" || n === "X")) break lookahead;
+        if (!(n === "x" || n === "X"))
+          break lookahead;
         n = data[d.offset + 5];
-        if (!(n === "t" || n === "T")) break lookahead;
+        if (!(n === "t" || n === "T"))
+          break lookahead;
         n = data[d.offset + 6];
-        if (!(n === "a" || n === "A")) break lookahead;
+        if (!(n === "a" || n === "A"))
+          break lookahead;
         n = data[d.offset + 7];
-        if (!(n === "r" || n === "R")) break lookahead;
+        if (!(n === "r" || n === "R"))
+          break lookahead;
         n = data[d.offset + 8];
-        if (!(n === "e" || n === "E")) break lookahead;
+        if (!(n === "e" || n === "E"))
+          break lookahead;
         n = data[d.offset + 9];
-        if (!(n === "a" || n === "A")) break lookahead;
+        if (!(n === "a" || n === "A"))
+          break lookahead;
         n = data.codePointAt(d.offset + 10);
         if (is_probable_close(n)) {
-          if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+          if (offsetStart !== d.offset)
+            d.builder.text(data.slice(offsetStart, d.offset));
           return;
         }
       }
@@ -322,28 +337,38 @@
     while (true) {
       lt = data.codePointAt(d.offset);
       if (lt === void 0) {
-        if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+        if (offsetStart !== d.offset)
+          d.builder.text(data.slice(offsetStart, d.offset));
         return;
       }
       lookahead: {
-        if (lt !== LT) break lookahead;
+        if (lt !== LT)
+          break lookahead;
         slash = data.codePointAt(d.offset + 1);
-        if (slash !== SLASH) break lookahead;
+        if (slash !== SLASH)
+          break lookahead;
         n = data[d.offset + 2];
-        if (!(n === "s" || n === "S")) break lookahead;
+        if (!(n === "s" || n === "S"))
+          break lookahead;
         n = data[d.offset + 3];
-        if (!(n === "c" || n === "C")) break lookahead;
+        if (!(n === "c" || n === "C"))
+          break lookahead;
         n = data[d.offset + 4];
-        if (!(n === "r" || n === "R")) break lookahead;
+        if (!(n === "r" || n === "R"))
+          break lookahead;
         n = data[d.offset + 5];
-        if (!(n === "i" || n === "I")) break lookahead;
+        if (!(n === "i" || n === "I"))
+          break lookahead;
         n = data[d.offset + 6];
-        if (!(n === "p" || n === "P")) break lookahead;
+        if (!(n === "p" || n === "P"))
+          break lookahead;
         n = data[d.offset + 7];
-        if (!(n === "t" || n === "T")) break lookahead;
+        if (!(n === "t" || n === "T"))
+          break lookahead;
         n = data.codePointAt(d.offset + 8);
         if (is_probable_close(n)) {
-          if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
+          if (offsetStart !== d.offset)
+            d.builder.text(data.slice(offsetStart, d.offset));
           return;
         }
       }
@@ -356,7 +381,8 @@
     while (true) {
       c = data.codePointAt(d.offset);
       if (c === void 0 || c === GT) {
-        if (c === GT) d.inc_col();
+        if (c === GT)
+          d.inc_col();
         d.builder.doctype(acc);
         return NORMAL;
       }
@@ -400,7 +426,7 @@
   }
   function tokenize_word(data, quote, d) {
     const acc = [];
-    let i = 0;
+    let i2 = 0;
     while (true) {
       const c = data.codePointAt(d.offset);
       if (c === void 0) {
@@ -412,9 +438,9 @@
       }
       if (c === AMPERSAND) {
         const charref2 = tokenize_charref(data, d.inc_col());
-        acc[i++] = charref2.value;
+        acc[i2++] = charref2.value;
       }
-      acc[i++] = data[d.offset];
+      acc[i2++] = data[d.offset];
       d.inc_char(c);
     }
   }
@@ -429,7 +455,7 @@
     }
   }
   function tokenize_literal(data, d, type) {
-    let literal = [], i = 0, c = data.codePointAt(d.offset);
+    let literal = [], i2 = 0, c = data.codePointAt(d.offset);
     if (c === GT || c === SLASH || c === EQUALS) {
       return value(data.charAt(d.offset), d.inc_col());
     }
@@ -437,12 +463,12 @@
       c = data.codePointAt(d.offset);
       if (c === AMPERSAND) {
         charref = tokenize_charref(data, d.inc_col());
-        literal[i++] = charref.value;
+        literal[i2++] = charref.value;
         continue;
       }
       if (c !== void 0) {
         if (!(is_whitespace(c) || c === GT || c === SLASH || c === EQUALS)) {
-          literal[i++] = data[d.offset];
+          literal[i2++] = data[d.offset];
           d.inc_col();
           continue;
         }
@@ -535,45 +561,45 @@
     return tokenize_unquoted_attr_value(data, d);
   }
   function tokenize_quoted_attr_value(data, start_quote, d) {
-    const v = [];
-    let i = 0;
+    const v2 = [];
+    let i2 = 0;
     while (true) {
       const c = data.codePointAt(d.offset);
       if (c === void 0) {
-        return value(v.join(""), d);
+        return value(v2.join(""), d);
       }
       if (c === AMPERSAND) {
         const charref2 = tokenize_charref(data, d.inc_col());
-        v[i++] = charref2.value;
+        v2[i2++] = charref2.value;
         continue;
       }
       if (c === start_quote) {
-        return value(v.join(""), d.inc_col());
+        return value(v2.join(""), d.inc_col());
       }
-      v[i++] = data[d.offset];
+      v2[i2++] = data[d.offset];
       d.inc_char(c);
     }
   }
   function tokenize_unquoted_attr_value(data, d) {
-    const v = [];
-    let i = 0;
+    const v2 = [];
+    let i2 = 0;
     while (true) {
       const c = data.codePointAt(d.offset);
       if (c === void 0) {
-        return value(v.join(""), d);
+        return value(v2.join(""), d);
       }
       if (c === AMPERSAND) {
         const charref2 = tokenize_charref(data, d.inc_col());
-        v[i++] = charref2.value;
+        v2[i2++] = charref2.value;
         continue;
       }
       if (c === SLASH) {
-        return value(v.join(""), d);
+        return value(v2.join(""), d);
       }
       if (is_probable_close(c)) {
-        return value(v.join(""), d);
+        return value(v2.join(""), d);
       }
-      v[i++] = data[d.offset];
+      v2[i2++] = data[d.offset];
       d.inc_col();
     }
   }
@@ -654,10 +680,10 @@
     return !!Object.getOwnPropertyDescriptor(html_attrs, name);
   }
   function is_singleton(tag) {
-    const v = html_tags[tag];
-    if (v === void 0)
+    const v2 = html_tags[tag];
+    if (v2 === void 0)
       return false;
-    return v;
+    return v2;
   }
   function value(val, line, column, offset) {
     return { value: val, line, column, offset };
@@ -935,7 +961,8 @@
     const cache = {};
     return function(raw) {
       let d = cache[raw];
-      if (d !== void 0) return d;
+      if (d !== void 0)
+        return d;
       if (raw.slice(-1) === ";") {
         element.innerHTML = "&" + raw;
       } else {
@@ -1102,7 +1129,8 @@
   }
   function decodeResponse(data) {
     const d = new Uint8Array(data);
-    if (d[0] != V1) throw new Error("Unexpected message");
+    if (d[0] != V1)
+      throw new Error("Unexpected message");
     const nonce = d.slice(1, NONCE_BYTES + 1);
     let result = { nonce };
     const PAYLOAD = NONCE_BYTES + 1;
@@ -1181,8 +1209,10 @@
     return msg;
   }
   function decodeSecurePublish(data) {
-    if (data[0] != V1) throw new Error("Unknown message");
-    if (data[1] != SECURE_PUBLISH) throw new Error("Wrong message type");
+    if (data[0] != V1)
+      throw new Error("Unknown message");
+    if (data[1] != SECURE_PUBLISH)
+      throw new Error("Wrong message type");
     let iv = data.slice(2, IV_BYTES + 2);
     let message = data.slice(IV_BYTES + 2);
     return { type: SECURE_PUBLISH, iv, message };
@@ -1210,15 +1240,15 @@
     let r = 0;
     if (buf.length < nrBytes)
       throw new Error("Buffer too small to convert.");
-    for (let i = 0; i < nrBytes; i++) {
-      r += buf[i] * Math.pow(2, lshift);
+    for (let i2 = 0; i2 < nrBytes; i2++) {
+      r += buf[i2] * Math.pow(2, lshift);
       lshift -= 8;
     }
     return r;
   }
 
   // src/cotonic.js
-  var VERSION = "1.7.3";
+  var VERSION = "1.8.0";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -1327,8 +1357,8 @@
     }
     if (sessionStorage.getItem("windowName") != window.name) {
       let keys = Object.keys(sessionStorage);
-      for (let i in keys) {
-        let k = keys[i];
+      for (let i2 in keys) {
+        let k = keys[i2];
         if (!k.match(/^persist-/)) {
           sessionStorage.removeItem(k);
         }
@@ -1340,7 +1370,7 @@
     let result = "";
     let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let len = characters.length;
-    for (let i = 0; i < length; i++) {
+    for (let i2 = 0; i2 < length; i2++) {
       result += characters.charAt(Math.floor(Math.random() * len));
     }
     return result;
@@ -1653,8 +1683,8 @@
       return;
     }
     const attrsArr = data.getAttrsArr(length);
-    for (let i = 0, j = 0; i < length; i += 1, j += 2) {
-      const attr2 = attributes2[i];
+    for (let i2 = 0, j = 0; i2 < length; i2 += 1, j += 2) {
+      const attr2 = attributes2[i2];
       const name = attr2.name;
       const value2 = attr2.value;
       attrsArr[j] = name;
@@ -1968,9 +1998,9 @@
     const start = bufferStart;
     const end = buffer.length;
     bufferStart = end;
-    for (let i = start; i < end; i += 4) {
-      const fn = buffer[i];
-      fn(buffer[i + 1], buffer[i + 2], buffer[i + 3]);
+    for (let i2 = start; i2 < end; i2 += 4) {
+      const fn = buffer[i2];
+      fn(buffer[i2 + 1], buffer[i2 + 2], buffer[i2 + 3]);
     }
     bufferStart = start;
     truncateArray(buffer, start);
@@ -1980,33 +2010,33 @@
   var prevValuesMap = createMap();
   function calculateDiff(prev, next, updateCtx, updateFn, alwaysDiffAttributes2) {
     const isNew = !prev.length || alwaysDiffAttributes2;
-    let i = 0;
-    for (; i < next.length; i += 2) {
-      const name = next[i];
+    let i2 = 0;
+    for (; i2 < next.length; i2 += 2) {
+      const name = next[i2];
       if (isNew) {
-        prev[i] = name;
-      } else if (prev[i] !== name) {
+        prev[i2] = name;
+      } else if (prev[i2] !== name) {
         break;
       }
-      const value2 = next[i + 1];
-      if (isNew || prev[i + 1] !== value2) {
-        prev[i + 1] = value2;
+      const value2 = next[i2 + 1];
+      if (isNew || prev[i2 + 1] !== value2) {
+        prev[i2 + 1] = value2;
         queueChange(updateFn, updateCtx, name, value2);
       }
     }
-    if (i < next.length || i < prev.length) {
-      const startIndex = i;
-      for (i = startIndex; i < prev.length; i += 2) {
-        prevValuesMap[prev[i]] = prev[i + 1];
+    if (i2 < next.length || i2 < prev.length) {
+      const startIndex = i2;
+      for (i2 = startIndex; i2 < prev.length; i2 += 2) {
+        prevValuesMap[prev[i2]] = prev[i2 + 1];
       }
-      for (i = startIndex; i < next.length; i += 2) {
-        const name = next[i];
-        const value2 = next[i + 1];
+      for (i2 = startIndex; i2 < next.length; i2 += 2) {
+        const name = next[i2];
+        const value2 = next[i2 + 1];
         if (prevValuesMap[name] !== value2) {
           queueChange(updateFn, updateCtx, name, value2);
         }
-        prev[i] = name;
-        prev[i + 1] = value2;
+        prev[i2] = name;
+        prev[i2 + 1] = value2;
         delete prevValuesMap[name];
       }
       truncateArray(prev, next.length);
@@ -2042,19 +2072,19 @@
       return;
     }
     if (data.hasEmptyAttrsArr()) {
-      for (let i = 0; i < statics.length; i += 2) {
-        updateAttribute(node, statics[i], statics[i + 1]);
+      for (let i2 = 0; i2 < statics.length; i2 += 2) {
+        updateAttribute(node, statics[i2], statics[i2 + 1]);
       }
       return;
     }
-    for (let i = 0; i < statics.length; i += 2) {
-      prevAttrsMap[statics[i]] = i + 1;
+    for (let i2 = 0; i2 < statics.length; i2 += 2) {
+      prevAttrsMap[statics[i2]] = i2 + 1;
     }
     const attrsArr = data.getAttrsArr(0);
     let j = 0;
-    for (let i = 0; i < attrsArr.length; i += 2) {
-      const name = attrsArr[i];
-      const value2 = attrsArr[i + 1];
+    for (let i2 = 0; i2 < attrsArr.length; i2 += 2) {
+      const name = attrsArr[i2];
+      const value2 = attrsArr[i2 + 1];
       const staticsIndex = prevAttrsMap[name];
       if (staticsIndex) {
         if (statics[staticsIndex] === value2) {
@@ -2115,9 +2145,9 @@
     const argsBuilder2 = getArgsBuilder();
     const statics = argsBuilder2[2];
     if (statics) {
-      for (let i = 0; i < statics.length; i += 2) {
-        if (statics[i] === "nonce") {
-          return statics[i + 1];
+      for (let i2 = 0; i2 < statics.length; i2 += 2) {
+        if (statics[i2] === "nonce") {
+          return statics[i2 + 1];
         }
       }
     }
@@ -2129,8 +2159,8 @@
       assertNotInSkip("elementOpen");
     }
     elementOpenStart(nameOrCtor, key3, statics);
-    for (let i = ATTRIBUTES_OFFSET; i < arguments.length; i += 2) {
-      attr(arguments[i], arguments[i + 1]);
+    for (let i2 = ATTRIBUTES_OFFSET; i2 < arguments.length; i2 += 2) {
+      attr(arguments[i2], arguments[i2 + 1]);
     }
     return elementOpenEnd();
   }
@@ -2168,8 +2198,8 @@
     if (data.text !== value2) {
       data.text = value2;
       let formatted = value2;
-      for (let i = 1; i < arguments.length; i += 1) {
-        const fn = arguments[i];
+      for (let i2 = 1; i2 < arguments.length; i2 += 1) {
+        const fn = arguments[i2];
         formatted = fn(formatted);
       }
       if (node.data !== formatted) {
@@ -2240,8 +2270,8 @@
           return closeNode(token);
       }
     }
-    for (let i = 0; i < tokens2.length; i++) {
-      renderToken(tokens2[i]);
+    for (let i2 = 0; i2 < tokens2.length; i2++) {
+      renderToken(tokens2[i2]);
     }
   }
   function closeNode(token) {
@@ -2260,9 +2290,9 @@
   function skipNode(token) {
     const currentPointer2 = idom.currentPointer();
     let id;
-    for (let i = 0; i < token.attributes.length; i = i + 2) {
-      if (token.attributes[i] === "id") {
-        id = token.attributes[i + 1];
+    for (let i2 = 0; i2 < token.attributes.length; i2 = i2 + 2) {
+      if (token.attributes[i2] === "id") {
+        id = token.attributes[i2 + 1];
         break;
       }
     }
@@ -2271,12 +2301,12 @@
     }
     if (!currentPointer2 || currentPointer2.id !== id) {
       let tag = "div", attributes2 = [];
-      for (let i = 0; i < token.attributes.length; i = i + 2) {
-        if (token.attributes[i] === "tag") {
-          tag = token.attributes[i + 1];
+      for (let i2 = 0; i2 < token.attributes.length; i2 = i2 + 2) {
+        if (token.attributes[i2] === "tag") {
+          tag = token.attributes[i2 + 1];
         } else {
-          attributes2.push(token.attributes[i]);
-          attributes2.push(token.attributes[i + 1]);
+          attributes2.push(token.attributes[i2]);
+          attributes2.push(token.attributes[i2 + 1]);
         }
       }
       return idom.elementVoid.apply(null, [tag, token.hasOwnProperty("key") ? token.key : null, null].concat(attributes2));
@@ -2325,28 +2355,28 @@
   }
   function add(topic, thing) {
     const path = topic.split("/");
-    let i = 0;
+    let i2 = 0;
     let current = root;
-    for (i = 0; i < path.length; i++) {
+    for (i2 = 0; i2 < path.length; i2++) {
       let children = current[CHILDREN];
       if (children === null) {
         children = current[CHILDREN] = {};
       }
-      if (!children.hasOwnProperty(path[i])) {
-        children[path[i]] = new_node(null);
+      if (!children.hasOwnProperty(path[i2])) {
+        children[path[i2]] = new_node(null);
       }
-      current = children[path[i]];
+      current = children[path[i2]];
     }
-    let v = current[VALUE];
-    if (v === null) {
-      v = current[VALUE] = [];
+    let v2 = current[VALUE];
+    if (v2 === null) {
+      v2 = current[VALUE] = [];
     }
-    let index = indexOfSubscription(v, thing);
+    let index = indexOfSubscription(v2, thing);
     if (index > -1) {
-      v.splice(index, 1);
+      v2.splice(index, 1);
     }
-    v.push(thing);
-    return v;
+    v2.push(thing);
+    return v2;
   }
   function match(topic) {
     const path = topic.split("/");
@@ -2355,7 +2385,8 @@
     return matches3;
   }
   function collect_matches(path, trie, matches3) {
-    if (trie === void 0) return;
+    if (trie === void 0)
+      return;
     if (path.length === 0) {
       if (trie[VALUE] !== null) {
         matches3.push.apply(matches3, trie[VALUE]);
@@ -2363,7 +2394,8 @@
       }
     }
     const children = trie[CHILDREN];
-    if (children === null) return;
+    if (children === null)
+      return;
     const sub_path = path.slice(1);
     switch (path[0]) {
       case "+":
@@ -2379,31 +2411,31 @@
   function remove(topic, thing) {
     const path = topic.split("/");
     let current = root;
-    let i = 0;
+    let i2 = 0;
     let visited = [current];
-    for (i = 0; i < path.length; i++) {
+    for (i2 = 0; i2 < path.length; i2++) {
       let children = current[CHILDREN];
       if (children === null) {
         return;
       }
-      if (!children.hasOwnProperty(path[i])) {
+      if (!children.hasOwnProperty(path[i2])) {
         return;
       }
-      current = children[path[i]];
+      current = children[path[i2]];
       visited.unshift(current);
     }
-    let v = current[VALUE];
-    let index = indexOfSubscription(v, thing);
+    let v2 = current[VALUE];
+    let index = indexOfSubscription(v2, thing);
     if (index > -1) {
-      v.splice(index, 1);
-      if (v.length === 0) {
+      v2.splice(index, 1);
+      if (v2.length === 0) {
         current[VALUE] = null;
         path.reverse();
-        for (i = 0; i < visited.length - 1; i++) {
-          let v2 = visited[i];
-          if (v2[CHILDREN] === null && v2[VALUE] === null) {
-            let v1 = visited[i + 1];
-            delete v1[CHILDREN][path[i]];
+        for (i2 = 0; i2 < visited.length - 1; i2++) {
+          let v3 = visited[i2];
+          if (v3[CHILDREN] === null && v3[VALUE] === null) {
+            let v1 = visited[i2 + 1];
+            delete v1[CHILDREN][path[i2]];
             if (Object.keys(v1[CHILDREN]).length == 0) {
               v1[CHILDREN] = null;
             }
@@ -2414,11 +2446,11 @@
       }
     }
   }
-  function indexOfSubscription(v, thing) {
-    let index = v.indexOf(thing);
+  function indexOfSubscription(v2, thing) {
+    let index = v2.indexOf(thing);
     if (index === -1 && thing.wid !== null) {
-      for (index = v.length - 1; index >= 0; index--) {
-        const sub = v[index];
+      for (index = v2.length - 1; index >= 0; index--) {
+        const sub = v2[index];
         if (thing.type === sub.type && sub.wid === thing.wid) {
           return index;
         }
@@ -2433,12 +2465,14 @@
     return subs;
   }
   function collect_subscribers(path, trie, subs) {
-    if (trie === void 0) return;
+    if (trie === void 0)
+      return;
     if (path.length === 0 && trie[VALUE] !== null) {
       subs.push.apply(subs, trie[VALUE]);
     }
     let children = trie[CHILDREN];
-    if (children === null) return;
+    if (children === null)
+      return;
     if (path.length > 0) {
       let sub_path = path.slice(1);
       collect_subscribers(sub_path, children[path[0]], subs);
@@ -2451,7 +2485,8 @@
     }
   }
   receive(function(data, wid) {
-    if (!data.type) return;
+    if (!data.type)
+      return;
     switch (data.type) {
       case "connect":
         return handle_connect(wid, data);
@@ -2470,7 +2505,8 @@
   });
   function handle_connect(wid, data) {
     if (data.client_id !== wid) {
-      if (window.console) window.console.error("Wrong client_id in connect from " + wid, data);
+      if (window.console)
+        window.console.error("Wrong client_id in connect from " + wid, data);
     }
     clients[wid] = data;
     send(wid, { type: "connack", reason_code: 0 });
@@ -2481,8 +2517,8 @@
     send_retained(result.retained);
   }
   function send_retained(retained) {
-    for (let i = 0; i < retained.length; i++) {
-      const r = retained[i];
+    for (let i2 = 0; i2 < retained.length; i2++) {
+      const r = retained[i2];
       for (let j = 0; j < r.retained.length; j++) {
         publish_subscriber(r.subscription, r.retained[j].retained.message, r.subscription.wid);
       }
@@ -2514,7 +2550,8 @@
   }
   function subscribe(topics, callback, options) {
     options = options || {};
-    if (options.wid === void 0) options.wid = null;
+    if (options.wid === void 0)
+      options.wid = null;
     let subtopics = [];
     if (typeof topics === "string") {
       topics = [topics];
@@ -2572,9 +2609,9 @@
     }
     for (let b in bridge_topics) {
       let topics = [];
-      for (let i = 0; i < bridge_topics[b].length; i++) {
-        let merged = mergeSubscriptions(bridge_topics[b][i].subs);
-        merged.topic = bridge_topics[b][i].topic;
+      for (let i2 = 0; i2 < bridge_topics[b].length; i2++) {
+        let merged = mergeSubscriptions(bridge_topics[b][i2].subs);
+        merged.topic = bridge_topics[b][i2].topic;
         topics.push(merged);
       }
       let sub = {
@@ -2588,8 +2625,8 @@
   }
   function mergeSubscriptions(subs) {
     var best = Object.assign({}, subs[0].sub);
-    for (let i = 1; i < subs.length; i++) {
-      let s = subs[i].sub;
+    for (let i2 = 1; i2 < subs.length; i2++) {
+      let s = subs[i2].sub;
       best.qos = Math.max(best.qos, s.qos);
       best.retain_handling = Math.min(best.retain_handling, s.retain_handling);
       best.retain_as_published = best.retain_as_published || s.retain_as_published;
@@ -2611,10 +2648,10 @@
   function unsubscribe_subscriber(sub, msg) {
     let bridge_topics = {};
     let acks = [];
-    for (let i = 0; i < msg.topics.length; i++) {
-      remove(msg.topics[i], sub);
+    for (let i2 = 0; i2 < msg.topics.length; i2++) {
+      remove(msg.topics[i2], sub);
       acks.push(0);
-      const mqtt_topic = remove_named_wildcards(msg.topics[i]);
+      const mqtt_topic = remove_named_wildcards(msg.topics[i2]);
       let m = mqtt_topic.match(/^bridge\/([^\/]+)\/.*/);
       if (m !== null && m[1] != "+") {
         if (bridge_topics[m[1]] === void 0) {
@@ -2663,8 +2700,8 @@
       }
       promised[msg.topic].push({ message: msg, options });
     } else {
-      for (let i = 0; i < subscriptionsCount; i++) {
-        publish_subscriber(subscriptions[i], msg, wid);
+      for (let i2 = 0; i2 < subscriptionsCount; i2++) {
+        publish_subscriber(subscriptions[i2], msg, wid);
       }
     }
   }
@@ -2677,7 +2714,8 @@
     } else if (sub.type === "page") {
       sub.callback(mqttmsg, extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
     } else {
-      if (window.console) window.console.error("Unknown subscription type", sub);
+      if (window.console)
+        window.console.error("Unknown subscription type", sub);
     }
   }
   function retain_key(topic) {
@@ -2695,8 +2733,8 @@
   }
   function get_matching_retained(topic) {
     let matching = [];
-    for (let i = 0; i < sessionStorage.length; i++) {
-      let key3 = sessionStorage.key(i);
+    for (let i2 = 0; i2 < sessionStorage.length; i2++) {
+      let key3 = sessionStorage.key(i2);
       if (key3.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
@@ -2724,8 +2762,8 @@
     return Obj;
   }
   function delete_all_retained() {
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key3 = sessionStorage.key(i);
+    for (let i2 = 0; i2 < sessionStorage.length; i2++) {
+      const key3 = sessionStorage.key(i2);
       if (key3.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
@@ -2735,7 +2773,8 @@
   function call(topic, payload2, options) {
     options = options || {};
     payload2 = payload2 || null;
-    if (options.qos === void 0) options.qos = 1;
+    if (options.qos === void 0)
+      options.qos = 1;
     let timeout = options.timeout || 15e3;
     let willRespond = new Promise(
       function(resolve, reject) {
@@ -2837,11 +2876,11 @@
   }
   function remove2(id) {
     delete state[id];
-    for (let i = 0; i < order.length; i++) {
+    for (let i2 = 0; i2 < order.length; i2++) {
       if (order.id != id) {
         continue;
       }
-      delete order[i];
+      delete order[i2];
     }
     publish("model/ui/event/delete/" + id, void 0);
   }
@@ -2932,15 +2971,15 @@
   }
   function render2() {
     const updated_ids = [];
-    for (let i = 0; i < order.length; i++) {
-      if (renderId(order[i].id)) {
-        updated_ids.push(order[i].id);
+    for (let i2 = 0; i2 < order.length; i2++) {
+      if (renderId(order[i2].id)) {
+        updated_ids.push(order[i2].id);
       }
     }
     setTimeout(
       function() {
-        for (let i = 0; i < updated_ids.length; i++) {
-          publish("model/ui/event/dom-updated/" + updated_ids[i], { id: updated_ids[i] });
+        for (let i2 = 0; i2 < updated_ids.length; i2++) {
+          publish("model/ui/event/dom-updated/" + updated_ids[i2], { id: updated_ids[i2] });
         }
       },
       0
@@ -3042,9 +3081,9 @@
       return d;
     if (topicTarget.hasOwnProperty("attributes")) {
       const attrs = topicTarget.attributes;
-      for (let i = 0; i < attrs.length; i++) {
-        if (attrs[i].name.startsWith("data-")) {
-          d[attrs[i].name.substr(5)] = attrs[i].value;
+      for (let i2 = 0; i2 < attrs.length; i2++) {
+        if (attrs[i2].name.startsWith("data-")) {
+          d[attrs[i2].name.substr(5)] = attrs[i2].value;
         }
       }
     }
@@ -3058,14 +3097,14 @@
         case "INPUT":
         case "SELECT":
           if (topicTarget.type == "select-multiple") {
-            const l = topicTarget.options.length;
-            const v = [];
-            for (let j = 0; j < l; j++) {
+            const l2 = topicTarget.options.length;
+            const v2 = [];
+            for (let j = 0; j < l2; j++) {
               if (topicTarget.options[j].selected) {
-                v[v.length] = topicTarget.options[j].value;
+                v2[v2.length] = topicTarget.options[j].value;
               }
             }
-            return v;
+            return v2;
           } else if (topicTarget.type == "checkbox" || topicTarget.type == "radio") {
             if (topicTarget.checked) {
               return topicTarget.value;
@@ -3092,50 +3131,84 @@
       }
     }
   }
-  function serializeFormToObject(form) {
-    let field, l, v, s = {};
-    if (typeof form == "object" && form.nodeName == "FORM") {
-      const len = form.elements.length;
-      for (let i = 0; i < len; i++) {
-        field = form.elements[i];
-        if (field.name && !field.disabled && !field.classList.contains("nosubmit") && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
-          if (field.type == "select-multiple") {
-            v = [];
-            l = form.elements[i].options.length;
-            for (let j = 0; j < l; j++) {
-              if (field.options[j].selected) {
-                v[v.length] = field.options[j].value;
-              }
-            }
-            s[field.name] = v;
-          } else if (field.type == "checkbox") {
-            if (field.checked) {
-              s[field.name] = field.value;
-            } else {
-              s[field.name] = "";
-            }
-          } else if (field.type != "radio" || field.checked) {
-            s[field.name] = field.value;
+  function fieldValue(field) {
+    if (field.type == "select-multiple") {
+      v = [];
+      l = form.elements[i].options.length;
+      for (let j = 0; j < l; j++) {
+        if (field.options[j].selected) {
+          v[v.length] = field.options[j].value;
+        }
+      }
+      return v;
+    } else if (field.type == "checkbox") {
+      if (field.checked) {
+        return field.value;
+      } else if (field.hasAttribute("value-unchecked")) {
+        return field.getAttribute("value-unchecked");
+      } else {
+        return "";
+      }
+    } else if (field.type != "radio" || field.checked) {
+      return field.value;
+    }
+    return false;
+  }
+  function fieldSubmitIfOk(field, form2) {
+    var _a, _b;
+    if (field.disabled || field.classList.contains("nosubmit")) {
+      return false;
+    }
+    if (field.dataset.submitIf) {
+      const submitIf = (_a = form2.elements[field.dataset.submitIf]) != null ? _a : document.getElementById(field.dataset.submitIf);
+      if (!submitIf || !fieldValue(submitIf)) {
+        return false;
+      }
+    }
+    if (field.dataset.submitIfNot) {
+      const submitIfNot = (_b = form2.elements[field.dataset.submitIfNot]) != null ? _b : document.getElementById(field.dataset.submitIf);
+      if (submitIfNot && !!fieldValue(submitIfNot)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  function serializeFormToObject(form2) {
+    let field, l2, v2, s = {};
+    if (typeof form2 == "object" && form2.nodeName == "FORM") {
+      const len = form2.elements.length;
+      for (let i2 = 0; i2 < len; i2++) {
+        field = form2.elements[i2];
+        if (field.name && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
+          if (!fieldSubmitIfOk(field, form2)) {
+            continue;
+          }
+          const val = fieldValue(field);
+          if (val !== false) {
+            s[field.name] = val;
           }
         }
       }
     }
     return s;
   }
-  function serializeFormToList(form) {
-    let field, l, v, s = [], prev = "", skipped = false;
-    if (typeof form == "object" && form.nodeName == "FORM") {
-      const len = form.elements.length;
-      for (let i = 0; i < len; i++) {
-        field = form.elements[i];
-        if (field.name && !field.disabled && !field.classList.contains("nosubmit") && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
+  function serializeFormToList(form2) {
+    let field, l2, v2, s = [], prev = "", skipped = false;
+    if (typeof form2 == "object" && form2.nodeName == "FORM") {
+      const len = form2.elements.length;
+      for (let i2 = 0; i2 < len; i2++) {
+        field = form2.elements[i2];
+        if (field.name && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
+          if (!fieldSubmitIfOk(field, form2)) {
+            continue;
+          }
           if (skipped && field.name != skipped) {
             s.push([skipped, ""]);
             skipped = false;
           }
           if (field.type == "select-multiple") {
-            l = form.elements[i].options.length;
-            for (let j = 0; j < l; j++) {
+            l2 = form2.elements[i2].options.length;
+            for (let j = 0; j < l2; j++) {
               if (field.options[j].selected) {
                 s.push([field.name, field.options[j].value]);
               }
@@ -3146,6 +3219,11 @@
                 skipped = false;
               }
               s.push([field.name, field.value]);
+            } else if (field.hasAttribute("value-unchecked")) {
+              if (prev == field.name) {
+                skipped = false;
+              }
+              s.push([field.name, field.getAttribute("value-unchecked")]);
             } else if (prev != field.name) {
               skipped = field.name;
             }
@@ -3173,15 +3251,15 @@
     let attr2 = document.body.parentElement.getAttribute("class") || "";
     let classes = attr2.split(/\s+/);
     let keep = [];
-    var i, j;
-    for (i = classes.length - 1; i >= 0; i--) {
-      if (!classes[i].startsWith("ui-state-")) {
-        keep.push(classes[i]);
+    var i2, j;
+    for (i2 = classes.length - 1; i2 >= 0; i2--) {
+      if (!classes[i2].startsWith("ui-state-")) {
+        keep.push(classes[i2]);
       }
     }
     let ms = Object.keys(stateClass);
-    for (i = ms.length - 1; i >= 0; i--) {
-      let m = ms[i];
+    for (i2 = ms.length - 1; i2 >= 0; i2--) {
+      let m = ms[i2];
       for (j = stateClass[m].length - 1; j >= 0; j--) {
         keep.push("ui-state-" + m + "-" + stateClass[m][j]);
       }
@@ -3195,33 +3273,33 @@
     let root2 = document.body.parentElement;
     var current = {};
     var attrs = {};
-    var i, j;
+    var i2, j;
     var ks;
     if (root2.hasAttributes()) {
       var rs = root2.attributes;
-      for (i = rs.length - 1; i >= 0; i--) {
-        if (rs[i].name.startsWith("data-ui-state-")) {
-          current[rs[i].name] = rs[i].value;
+      for (i2 = rs.length - 1; i2 >= 0; i2--) {
+        if (rs[i2].name.startsWith("data-ui-state-")) {
+          current[rs[i2].name] = rs[i2].value;
         }
       }
     }
     let ms = Object.keys(stateData);
-    for (i = ms.length - 1; i >= 0; i--) {
-      let m = ms[i];
+    for (i2 = ms.length - 1; i2 >= 0; i2--) {
+      let m = ms[i2];
       let ks2 = Object.keys(stateData[m]);
       for (j = ks2.length - 1; j >= 0; j--) {
         attrs["data-ui-state-" + m + "-" + ks2[j]] = stateData[m][ks2[j]];
       }
     }
     ks = Object.keys(current);
-    for (i = ks.length - 1; i >= 0; i--) {
-      if (!(ks[i] in attrs)) {
-        root2.removeAttribute(ks[i]);
+    for (i2 = ks.length - 1; i2 >= 0; i2--) {
+      if (!(ks[i2] in attrs)) {
+        root2.removeAttribute(ks[i2]);
       }
     }
     ks = Object.keys(attrs);
-    for (i = ks.length - 1; i >= 0; i--) {
-      var k = ks[i];
+    for (i2 = ks.length - 1; i2 >= 0; i2--) {
+      var k = ks[i2];
       if (!(k in current) || attrs[k] != current[k]) {
         root2.setAttribute(k, attrs[k]);
       }
@@ -3333,8 +3411,8 @@
     const willRetain = msg.will_retain || false;
     const willQoS = msg.will_qos || 0;
     const cleanStart = msg.clean_start || false;
-    const v = new binary();
-    v.append(MqttProtoIdentifierv5);
+    const v2 = new binary();
+    v2.append(MqttProtoIdentifierv5);
     let flags = 0;
     if (typeof msg.username == "string") {
       flags |= 1 << 7;
@@ -3346,57 +3424,57 @@
     flags |= (willQoS & 3) << 3;
     flags |= (willFlag ? 1 : 0) << 2;
     flags |= (cleanStart ? 1 : 0) << 1;
-    v.append1(flags);
-    v.appendUint16(msg.keep_alive || 0);
-    v.appendProperties(msg.properties || {});
-    v.appendUTF8(msg.client_id || "");
+    v2.append1(flags);
+    v2.appendUint16(msg.keep_alive || 0);
+    v2.appendProperties(msg.properties || {});
+    v2.appendUTF8(msg.client_id || "");
     if (willFlag) {
-      v.appendProperties(msg.will_properties || {});
-      v.appendUTF8(msg.will_topic);
-      v.appendBin(msg.will_payload, true);
+      v2.appendProperties(msg.will_properties || {});
+      v2.appendUTF8(msg.will_topic);
+      v2.appendBin(msg.will_payload, true);
     }
     if (typeof msg.username == "string") {
-      v.appendUTF8(msg.username);
+      v2.appendUTF8(msg.username);
     }
     if (typeof msg.password == "string") {
-      v.appendUTF8(msg.password);
+      v2.appendUTF8(msg.password);
     }
-    return packet(first, v);
+    return packet(first, v2);
   }
   function encodeConnack(msg) {
     const first = MESSAGE_TYPE.CONNACK << 4;
     let flags = 0;
-    const v = new binary();
+    const v2 = new binary();
     if (msg.session_present) {
       flags |= 1;
     }
-    v.append1(flags);
-    v.append1(msg.reason_code || 0);
-    v.appendProperties(msg.properties || {});
-    return packet(first, v);
+    v2.append1(flags);
+    v2.append1(msg.reason_code || 0);
+    v2.appendProperties(msg.properties || {});
+    return packet(first, v2);
   }
   function encodePublish2(msg) {
     let first = MESSAGE_TYPE.PUBLISH << 4;
-    const v = new binary();
+    const v2 = new binary();
     const qos = msg.qos || 0;
     const dup = msg.dup || false;
     const retain2 = msg.retain || false;
     first |= (dup ? 1 : 0) << 3;
     first |= (qos & 3) << 1;
     first |= retain2 ? 1 : 0;
-    v.appendUTF8(msg.topic);
+    v2.appendUTF8(msg.topic);
     if (qos != 0) {
-      v.appendUint16(msg.packet_id);
+      v2.appendUint16(msg.packet_id);
     }
-    v.appendProperties(msg.properties || {});
+    v2.appendProperties(msg.properties || {});
     if (typeof msg.payload !== "undefined") {
-      v.appendBin(msg.payload);
+      v2.appendBin(msg.payload);
     }
-    return packet(first, v);
+    return packet(first, v2);
   }
   function encodePubackEtAl(msg) {
     let first;
-    const v = new binary();
+    const v2 = new binary();
     const rc = msg.reason_code || 0;
     const ps = msg.properties || {};
     switch (msg.type) {
@@ -3413,77 +3491,77 @@
         first |= MESSAGE_TYPE.PUBCOMP << 4;
         break;
     }
-    v.appendUint16(msg.packet_id);
+    v2.appendUint16(msg.packet_id);
     if (rc != 0 || Object.keys(ps).length != 0) {
-      v.append1(rc);
-      v.appendProperties(ps);
+      v2.append1(rc);
+      v2.appendProperties(ps);
     }
-    return packet(first, v);
+    return packet(first, v2);
   }
   function encodeSubscribe2(msg) {
     let first = MESSAGE_TYPE.SUBSCRIBE << 4;
-    const v = new binary();
+    const v2 = new binary();
     first |= 1 << 1;
-    v.appendUint16(msg.packet_id);
-    v.appendProperties(msg.properties || {});
-    serializeSubscribeTopics(v, msg.topics);
-    return packet(first, v);
+    v2.appendUint16(msg.packet_id);
+    v2.appendProperties(msg.properties || {});
+    serializeSubscribeTopics(v2, msg.topics);
+    return packet(first, v2);
   }
   function encodeSuback(msg) {
     const first = MESSAGE_TYPE.SUBACK << 4;
-    const v = new binary();
-    v.appendUint16(msg.packet_id);
-    v.appendProperties(msg.properties || {});
-    serializeSubscribeAcks(v, msg.acks);
-    return packet(first, v);
+    const v2 = new binary();
+    v2.appendUint16(msg.packet_id);
+    v2.appendProperties(msg.properties || {});
+    serializeSubscribeAcks(v2, msg.acks);
+    return packet(first, v2);
   }
   function encodeUnsubscribe(msg) {
     const first = MESSAGE_TYPE.UNSUBSCRIBE << 4 | 2;
-    const v = new binary();
-    v.appendUint16(msg.packet_id);
-    v.appendProperties(msg.properties || {});
-    serializeUnsubscribeTopics(v, msg.topics);
-    return packet(first, v);
+    const v2 = new binary();
+    v2.appendUint16(msg.packet_id);
+    v2.appendProperties(msg.properties || {});
+    serializeUnsubscribeTopics(v2, msg.topics);
+    return packet(first, v2);
   }
   function encodeUnsuback(msg) {
     const first = MESSAGE_TYPE.UNSUBACK << 4;
-    const v = new binary();
-    v.appendUint16(msg.packet_id);
-    v.appendProperties(msg.properties || {});
-    serializeUnsubscribeAcks(v, msg.acks);
-    return packet(first, v);
+    const v2 = new binary();
+    v2.appendUint16(msg.packet_id);
+    v2.appendProperties(msg.properties || {});
+    serializeUnsubscribeAcks(v2, msg.acks);
+    return packet(first, v2);
   }
   function encodePingReq() {
     const first = MESSAGE_TYPE.PINGREQ << 4;
-    const v = new binary();
-    return packet(first, v);
+    const v2 = new binary();
+    return packet(first, v2);
   }
   function encodePingResp() {
     const first = MESSAGE_TYPE.PINGRESP << 4;
-    const v = new binary();
-    return packet(first, v);
+    const v2 = new binary();
+    return packet(first, v2);
   }
   function encodeDisconnect(msg) {
     const first = MESSAGE_TYPE.DISCONNECT << 4;
-    const v = new binary();
+    const v2 = new binary();
     const reason_code = msg.reason_code || 0;
     const properties = msg.properties || {};
     if (reason_code != 0 || !isEmptyProperties(properties)) {
-      v.append1(reason_code);
-      v.appendProperties(properties);
+      v2.append1(reason_code);
+      v2.appendProperties(properties);
     }
-    return packet(first, v);
+    return packet(first, v2);
   }
   function encodeAuth(msg) {
     const first = MESSAGE_TYPE.AUTH << 4;
-    const v = new binary();
+    const v2 = new binary();
     const reason_code = msg.reason_code || 0;
     const properties = msg.properties || {};
     if (reason_code != 0 || !isEmptyProperties(properties)) {
-      v.append1(reason_code);
-      v.appendProperties(properties);
+      v2.append1(reason_code);
+      v2.appendProperties(properties);
     }
-    return packet(first, v);
+    return packet(first, v2);
   }
   var decoder = function(binary2) {
     if (binary2.length < 2) {
@@ -3867,53 +3945,53 @@
         const c = this.decode1();
         const p = PROPERTY_DECODE[c];
         if (p) {
-          let v;
+          let v2;
           let k = p[0];
           switch (p[1]) {
             case "bool":
-              v = !!this.decode1();
+              v2 = !!this.decode1();
               break;
             case "uint32":
-              v = this.decodeUint32();
+              v2 = this.decodeUint32();
               break;
             case "uint16":
-              v = this.decodeUint16();
+              v2 = this.decodeUint16();
               break;
             case "uint8":
-              v = this.decode1();
+              v2 = this.decode1();
               break;
             case "utf8":
-              v = this.decodeUtf8();
+              v2 = this.decodeUtf8();
               break;
             case "bin":
-              v = this.decodeBin(
+              v2 = this.decodeBin(
                 this.decodeUint16()
                 /* count */
               );
               break;
             case "varint":
-              v = this.decodeVarint();
+              v2 = this.decodeVarint();
               break;
             case "user":
             default:
               k = this.decodeUtf8();
-              v = this.decodeUtf8();
+              v2 = this.decodeUtf8();
               break;
           }
           if (p[2]) {
             switch (typeof props[k]) {
               case "undefined":
-                props[k] = v;
+                props[k] = v2;
                 break;
               case "object":
-                props[k].push(v);
+                props[k].push(v2);
                 break;
               default:
-                props[k] = [props[k], v];
+                props[k] = [props[k], v2];
                 break;
             }
           } else {
-            props[k] = v;
+            props[k] = v2;
           }
         } else {
           throw "Illegal property";
@@ -3922,9 +4000,9 @@
       return props;
     };
   }
-  function serializeSubscribeTopics(v, topics) {
-    for (let i = 0; i < topics.length; i++) {
-      let topic = topics[i];
+  function serializeSubscribeTopics(v2, topics) {
+    for (let i2 = 0; i2 < topics.length; i2++) {
+      let topic = topics[i2];
       if (typeof topic == "string") {
         topic = { topic };
       }
@@ -3937,34 +4015,34 @@
       flags |= (retainAsPublished ? 1 : 0) << 3;
       flags |= (noLocal ? 1 : 0) << 2;
       flags |= qos;
-      v.appendUTF8(topic.topic);
-      v.append1(flags);
+      v2.appendUTF8(topic.topic);
+      v2.append1(flags);
     }
   }
-  function serializeSubscribeAcks(v, acks) {
-    for (let i = 0; i < acks.length; i++) {
-      const ack = acks[i];
+  function serializeSubscribeAcks(v2, acks) {
+    for (let i2 = 0; i2 < acks.length; i2++) {
+      const ack = acks[i2];
       if (ack >= 0 && ack <= 2) {
-        v.append1(ack);
+        v2.append1(ack);
       } else if (ack >= 128 && ack <= 255) {
-        v.append1(ack);
+        v2.append1(ack);
       } else {
         throw "Subscribe ack outside 0..2 and 0x80..0xff";
       }
     }
   }
-  function serializeUnsubscribeTopics(v, topics) {
-    for (let i = 0; i < topics.length; i++) {
-      v.appendUTF8(topics[i]);
+  function serializeUnsubscribeTopics(v2, topics) {
+    for (let i2 = 0; i2 < topics.length; i2++) {
+      v2.appendUTF8(topics[i2]);
     }
   }
-  function serializeUnsubscribeAcks(v, acks) {
-    for (let i = 0; i < acks.length; i++) {
-      const ack = acks[i];
+  function serializeUnsubscribeAcks(v2, acks) {
+    for (let i2 = 0; i2 < acks.length; i2++) {
+      const ack = acks[i2];
       if (ack == 0 || ack == 17) {
-        v.append1(ack);
+        v2.append1(ack);
       } else if (ack >= 128 && ack <= 255) {
-        v.append1(ack);
+        v2.append1(ack);
       } else {
         throw "Unsubscribe ack outside 0..2 and 0x80..0xff";
       }
@@ -3974,8 +4052,8 @@
     const mbi = encodeMBI(binary2.length());
     const pack = new Uint8Array(1 + mbi.length + binary2.length());
     pack[0] = first;
-    for (let i = 0; i < mbi.length; i++) {
-      pack[1 + i] = mbi[i];
+    for (let i2 = 0; i2 < mbi.length; i2++) {
+      pack[1 + i2] = mbi[i2];
     }
     binary2.copyInto(pack, 1 + mbi.length);
     return pack;
@@ -3988,8 +4066,8 @@
       return this.len;
     };
     this.copyInto = (buf, offset) => {
-      for (let i = this.len - 1; i >= 0; i--) {
-        buf[i + offset] = this.buf[i];
+      for (let i2 = this.len - 1; i2 >= 0; i2--) {
+        buf[i2 + offset] = this.buf[i2];
       }
     };
     this.val = () => {
@@ -3997,8 +4075,8 @@
     };
     this.append = (bytes) => {
       this.reserve(bytes.length);
-      for (let i = 0; i < bytes.length; i++) {
-        this.buf[this.len++] = bytes[i];
+      for (let i2 = 0; i2 < bytes.length; i2++) {
+        this.buf[this.len++] = bytes[i2];
       }
     };
     this.append1 = (byte) => {
@@ -4042,8 +4120,8 @@
       const b = stringToUTF8(s);
       this.appendUint16(b.length);
       this.reserve(b.length);
-      for (let i = 0; i < b.length; i++) {
-        this.buf[this.len++] = b[i];
+      for (let i2 = 0; i2 < b.length; i2++) {
+        this.buf[this.len++] = b[i2];
       }
     };
     this.appendBin = (b, addlen) => {
@@ -4059,8 +4137,8 @@
             this.appendUint16(b.length);
           }
           this.reserve(b.length);
-          for (let i = 0; i < b.length; i++) {
-            this.buf[this.len++] = b[i];
+          for (let i2 = 0; i2 < b.length; i2++) {
+            this.buf[this.len++] = b[i2];
           }
           break;
         case "object":
@@ -4072,18 +4150,18 @@
             b.copyInto(this.buf, this.len);
             this.len += b.length();
           } else if (typeof b.BYTES_PER_ELEMENT == "number") {
-            let v;
+            let v2;
             if (b.BYTES_PER_ELEMENT == 1) {
-              v = b;
+              v2 = b;
             } else {
-              v = new Uint8Array(b.buffer);
+              v2 = new Uint8Array(b.buffer);
             }
-            this.reserve(v.length + 2);
+            this.reserve(v2.length + 2);
             if (addlen) {
-              this.appendUint16(v.length);
+              this.appendUint16(v2.length);
             }
-            for (let i = 0; i < v.length; i++) {
-              this.buf[this.len++] = v[i];
+            for (let i2 = 0; i2 < v2.length; i2++) {
+              this.buf[this.len++] = v2[i2];
             }
           } else {
             throw "Can't serialize unknown object";
@@ -4105,8 +4183,8 @@
           newsize = newsize * 2;
         }
         const newbuf = new Uint8Array(newsize);
-        for (let i = this.len - 1; i >= 0; i--) {
-          newbuf[i] = this.buf[i];
+        for (let i2 = this.len - 1; i2 >= 0; i2--) {
+          newbuf[i2] = this.buf[i2];
         }
         this.size = newsize;
         this.buf = newbuf;
@@ -4130,9 +4208,9 @@
       }
       const p = PROPERTY[k] || PROPERTY.__user;
       if (p[2] && props[k].constructor === Array) {
-        for (let i = 0; i < props[k].length; i++) {
+        for (let i2 = 0; i2 < props[k].length; i2++) {
           b.append1(p[0]);
-          serializeProperty(p[1], k, props[k][i], b);
+          serializeProperty(p[1], k, props[k][i2], b);
         }
       } else {
         b.append1(p[0]);
@@ -4141,33 +4219,33 @@
     }
     return b;
   }
-  function serializeProperty(type, k, v, b) {
+  function serializeProperty(type, k, v2, b) {
     switch (type) {
       case "bool":
-        b.append1(v ? 1 : 0);
+        b.append1(v2 ? 1 : 0);
         break;
       case "uint32":
-        b.appendUint32(v);
+        b.appendUint32(v2);
         break;
       case "uint16":
-        b.appendUint16(v);
+        b.appendUint16(v2);
         break;
       case "uint8":
-        b.append1(v);
+        b.append1(v2);
         break;
       case "utf8":
-        b.appendUTF8(v);
+        b.appendUTF8(v2);
         break;
       case "bin":
-        b.appendBin(v, true);
+        b.appendBin(v2, true);
         break;
       case "varint":
-        b.appendVarint(v);
+        b.appendVarint(v2);
         break;
       case "user":
       default:
         b.appendUTF8(k);
-        b.appendUTF8(v);
+        b.appendUTF8(v2);
         break;
     }
   }
@@ -4385,8 +4463,8 @@
     };
     function equalData(a, b) {
       if (a.length == b.length) {
-        for (let i = 0; i < a.length; i++) {
-          if (a[i] != b[i]) {
+        for (let i2 = 0; i2 < a.length; i2++) {
+          if (a[i2] != b[i2]) {
             return false;
           }
         }
@@ -4401,11 +4479,11 @@
       } else {
         let k = 0;
         const newdata = new Uint8Array(this.data.length, rcvd.length);
-        for (let i = 0; i < this.data.length; i++) {
-          newdata[k++] = this.data[i];
+        for (let i2 = 0; i2 < this.data.length; i2++) {
+          newdata[k++] = this.data[i2];
         }
-        for (let i = 0; i < rcvd.length; i++) {
-          newdata[k++] = rcvd[i];
+        for (let i2 = 0; i2 < rcvd.length; i2++) {
+          newdata[k++] = rcvd[i2];
         }
         this.data = newdata;
       }
@@ -4863,8 +4941,8 @@
       }
     }
     const doReceive = () => {
-      for (let i = 0; i < this.receiveQueue.length; i++) {
-        handleReceivedMessage(this.receiveQueue[i]);
+      for (let i2 = 0; i2 < this.receiveQueue.length; i2++) {
+        handleReceivedMessage(this.receiveQueue[i2]);
       }
       this.receiveQueue = [];
       this.receiveTimer = false;
@@ -4997,10 +5075,8 @@
             case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
               this.authUserPassword.username = void 0;
               this.authUserPassword.password = void 0;
-            /* falls through */
             case MQTT_RC_CLIENT_ID_INVALID:
               this.clientId = "";
-            /* falls through */
             default:
               publishStatus(false);
               sessionToBridge({
@@ -5609,11 +5685,11 @@
     function resubscribeTopics() {
       const subs = find_subscriptions_below(`bridge/${name}`);
       const topics = {};
-      for (let i = 0; i < subs.length; i++) {
-        if (subs[i].wid == wid) {
+      for (let i2 = 0; i2 < subs.length; i2++) {
+        if (subs[i2].wid == wid) {
           continue;
         }
-        const sub = Object.assign({}, subs[i].sub);
+        const sub = Object.assign({}, subs[i2].sub);
         sub.topic = remove_named_wildcards(sub.topic);
         if (!topics[sub.topic]) {
           topics[sub.topic] = sub;
@@ -5778,8 +5854,8 @@
   function getCookie(cname) {
     const name = cname + "=";
     const ca = document.cookie.split(";");
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
+    for (let i2 = 0; i2 < ca.length; i2++) {
+      let c = ca[i2];
       while (c.charAt(0) == " ") {
         c = c.substring(1);
       }
@@ -5822,9 +5898,9 @@
     }
     document.cookie = name + "=" + value2 + expires + "; path=/; " + secure + "SameSite=" + samesite;
   }
-  function cleanCookieValue(v) {
-    v = v.replace(";", "").replace(",", "").replace("=", "").replace("\n", "").replace("	", "").replace("\r", "").replace("\v", "").replace("\f", "");
-    return v;
+  function cleanCookieValue(v2) {
+    v2 = v2.replace(";", "").replace(",", "").replace("=", "").replace("\n", "").replace("	", "").replace("\r", "").replace("\v", "").replace("\f", "");
+    return v2;
   }
   function timezone_info() {
     return {
@@ -5975,11 +6051,13 @@
   }
   function doPossibleStateChange(model2, newState) {
     const transitions = validTransitions[model2.state];
-    if (transitions === void 0) return;
+    if (transitions === void 0)
+      return;
     const transitionPath = transitions[newState];
-    if (transitionPath === void 0) return;
-    for (let i = 0; i < transitionPath.length; i++) {
-      publish("model/lifecycle/event/state", transitionPath[i], { retain: true });
+    if (transitionPath === void 0)
+      return;
+    for (let i2 = 0; i2 < transitionPath.length; i2++) {
+      publish("model/lifecycle/event/state", transitionPath[i2], { retain: true });
     }
     publish("model/lifecycle/event/state", newState, { retain: true });
     model2.state = newState;
@@ -6239,8 +6317,8 @@
   }
   function searchParamsIndexed(ps) {
     let q = {};
-    for (let i = 0; i < ps.length; i++) {
-      const name = ps[i][0];
+    for (let i2 = 0; i2 < ps.length; i2++) {
+      const name = ps[i2][0];
       const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
       if (indexed) {
         const iname = indexed[1] + "[]";
@@ -6248,12 +6326,12 @@
           q[iname] = [];
         }
         if (indexed[2].length > 0) {
-          q[iname][indexed[2]] = ps[i][1];
+          q[iname][indexed[2]] = ps[i2][1];
         } else {
-          q[iname].push(ps[i][1]);
+          q[iname].push(ps[i2][1]);
         }
       } else {
-        q[name] = ps[i][1];
+        q[name] = ps[i2][1];
       }
     }
     return q;
@@ -6370,13 +6448,13 @@
     if (typeof args == "object") {
       let s = new URLSearchParams();
       for (const p in args) {
-        const v = args[p];
-        if (Array.isArray(v)) {
-          for (let k = 0; k < v.length; k++) {
-            s.append(p, "" + v[k]);
+        const v2 = args[p];
+        if (Array.isArray(v2)) {
+          for (let k = 0; k < v2.length; k++) {
+            s.append(p, "" + v2[k]);
           }
         } else {
-          s.append(p, "" + v);
+          s.append(p, "" + v2);
         }
       }
       window.history.replaceState({}, "", "?" + s.toString());
@@ -6389,8 +6467,8 @@
     const args = msg.payload;
     if (Array.isArray(args) && args.length > 0) {
       let s = new URLSearchParams();
-      for (let i = 0; i < args.length; i++) {
-        s.append(args[i][0], "" + args[i][1]);
+      for (let i2 = 0; i2 < args.length; i2++) {
+        s.append(args[i2][0], "" + args[i2][1]);
       }
       window.history.replaceState({}, "", "?" + s.toString());
     } else {
@@ -6403,8 +6481,8 @@
     const args = (_b = (_a = msg.payload) == null ? void 0 : _a.valueList) != null ? _b : [];
     if (Array.isArray(args) && args.length > 0) {
       let s = new URLSearchParams();
-      for (let i = 0; i < args.length; i++) {
-        s.append(args[i][0], "" + args[i][1]);
+      for (let i2 = 0; i2 < args.length; i2++) {
+        s.append(args[i2][0], "" + args[i2][1]);
       }
       window.history.replaceState({}, "", "?" + s.toString());
     } else {
@@ -6591,9 +6669,9 @@
     }
   }
   function hashCode(s) {
-    let hash = 0, i = 0, len = s.length;
-    while (i < len) {
-      hash = (hash << 5) - hash + s.charCodeAt(i++) << 0;
+    let hash = 0, i2 = 0, len = s.length;
+    while (i2 < len) {
+      hash = (hash << 5) - hash + s.charCodeAt(i2++) << 0;
     }
     return hash;
   }
@@ -6724,10 +6802,10 @@
       options.response_topic = responseTopic;
     }
     if (event.type == "input") {
-      for (let i = 0; i < oninput_delay.length; i++) {
-        if (oninput_delay[i].element === topicTarget) {
-          clearTimeout(oninput_delay[i].timer);
-          oninput_delay.splice(i, 1);
+      for (let i2 = 0; i2 < oninput_delay.length; i2++) {
+        if (oninput_delay[i2].element === topicTarget) {
+          clearTimeout(oninput_delay[i2].timer);
+          oninput_delay.splice(i2, 1);
         }
       }
       const index = oninput_delay.length;
@@ -6766,10 +6844,10 @@
     let attrs = {};
     do {
       let attributes2 = elt.attributes;
-      for (let i = attributes2.length - 1; i >= 0; i--) {
-        let name = attributes2[i].name;
+      for (let i2 = attributes2.length - 1; i2 >= 0; i2--) {
+        let name = attributes2[i2].name;
         if (!attrs[name]) {
-          attrs[name] = attributes2[i].value;
+          attrs[name] = attributes2[i2].value;
         }
       }
       if (elt === endElt)

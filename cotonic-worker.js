@@ -56,7 +56,8 @@
         break;
       } else if (patternChar === SINGLE)
         result.push("" + paramValue);
-      else result.push(currentPattern);
+      else
+        result.push(currentPattern);
     }
     return result.join(SEPARATOR);
   }
@@ -134,8 +135,10 @@
     // number of waiting promises. 
   };
   model.handleImportDone = function(isImportDone) {
-    if (!isImportDone) return;
-    if (!model.is_importing) return;
+    if (!isImportDone)
+      return;
+    if (!model.is_importing)
+      return;
     model.is_importing = false;
     if (self.on_init) {
       self.on_init.apply(null, [model.init_args]);
@@ -148,7 +151,8 @@
     }
   };
   model.handleProvides = function(provides) {
-    if (provides === void 0) return;
+    if (provides === void 0)
+      return;
     const is_connected = state.connected(model);
     for (let i = 0; i < provides.length; i++) {
       if (is_connected) {
@@ -587,7 +591,8 @@
   };
   self.call = function(topic, payload, options) {
     options = options || {};
-    if (options.qos === void 0) options.qos = 1;
+    if (options.qos === void 0)
+      options.qos = 1;
     const timeout = options.timeout || 15e3;
     const willRespond = new Promise(
       function(resolve, reject) {
