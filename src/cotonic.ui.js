@@ -400,6 +400,8 @@ function fieldValue(field) {
     } else if (field.type == 'checkbox') {
         if (field.checked) {
             return field.value;
+        } else if (field.hasAttribute('value-unchecked')) {
+            return field.getAttribute('value-unchecked');
         } else {
             return "";
         }
@@ -410,6 +412,9 @@ function fieldValue(field) {
 }
 
 function fieldSubmitIfOk(field, form) {
+    if (field.disabled || field.classList.contains("nosubmit")) {
+        return false;
+    }
     if (field.dataset.submitIf) {
         const submitIf = form.elements[field.dataset.submitIf]
                          ?? document.getElementById(field.dataset.submitIf);
@@ -434,9 +439,7 @@ function serializeFormToObject(form) {
         const len = form.elements.length;
         for (let i=0; i<len; i++) {
             field = form.elements[i];
-            if ( field.name
-                && !field.disabled
-                && !field.classList.contains("nosubmit")
+            if (   field.name
                 && field.type != 'file'
                 && field.type != 'reset'
                 && field.type != 'submit'
@@ -461,9 +464,7 @@ function serializeFormToList(form) {
         const len = form.elements.length;
         for (let i=0; i<len; i++) {
             field = form.elements[i];
-            if ( field.name
-                && !field.disabled
-                && !field.classList.contains("nosubmit")
+            if (   field.name
                 && field.type != 'file'
                 && field.type != 'reset'
                 && field.type != 'submit'
@@ -490,6 +491,11 @@ function serializeFormToList(form) {
                             skipped = false;
                         }
                         s.push([field.name, field.value]);
+                    } else if (field.hasAttribute('value-unchecked')) {
+                        if (prev == field.name) {
+                            skipped = false;
+                        }
+                        s.push([field.name, field.getAttribute('value-unchecked')]);
                     } else if (prev != field.name) {
                         skipped = field.name;
                     }

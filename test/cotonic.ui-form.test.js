@@ -47,6 +47,9 @@ QUnit.test("Form serialize test", function(assert) {
     s = ui.serializeFormToList(form);
 
     assert.deepEqual([
+            [ "v1", "2" ],
+            [ "v2", "1" ],
+            [ "v3", "" ],
             [ "t1", "" ],
             [ "t2", "1" ],
             [ "if1not", "1" ],
