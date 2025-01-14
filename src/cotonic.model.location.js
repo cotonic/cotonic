@@ -154,7 +154,8 @@ subscribe("model/auth/event/auth-changing",
             if (onauth === null || onauth !== "#") {
                 setTimeout(function() {
                     if (onauth === null || onauth === '#reload') {
-                        window.location.reload(true);
+                        // Do not use reload(), as Firefox will not send SameSite cookies.
+                        window.location.replace(window.location.href);
                     } else if (onauth.charAt(0) == '/') {
                         window.location.href = onauth;
                     } else if (onauth.charAt(0) == '#') {
@@ -190,7 +191,7 @@ subscribe("model/location/post/push", function(msg) {
     let url = payload_url(msg);
     if (url) {
         url = new URL(url, window.location);
-        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+        window.history.pushState({}, '', url.pathname + url.search + url.hash);
         publishLocation();
     }
 }, {wid: "model.location"});
@@ -208,7 +209,7 @@ subscribe("model/location/post/push-silent", function(msg) {
     let url = payload_url(msg);
     if (url) {
         url = new URL(url, window.location);
-        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+        window.history.pushState({}, '', url.pathname + url.search + url.hash);
     }
 }, {wid: "model.location"});
 
@@ -257,7 +258,8 @@ function redirectLocal(url) {
 }
 
 subscribe("model/location/post/reload", function(msg) {
-    window.location.reload(true);
+    // Do not use reload(), as Firefox will not send SameSite cookies.
+    window.location.replace(window.location.href);
     willNavigate();
 }, {wid: "model.location"});
 
