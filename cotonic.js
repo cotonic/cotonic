@@ -1248,7 +1248,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.8.0";
+  var VERSION = "1.8.1";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -6352,7 +6352,7 @@
         if (onauth === null || onauth !== "#") {
           setTimeout(function() {
             if (onauth === null || onauth === "#reload") {
-              window.location.reload(true);
+              window.location.replace(window.location.href);
             } else if (onauth.charAt(0) == "/") {
               window.location.href = onauth;
             } else if (onauth.charAt(0) == "#") {
@@ -6384,7 +6384,7 @@
     let url = payload_url(msg);
     if (url) {
       url = new URL(url, window.location);
-      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      window.history.pushState({}, "", url.pathname + url.search + url.hash);
       publishLocation();
     }
   }, { wid: "model.location" });
@@ -6400,7 +6400,7 @@
     let url = payload_url(msg);
     if (url) {
       url = new URL(url, window.location);
-      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      window.history.pushState({}, "", url.pathname + url.search + url.hash);
     }
   }, { wid: "model.location" });
   subscribe("model/location/post/replace-silent", function(msg) {
@@ -6440,7 +6440,7 @@
     willNavigate();
   }
   subscribe("model/location/post/reload", function(msg) {
-    window.location.reload(true);
+    window.location.replace(window.location.href);
     willNavigate();
   }, { wid: "model.location" });
   subscribe("model/location/post/q", function(msg) {
