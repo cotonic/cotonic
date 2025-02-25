@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2025 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,8 +154,7 @@ subscribe("model/auth/event/auth-changing",
             if (onauth === null || onauth !== "#") {
                 setTimeout(function() {
                     if (onauth === null || onauth === '#reload') {
-                        // Do not use reload(), as Firefox will not send SameSite cookies.
-                        window.location.replace(window.location.href);
+                        reload();
                     } else if (onauth.charAt(0) == '/') {
                         window.location.href = onauth;
                     } else if (onauth.charAt(0) == '#') {
@@ -258,9 +257,7 @@ function redirectLocal(url) {
 }
 
 subscribe("model/location/post/reload", function(msg) {
-    // Do not use reload(), as Firefox will not send SameSite cookies.
-    window.location.replace(window.location.href);
-    willNavigate();
+    reload();
 }, {wid: "model.location"});
 
 subscribe("model/location/post/q", function(msg) {
@@ -337,6 +334,13 @@ function willNavigate() {
     // this will not trigger extra reloads.
     isNavigating = true;
     setTimeout(function() { isNavigating = false; }, 1000);
+}
+
+function reload() {
+    // Do not use reload(), as Firefox will not send SameSite cookies.
+    // Remove the hash, as it will prevent a hard-reload of the page.
+    window.location.replace(window.location.pathname + window.location.search);
+    willNavigate();
 }
 
 init();
