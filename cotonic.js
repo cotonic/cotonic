@@ -6305,10 +6305,6 @@
     });
     return ps;
   }
-  function reload() {
-    window.location.replace(window.location.pathname + window.location.search);
-    willNavigate();
-  }
   subscribe(
     "model/auth/event/auth-changing",
     function(msg) {
@@ -6473,6 +6469,10 @@
     setTimeout(function() {
       isNavigating = false;
     }, 1e3);
+  }
+  function reload() {
+    window.location.replace(window.location.pathname + window.location.search);
+    willNavigate();
   }
   init3();
 

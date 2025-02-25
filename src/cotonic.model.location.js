@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2019-2025 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,13 +141,6 @@ function searchParamsList( qs ) {
 }
 
 // Bind to the authentication change events
-
-function reload() {
-    // Do not use reload(), as Firefox will not send SameSite cookies.
-    // Remove the hash, as it will prevent a hard-reload of the page.
-    window.location.replace(window.location.pathname + window.location.search);
-    willNavigate();
-}
 
 subscribe("model/auth/event/auth-changing",
     function(msg) {
@@ -341,6 +334,13 @@ function willNavigate() {
     // this will not trigger extra reloads.
     isNavigating = true;
     setTimeout(function() { isNavigating = false; }, 1000);
+}
+
+function reload() {
+    // Do not use reload(), as Firefox will not send SameSite cookies.
+    // Remove the hash, as it will prevent a hard-reload of the page.
+    window.location.replace(window.location.pathname + window.location.search);
+    willNavigate();
 }
 
 init();
