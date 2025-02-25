@@ -146,6 +146,7 @@ function reload() {
     // Do not use reload(), as Firefox will not send SameSite cookies.
     // Remove the hash, as it will prevent a hard-reload of the page.
     window.location.replace(window.location.pathname + window.location.search);
+    willNavigate();
 }
 
 subscribe("model/auth/event/auth-changing",
@@ -263,9 +264,7 @@ function redirectLocal(url) {
 }
 
 subscribe("model/location/post/reload", function(msg) {
-    // Do not use reload(), as Firefox will not send SameSite cookies.
     reload();
-    willNavigate();
 }, {wid: "model.location"});
 
 subscribe("model/location/post/q", function(msg) {

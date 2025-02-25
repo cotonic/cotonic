@@ -6307,6 +6307,7 @@
   }
   function reload() {
     window.location.replace(window.location.pathname + window.location.search);
+    willNavigate();
   }
   subscribe(
     "model/auth/event/auth-changing",
@@ -6405,7 +6406,6 @@
   }
   subscribe("model/location/post/reload", function(msg) {
     reload();
-    willNavigate();
   }, { wid: "model.location" });
   subscribe("model/location/post/q", function(msg) {
     let args = msg.payload;
