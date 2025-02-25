@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2024 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2018-2025 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 /* Current cotonic version */
-const VERSION = "1.8.1";
+const VERSION = "1.8.2";
 
 /* Get a configuration from a global cotonic variable, when available */
 const config = (globalThis.cotonic && globalThis.cotonic.config) ? globalThis.cotonic.config : {};
