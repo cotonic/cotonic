@@ -142,6 +142,12 @@ function searchParamsList( qs ) {
 
 // Bind to the authentication change events
 
+function reload() {
+    // Do not use reload(), as Firefox will not send SameSite cookies.
+    // Remove the hash, as it will prevent a hard-reload of the page.
+    window.location.replace(window.location.pathname + window.location.search);
+}
+
 subscribe("model/auth/event/auth-changing",
     function(msg) {
         if (!isNavigating) {
@@ -154,8 +160,7 @@ subscribe("model/auth/event/auth-changing",
             if (onauth === null || onauth !== "#") {
                 setTimeout(function() {
                     if (onauth === null || onauth === '#reload') {
-                        // Do not use reload(), as Firefox will not send SameSite cookies.
-                        window.location.replace(window.location.href);
+                        reload();
                     } else if (onauth.charAt(0) == '/') {
                         window.location.href = onauth;
                     } else if (onauth.charAt(0) == '#') {
@@ -259,7 +264,7 @@ function redirectLocal(url) {
 
 subscribe("model/location/post/reload", function(msg) {
     // Do not use reload(), as Firefox will not send SameSite cookies.
-    window.location.replace(window.location.href);
+    reload();
     willNavigate();
 }, {wid: "model.location"});
 

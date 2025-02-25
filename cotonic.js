@@ -56,8 +56,7 @@
         break;
       } else if (patternChar === SINGLE)
         result.push("" + paramValue);
-      else
-        result.push(currentPattern);
+      else result.push(currentPattern);
     }
     return result.join(SEPARATOR);
   }
@@ -271,10 +270,8 @@
       } else {
         builder.elementOpen(tag.value, attributes2.value);
       }
-      if (tag.value === "textarea")
-        return TEXTAREA;
-      if (tag.value === "script")
-        return SCRIPT;
+      if (tag.value === "textarea") return TEXTAREA;
+      if (tag.value === "script") return SCRIPT;
       return NORMAL;
     }
     text_data = tokenize_data(data, d);
@@ -287,44 +284,32 @@
     while (true) {
       lt = data.codePointAt(d.offset);
       if (lt === void 0) {
-        if (offsetStart !== d.offset)
-          d.builder.text(data.slice(offsetStart, d.offset));
+        if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
         return;
       }
       lookahead: {
-        if (lt !== LT)
-          break lookahead;
+        if (lt !== LT) break lookahead;
         slash = data.codePointAt(d.offset + 1);
-        if (slash !== SLASH)
-          break lookahead;
+        if (slash !== SLASH) break lookahead;
         n = data[d.offset + 2];
-        if (!(n === "t" || n === "T"))
-          break lookahead;
+        if (!(n === "t" || n === "T")) break lookahead;
         n = data[d.offset + 3];
-        if (!(n === "e" || n === "E"))
-          break lookahead;
+        if (!(n === "e" || n === "E")) break lookahead;
         n = data[d.offset + 4];
-        if (!(n === "x" || n === "X"))
-          break lookahead;
+        if (!(n === "x" || n === "X")) break lookahead;
         n = data[d.offset + 5];
-        if (!(n === "t" || n === "T"))
-          break lookahead;
+        if (!(n === "t" || n === "T")) break lookahead;
         n = data[d.offset + 6];
-        if (!(n === "a" || n === "A"))
-          break lookahead;
+        if (!(n === "a" || n === "A")) break lookahead;
         n = data[d.offset + 7];
-        if (!(n === "r" || n === "R"))
-          break lookahead;
+        if (!(n === "r" || n === "R")) break lookahead;
         n = data[d.offset + 8];
-        if (!(n === "e" || n === "E"))
-          break lookahead;
+        if (!(n === "e" || n === "E")) break lookahead;
         n = data[d.offset + 9];
-        if (!(n === "a" || n === "A"))
-          break lookahead;
+        if (!(n === "a" || n === "A")) break lookahead;
         n = data.codePointAt(d.offset + 10);
         if (is_probable_close(n)) {
-          if (offsetStart !== d.offset)
-            d.builder.text(data.slice(offsetStart, d.offset));
+          if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
           return;
         }
       }
@@ -337,38 +322,28 @@
     while (true) {
       lt = data.codePointAt(d.offset);
       if (lt === void 0) {
-        if (offsetStart !== d.offset)
-          d.builder.text(data.slice(offsetStart, d.offset));
+        if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
         return;
       }
       lookahead: {
-        if (lt !== LT)
-          break lookahead;
+        if (lt !== LT) break lookahead;
         slash = data.codePointAt(d.offset + 1);
-        if (slash !== SLASH)
-          break lookahead;
+        if (slash !== SLASH) break lookahead;
         n = data[d.offset + 2];
-        if (!(n === "s" || n === "S"))
-          break lookahead;
+        if (!(n === "s" || n === "S")) break lookahead;
         n = data[d.offset + 3];
-        if (!(n === "c" || n === "C"))
-          break lookahead;
+        if (!(n === "c" || n === "C")) break lookahead;
         n = data[d.offset + 4];
-        if (!(n === "r" || n === "R"))
-          break lookahead;
+        if (!(n === "r" || n === "R")) break lookahead;
         n = data[d.offset + 5];
-        if (!(n === "i" || n === "I"))
-          break lookahead;
+        if (!(n === "i" || n === "I")) break lookahead;
         n = data[d.offset + 6];
-        if (!(n === "p" || n === "P"))
-          break lookahead;
+        if (!(n === "p" || n === "P")) break lookahead;
         n = data[d.offset + 7];
-        if (!(n === "t" || n === "T"))
-          break lookahead;
+        if (!(n === "t" || n === "T")) break lookahead;
         n = data.codePointAt(d.offset + 8);
         if (is_probable_close(n)) {
-          if (offsetStart !== d.offset)
-            d.builder.text(data.slice(offsetStart, d.offset));
+          if (offsetStart !== d.offset) d.builder.text(data.slice(offsetStart, d.offset));
           return;
         }
       }
@@ -381,8 +356,7 @@
     while (true) {
       c = data.codePointAt(d.offset);
       if (c === void 0 || c === GT) {
-        if (c === GT)
-          d.inc_col();
+        if (c === GT) d.inc_col();
         d.builder.doctype(acc);
         return NORMAL;
       }
@@ -961,8 +935,7 @@
     const cache = {};
     return function(raw) {
       let d = cache[raw];
-      if (d !== void 0)
-        return d;
+      if (d !== void 0) return d;
       if (raw.slice(-1) === ";") {
         element.innerHTML = "&" + raw;
       } else {
@@ -1129,8 +1102,7 @@
   }
   function decodeResponse(data) {
     const d = new Uint8Array(data);
-    if (d[0] != V1)
-      throw new Error("Unexpected message");
+    if (d[0] != V1) throw new Error("Unexpected message");
     const nonce = d.slice(1, NONCE_BYTES + 1);
     let result = { nonce };
     const PAYLOAD = NONCE_BYTES + 1;
@@ -1209,10 +1181,8 @@
     return msg;
   }
   function decodeSecurePublish(data) {
-    if (data[0] != V1)
-      throw new Error("Unknown message");
-    if (data[1] != SECURE_PUBLISH)
-      throw new Error("Wrong message type");
+    if (data[0] != V1) throw new Error("Unknown message");
+    if (data[1] != SECURE_PUBLISH) throw new Error("Wrong message type");
     let iv = data.slice(2, IV_BYTES + 2);
     let message = data.slice(IV_BYTES + 2);
     return { type: SECURE_PUBLISH, iv, message };
@@ -2385,8 +2355,7 @@
     return matches3;
   }
   function collect_matches(path, trie, matches3) {
-    if (trie === void 0)
-      return;
+    if (trie === void 0) return;
     if (path.length === 0) {
       if (trie[VALUE] !== null) {
         matches3.push.apply(matches3, trie[VALUE]);
@@ -2394,8 +2363,7 @@
       }
     }
     const children = trie[CHILDREN];
-    if (children === null)
-      return;
+    if (children === null) return;
     const sub_path = path.slice(1);
     switch (path[0]) {
       case "+":
@@ -2465,14 +2433,12 @@
     return subs;
   }
   function collect_subscribers(path, trie, subs) {
-    if (trie === void 0)
-      return;
+    if (trie === void 0) return;
     if (path.length === 0 && trie[VALUE] !== null) {
       subs.push.apply(subs, trie[VALUE]);
     }
     let children = trie[CHILDREN];
-    if (children === null)
-      return;
+    if (children === null) return;
     if (path.length > 0) {
       let sub_path = path.slice(1);
       collect_subscribers(sub_path, children[path[0]], subs);
@@ -2485,8 +2451,7 @@
     }
   }
   receive(function(data, wid) {
-    if (!data.type)
-      return;
+    if (!data.type) return;
     switch (data.type) {
       case "connect":
         return handle_connect(wid, data);
@@ -2505,8 +2470,7 @@
   });
   function handle_connect(wid, data) {
     if (data.client_id !== wid) {
-      if (window.console)
-        window.console.error("Wrong client_id in connect from " + wid, data);
+      if (window.console) window.console.error("Wrong client_id in connect from " + wid, data);
     }
     clients[wid] = data;
     send(wid, { type: "connack", reason_code: 0 });
@@ -2550,8 +2514,7 @@
   }
   function subscribe(topics, callback, options) {
     options = options || {};
-    if (options.wid === void 0)
-      options.wid = null;
+    if (options.wid === void 0) options.wid = null;
     let subtopics = [];
     if (typeof topics === "string") {
       topics = [topics];
@@ -2714,8 +2677,7 @@
     } else if (sub.type === "page") {
       sub.callback(mqttmsg, extract(sub.topic, mqttmsg.topic), { topic: sub.topic, wid: sub.wid });
     } else {
-      if (window.console)
-        window.console.error("Unknown subscription type", sub);
+      if (window.console) window.console.error("Unknown subscription type", sub);
     }
   }
   function retain_key(topic) {
@@ -2773,8 +2735,7 @@
   function call(topic, payload2, options) {
     options = options || {};
     payload2 = payload2 || null;
-    if (options.qos === void 0)
-      options.qos = 1;
+    if (options.qos === void 0) options.qos = 1;
     let timeout = options.timeout || 15e3;
     let willRespond = new Promise(
       function(resolve, reject) {
@@ -5075,8 +5036,10 @@
             case MQTT_RC_BAD_USERNAME_OR_PASSWORD:
               this.authUserPassword.username = void 0;
               this.authUserPassword.password = void 0;
+            /* falls through */
             case MQTT_RC_CLIENT_ID_INVALID:
               this.clientId = "";
+            /* falls through */
             default:
               publishStatus(false);
               sessionToBridge({
@@ -6051,11 +6014,9 @@
   }
   function doPossibleStateChange(model2, newState) {
     const transitions = validTransitions[model2.state];
-    if (transitions === void 0)
-      return;
+    if (transitions === void 0) return;
     const transitionPath = transitions[newState];
-    if (transitionPath === void 0)
-      return;
+    if (transitionPath === void 0) return;
     for (let i2 = 0; i2 < transitionPath.length; i2++) {
       publish("model/lifecycle/event/state", transitionPath[i2], { retain: true });
     }
@@ -6344,6 +6305,9 @@
     });
     return ps;
   }
+  function reload() {
+    window.location.replace(window.location.pathname + window.location.search);
+  }
   subscribe(
     "model/auth/event/auth-changing",
     function(msg) {
@@ -6352,7 +6316,7 @@
         if (onauth === null || onauth !== "#") {
           setTimeout(function() {
             if (onauth === null || onauth === "#reload") {
-              window.location.replace(window.location.href);
+              reload();
             } else if (onauth.charAt(0) == "/") {
               window.location.href = onauth;
             } else if (onauth.charAt(0) == "#") {
@@ -6440,7 +6404,7 @@
     willNavigate();
   }
   subscribe("model/location/post/reload", function(msg) {
-    window.location.replace(window.location.href);
+    reload();
     willNavigate();
   }, { wid: "model.location" });
   subscribe("model/location/post/q", function(msg) {
