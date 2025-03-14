@@ -21,6 +21,26 @@ initialize();
     }
 });
 
+"use strict"; QUnit.test("Send multiple inits to the worker. Only the first should initialize", function(assert) { assert.timeout(1000);
+    var done = assert.async();
+
+    var worker = new Worker("workers/echo-init-args.js", {type: "module"});
+
+    worker.postMessage(["init", { args: "first" }]);
+    worker.postMessage(["init", { args: "second" }]);
+
+    worker.onmessage = function(e) {
+        assert.equal(e.data.type, "connect");
+
+        // Only the first init should be handled. Initializing can involve 
+        // importing modules, and should only be done once.
+        assert.equal(e.data.will_payload, "first");
+
+        worker.terminate();
+        done();
+    }
+});
+
 QUnit.test("Connect and subscribe worker", function(assert) {
     assert.timeout(1000);
     var done = assert.async();
