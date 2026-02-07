@@ -1,14 +1,26 @@
 # COTONIC
 
-*Infrastructure for your web page.*
+*Build web apps with truly isolated components using Web Workers and
+pub/sub messaging.*
+
+Think microservices architecture, but for the browser—with privacy
+and crash isolation built in.
+
+**The problem:** Third-party scripts can access everything on your page.
+Passwords, user data, everything.  
+**The solution:** Cotonic isolates components like an OS isolates processes,
+using Web Workers and message passing.
 
 Read the [documentation](https://cotonic.org/)
 
 ## What is Cotonic?
 
-Cotonic is a JavaScript library.
+Cotonic is a JavaScript framework that brings operating-system level isolation to web applications.
+Each component runs in its own Web Worker, communicating through an MQTT-inspired topic tree.
 
-Infrastructure for communication:
+### Key Features
+
+**Infrastructure for communication:**
 
  * Publish and subscribe to a topic tree on your web page
  * Publish and subscribe between tabs in the same browser
@@ -17,13 +29,13 @@ Infrastructure for communication:
  * Publish from the server to the page
  * Publish from the page to the server
 
-Infrastructure for using Web Workers:
+**Infrastructure for using Web Workers:**
 
  * Start and stop Web Workers
  * Communicate with and between Web Workers using the topic tree
  * Use a Service Worker for seamless communication between pages
 
-Building blocks for managing state and html:
+**Building blocks for managing state and html:**
 
  * Update HTML elements with new content, using incremental DOM updates
  * Reflect state in the attributes of html and body tags, use
