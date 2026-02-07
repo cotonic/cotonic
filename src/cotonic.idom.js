@@ -19,44 +19,95 @@ const idom = IncrementalDOM;
 
 import { tokens as getTokens } from "./cotonic.tokenizer.js";
 
+const SKIP_TAG = "cotonic-idom-skip";
+const FRAME_TAG = "cotonic-idom-iframe";
+
+const RENDER_OPS = {
+    text: textNode,
+    open: openNode,
+    void: voidNode,
+    close: closeNode
+}
+
 function render(tokens) {
-    function renderToken(token) {
-        switch(token.type) {
-            case "text":
-                return idom.text(token.data);
-            case "open":
-                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
-            case "void":
-                return voidNode(token);
-            case "close":
-                return closeNode(token);
+    while(tokens.length > 0) {
+        const token = tokens.shift();
+        RENDER_OPS[token.type]?.(token, tokens);
+
+        // This happens when we reached the end of the document of an iframe.
+        if(idom.currentElement().nodeType === Node.DOCUMENT_NODE) {
+            skipTextNodes(tokens);
+            break;
         }
     }
+}
 
-    for(let i=0; i < tokens.length; i++) {
-        renderToken(tokens[i]);
+function textNode(token) {
+    idom.text(token.data);
+}
+
+function openNode(token, tokens) {
+    if(token.tag === FRAME_TAG) {
+        // Insert an iframe, and continue rendering the rest tokens from this point.
+        idom.elementOpen.apply(null,  ["iframe", token?.key, null].concat(token.attributes));
+
+        const frameDoc = idom.currentElement().contentDocument;
+
+        // When the frame is uninitialized and new, there is no doctype, or it is not
+        // initialized. Write the html5 doctype. After this, the frame is ready to be
+        // updated.
+        if(frameDoc.readyState === "uninitialized" || frameDoc.doctype === null) {
+            frameDoc.open();
+            frameDoc.write("<!DOCTYPE html>\n"); // We could make this configurable via the attributes.
+            frameDoc.close();
+        }
+
+        // When rendered from a template, the tokens often include leading text nodes before the 
+        // the first node reached. These nodes should be skipped.
+        skipTextNodes(tokens);
+        patchOuter(frameDoc.documentElement, tokens);
+
+        return;
+    }
+
+    idom.elementOpen.apply(null,  [token.tag, token?.key, null].concat(token.attributes));
+}
+
+function skipTextNodes(tokens) {
+    while(tokens.length > 0) {
+        let t = tokens[0];
+        if(t.type !== "text") break;
+        tokens.shift();
     }
 }
 
 function closeNode(token) {
-    const currentTag = idom.currentElement().tagName;
+    const currentElement = idom.currentElement();
+    const currentTag = currentElement?.tagName;
+    let tag = token.tag;
 
-    /* Safety measure. If the tag of the current element does not match, doc
+    if(tag === FRAME_TAG) {
+        tag = "iframe";
+    }
+
+    /*
+     * Safety measure. If the tag of the current element does not match, doc
      * not close the element via IncrementalDOM
      */
-    if (currentTag.toLowerCase() != token.tag.toLowerCase()) {
+
+    if (currentTag !== undefined && (currentTag.toLowerCase() !== tag.toLowerCase())) {
         return;
     }
 
-    return idom.elementClose(token.tag);
+    idom.elementClose(tag);
 }
 
 function voidNode(token) {
-    if(token.tag === "cotonic-idom-skip") {
+    if(token.tag === SKIP_TAG) {
         return skipNode(token);
     }
 
-    return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+    idom.elementVoid.apply(null,  [token.tag, token?.key, null].concat(token.attributes));
 }
 
 function skipNode(token) {
@@ -71,7 +122,7 @@ function skipNode(token) {
     }
 
     if(!id) {
-        throw("No id attribute found in cotonic-idom-skip node");
+        throw(`No id attribute found in ${ SKIP_TAG }`);
     }
 
     if(!currentPointer || currentPointer.id !== id) {
@@ -86,8 +137,8 @@ function skipNode(token) {
             }
         }
 
-        return idom.elementVoid.apply(null,  [tag, token.hasOwnProperty("key")?token.key:null, null].concat(attributes));
-    } 
+        return idom.elementVoid.apply(null,  [tag, token?.key, null].concat(attributes));
+    }
 
     idom.skipNode();
 }
@@ -101,10 +152,10 @@ function patch(patch, element, HTMLorTokens) {
         tokens = getTokens(HTMLorTokens);
     }
 
-    patch(element, function() { render(tokens); });
+    patch(element, render.bind(null, tokens));
 }
 
-const patchInner = patch.bind(this, idom.patch);
-const patchOuter = patch.bind(this, idom.patchOuter);
+const patchInner = patch.bind(null, idom.patch);
+const patchOuter = patch.bind(null, idom.patchOuter);
 
 export { patchInner, patchOuter };
