@@ -18,7 +18,88 @@ Read the [documentation](https://cotonic.org/)
 Cotonic is a JavaScript framework that brings operating-system level isolation to web applications.
 Each component runs in its own Web Worker, communicating through an MQTT-inspired topic tree.
 
-### Key Features
+## Quick Start
+
+### Hello World: Basic Pub/Sub
+
+The simplest example, components talking through topics:
+
+```javascript
+// Component A: Subscribe to a topic
+cotonic.broker.subscribe("user/clicked", (msg) => {
+    console.log("Button was clicked!", msg.payload);
+});
+
+// Component B: Publish to that topic
+cotonic.broker.publish("user/clicked", { 
+    button: "save",
+    timestamp: Date.now() 
+});
+```
+
+### Hello World: Isolated Web Worker Component
+
+The real power, components running in isolated Web Workers:
+
+```javascript
+// main.js - Start an isolated component
+cotonic.spawn({
+    src: 'workers/counter.js',
+    topic: 'component/counter'
+});
+
+// Subscribe to messages from the worker
+cotonic.broker.subscribe("counter/value", function(msg) {
+    document.getElementById('display').textContent = msg.payload;
+});
+
+// Send a message to the worker
+cotonic.broker.publish("counter/increment", {});
+```
+
+```javascript
+// workers/counter.js - Runs in isolated Web Worker
+let count = 0;
+
+cotonic.broker.subscribe("counter/increment", function() {
+    count++;
+    cotonic.broker.publish("counter/value", count);
+});
+```
+
+**Why this matters:** The counter worker is completely isolated. It can't
+access the DOM, can't interfere with other components, and if it crashes,
+your page keeps running.
+
+### Hello World: Real-time Server Sync (Optional)
+
+Connect to your MQTT server for real-time sync:
+
+```javascript
+// All clients get this message in real-time
+cotonic.broker.subscribe("bridge/origin/notifications/#", (msg) => {
+    showNotification(msg.payload);
+});
+
+// Send a message to the server
+cotonic.broker.publish("bridge/origin/api/save", {
+    user: "alice",
+    data: { ... }
+});
+```
+
+**The `bridge/origin/` prefix** routes messages through the MQTT
+connection to your server. The `#` wildcard matches any subtopic.
+
+---
+
+**Ready to dive deeper?** Check out the [full documentation](https://cotonic.org/)
+or jump to [Why do you need this?](#why-do-you-need-this) to understand the problems
+Cotonic solves.
+
+---
+
+## Key Features
 
 **Infrastructure for communication:**
 
