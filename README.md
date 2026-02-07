@@ -18,6 +18,165 @@ Read the [documentation](https://cotonic.org/)
 Cotonic is a JavaScript framework that brings operating-system level isolation to web applications.
 Each component runs in its own Web Worker, communicating through an MQTT-inspired topic tree.
 
+## Architecture
+
+### The Cotonic Difference
+
+**Without Cotonic:** All code runs in a shared global scope with no isolation.
+
+**With Cotonic:** Each component runs in its own Web Worker, communicating only through messages.
+
+```
+Traditional Web App              Cotonic Web App
+─────────────────               ─────────────────
+
+┌─────────────────┐             ┌─────────────────┐
+│  Global Scope   │             │   Main Thread   │
+│                 │             │   ┌─────────┐   │
+│  All components │             │   │ Topic   │   │
+│  share          │             │   │ Tree    │   │
+│  everything     │             │   └────┬────┘   │
+└─────────────────┘             └────────┼────────┘
+                                     ┌───┼───┐
+ ❌ No isolation                  ┌──▼─┐ ▼ ┌▼──┐
+ ❌ Privacy risks                 │ W1 │   │W2 │
+ ❌ Cascade fails                 └────┘   └───┘
+                                  ✅ Isolated
+                                  ✅ Secure
+                                  ✅ Resilient
+```
+
+### How It Works
+
+```mermaid
+graph TB
+    subgraph "Main Page Thread"
+        Broker[Topic Tree / Broker<br/>Central Message Router]
+        DOM[DOM Renderer]
+        Bridge[MQTT Bridge]
+    end
+    
+    subgraph "Isolated Web Workers"
+        W1[Component 1<br/>Chat Widget]
+        W2[Component 2<br/>Analytics]
+        W3[Component 3<br/>Form Handler]
+    end
+    
+    Server[MQTT Server<br/>Optional]
+    
+    W1 <-->|postMessage| Broker
+    W2 <-->|postMessage| Broker
+    W3 <-->|postMessage| Broker
+    
+    Broker --> DOM
+    Broker <--> Bridge
+    Bridge <-->|WebSocket| Server
+    
+    style Broker fill:#4A90E2,color:#fff
+    style W1 fill:#7ED321,color:#000
+    style W2 fill:#7ED321,color:#000
+    style W3 fill:#7ED321,color:#000
+```
+
+**Key principle:** Workers never call each other directly. All communication flows
+through the topic tree, enabling true isolation and composability.
+
+### Real-World Example
+
+Imagine a collaborative smart office dashboard:
+
+1. **Alice** clicks "Start Meeting" in her browser's form handler component
+2. The component publishes to `bridge/origin/office/meeting/start`
+3. The **MQTT server** receives the message and forwards it to all subscribers:
+   - **Bob's browser** (in another office) receives the message and his dashboard component shows "Meeting in Progress"
+   - **Temperature sensor** (IoT1) publishes current room temperature to `office/sensors/temp`
+   - **Smart light** (IoT3) changes to "meeting mode" (red light)
+   - **Motion sensor** (IoT2) activates to track room occupancy
+4. Bob's **analytics component** aggregates the meeting data and publishes stats to `office/analytics/meetings`
+5. Both Alice's and Bob's dashboards update in real-time
+
+```mermaid
+graph TB
+    subgraph Browser1["Browser 1 (Alice's Device)"]
+        subgraph "Main Page Thread 1"
+            Broker1[Topic Tree / Broker<br/>Central Message Router]
+            DOM1[DOM Renderer]
+            Bridge1[MQTT Bridge]
+        end
+        
+        subgraph "Isolated Web Workers 1"
+            W1A[Component 1<br/>Chat Widget]
+            W1B[Component 2<br/>Analytics]
+            W1C[Component 3<br/>Form Handler]
+        end
+    end
+    
+    subgraph Browser2["Browser 2 (Bob's Device)"]
+        subgraph "Main Page Thread 2"
+            Broker2[Topic Tree / Broker<br/>Central Message Router]
+            DOM2[DOM Renderer]
+            Bridge2[MQTT Bridge]
+        end
+        
+        subgraph "Isolated Web Workers 2"
+            W2A[Component 1<br/>Chat Widget]
+            W2B[Component 2<br/>Dashboard]
+        end
+    end
+    
+    Server[MQTT Server<br/>Real-time Message Broker]
+    
+    subgraph IoT["IoT Devices"]
+        IoT1[Sensor 1<br/>Temperature]
+        IoT2[Sensor 2<br/>Motion]
+        IoT3[Smart Light<br/>Control]
+    end
+    
+    W1A <-->|postMessage| Broker1
+    W1B <-->|postMessage| Broker1
+    W1C <-->|postMessage| Broker1
+    
+    W2A <-->|postMessage| Broker2
+    W2B <-->|postMessage| Broker2
+    
+    Broker1 --> DOM1
+    Broker1 <--> Bridge1
+    Bridge1 <-->|WebSocket<br/>MQTT v5| Server
+    
+    Broker2 --> DOM2
+    Broker2 <--> Bridge2
+    Bridge2 <-->|WebSocket<br/>MQTT v5| Server
+    
+    IoT1 <-->|MQTT| Server
+    IoT2 <-->|MQTT| Server
+    IoT3 <-->|MQTT| Server
+    
+    style Broker1 fill:#E3F2FD,stroke:#90CAF9,stroke-width:2px,color:#1565C0
+    style DOM1 fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    style Bridge1 fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    
+    style Broker2 fill:#E3F2FD,stroke:#90CAF9,stroke-width:2px,color:#1565C0
+    style DOM2 fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    style Bridge2 fill:#F3E5F5,stroke:#CE93D8,stroke-width:2px,color:#6A1B9A
+    
+    style W1A fill:#FFF9C4,stroke:#FFF59D,stroke-width:2px,color:#F57F17
+    style W1B fill:#FFF9C4,stroke:#FFF59D,stroke-width:2px,color:#F57F17
+    style W1C fill:#FFF9C4,stroke:#FFF59D,stroke-width:2px,color:#F57F17
+    
+    style W2A fill:#FFF9C4,stroke:#FFF59D,stroke-width:2px,color:#F57F17
+    style W2B fill:#FFF9C4,stroke:#FFF59D,stroke-width:2px,color:#F57F17
+    
+    style Server fill:#FFE0B2,stroke:#FFCC80,stroke-width:2px,color:#E65100
+    
+    style IoT1 fill:#C8E6C9,stroke:#81C784,stroke-width:2px,color:#2E7D32
+    style IoT2 fill:#C8E6C9,stroke:#81C784,stroke-width:2px,color:#2E7D32
+    style IoT3 fill:#C8E6C9,stroke:#81C784,stroke-width:2px,color:#2E7D32
+```
+
+**All of this happens through simple pub/sub messages** No direct connections,
+no REST APIs to manage, no polling. Components, browsers, and devices are loosely
+coupled and can be added, removed, or crash independently without affecting the system.
+
 ## Quick Start
 
 ### Hello World: Basic Pub/Sub
