@@ -266,7 +266,7 @@ Cotonic solves.
 
 <p align="center">
   <a href="https://cotonic.org/examples/emoji_reactions">
-    <img src="docs/images/emoji-reactions.png" alt="Try the demo" width="600">
+    <img src="doc/images/emoji-reactions.png" alt="Try the demo" width="600">
   </a>
 </p>
 
