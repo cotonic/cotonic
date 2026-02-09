@@ -260,6 +260,24 @@ Cotonic solves.
 
 ## Examples
 
+## Live Examples
+
+### 🎉 Real-Time Emoji Reactions
+
+<p align="center">
+  <a href="https://cotonic.org/examples/emoji_reactions">
+    <img src="docs/images/emoji-reactions.png" alt="Try the demo" width="600">
+  </a>
+</p>
+
+Click an emoji on your phone. Watch it appear on your laptop screen. Open it on 10 devices and see them all sync in real-time via MQTT.
+
+**[Try It Live →](https://cotonic.org/examples/emoji_reactions)** | **[View Source →](examples/emoji_reactions)**
+
+This demo shows how Cotonic makes building real-time, distributed applications simple. Perfect for live events, collaborative tools, and IoT dashboards.
+
+---
+
 ### Live Emoji Reactions
 
 Live demonstration of Cotonic's distributed pub/sub architecture. Multiple devices 
