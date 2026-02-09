@@ -258,6 +258,47 @@ Cotonic solves.
 
 ---
 
+## Examples
+
+### Live Emoji Reactions
+
+Live demonstration of Cotonic's distributed pub/sub architecture. Multiple devices 
+stay synchronized via MQTT.
+
+#### Try It
+
+**Live Demo:** https://cotonic.org/examples/emoji_reactions
+
+Open the demo on multiple devices (phone, tablet, laptop) and click the emoji buttons. 
+Watch all devices update in real-time!
+
+#### What This Demonstrates
+
+- **Real-time sync** across unlimited devices
+- **MQTT bridge** connecting browsers via public broker
+- **Pub/sub messaging** for loose coupling
+- **Zero infrastructure** - no backend code needed
+- **Scalable architecture** - works with 2 or thousends of users
+
+#### Running Locally
+
+```bash
+# Just open the HTML file
+open index.html
+
+# Or serve with any static server
+python -m http.server 8000
+```
+
+#### Customization Ideas
+
+- Add more emoji options
+- Change colors and animations
+- Add sound effects
+- Show reaction history
+- Add user names/avatars
+- Connect to your own MQTT broker
+
 ## Key Features
 
 **Infrastructure for communication:**
