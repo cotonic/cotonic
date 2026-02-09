@@ -270,52 +270,13 @@ Cotonic solves.
   </a>
 </p>
 
-Click an emoji on your phone. Watch it appear on your laptop screen. Open it on 10 devices and see them all sync in real-time via MQTT.
+Click an emoji on your phone. Watch it appear on your laptop screen. Open it on 10 
+devices and see them all sync in real-time via MQTT.
 
 **[Try It Live →](https://cotonic.org/examples/emoji_reactions)** | **[View Source →](examples/emoji_reactions)**
 
-This demo shows how Cotonic makes building real-time, distributed applications simple. Perfect for live events, collaborative tools, and IoT dashboards.
-
----
-
-### Live Emoji Reactions
-
-Live demonstration of Cotonic's distributed pub/sub architecture. Multiple devices 
-stay synchronized via MQTT.
-
-#### Try It
-
-**Live Demo:** https://cotonic.org/examples/emoji_reactions
-
-Open the demo on multiple devices (phone, tablet, laptop) and click the emoji buttons. 
-Watch all devices update in real-time!
-
-#### What This Demonstrates
-
-- **Real-time sync** across unlimited devices
-- **MQTT bridge** connecting browsers via public broker
-- **Pub/sub messaging** for loose coupling
-- **Zero infrastructure** - no backend code needed
-- **Scalable architecture** - works with 2 or thousends of users
-
-#### Running Locally
-
-```bash
-# Just open the HTML file
-open index.html
-
-# Or serve with any static server
-python -m http.server 8000
-```
-
-#### Customization Ideas
-
-- Add more emoji options
-- Change colors and animations
-- Add sound effects
-- Show reaction history
-- Add user names/avatars
-- Connect to your own MQTT broker
+This demo shows how Cotonic makes building real-time, distributed applications 
+simple. Perfect for live events, collaborative tools, and IoT dashboards.
 
 ## Key Features
 
