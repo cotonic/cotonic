@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cotonic Live Reactions Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .status::before {
+            content: '●';
+            color: #4caf50;
+            font-size: 1.5em;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .emoji-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .emoji-button {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 20px;
+            font-size: 3em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            user-select: none;
+        }
+        
+        .emoji-button:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .emoji-button:active {
+            transform: scale(0.95);
+        }
+        
+        .emoji-button .count {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #667eea;
+            color: white;
+            font-size: 0.3em;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .emoji-button .label {
+            font-size: 0.25em;
+            color: #666;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        
+        .reaction {
+            position: fixed;
+            font-size: 3em;
+            pointer-events: none;
+            z-index: 1000;
+            animation: float-up 3s ease-out forwards;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-30vh) scale(1.2) rotate(10deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(0.5) rotate(20deg);
+                opacity: 0;
+            }
+        }
+        
+        .stats {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .stats h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .total-reactions {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .viewers {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            .emoji-button {
+                font-size: 2em;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Live Emoji Reactions</h1>
+            <p class="subtitle">React in real-time across all connected devices!</p>
+            <div class="status">Connected to MQTT • <span id="viewers">1</span> viewer(s) online</div>
+            <p style="color: #999; font-size: 0.9em; margin-top: 15px;">
+                💡 <strong>Try it:</strong> Open this page on your phone or another browser window!
+            </p>
+        </div>
+
+        <div class="emoji-buttons">
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Love" data-reaction-emoji="❤️">
+                ❤️
+                <div class="label">Love</div>
+                <div class="count" id="count-love">0</div>
+            </button>
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Laugh" data-reaction-emoji="😂">
+                😂
+                <div class="label">Laugh</div>
+                <div class="count" id="count-laugh">0</div>
+            </button>
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Applause" data-reaction-emoji="👏">
+                👏
+                <div class="label">Applause</div>
+                <div class="count" id="count-applause">0</div>
+            </button>
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Fire" data-reaction-emoji="🔥">
+                🔥
+                <div class="label">Fire</div>
+                <div class="count" id="count-fire">0</div>
+            </button>
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Celebrate" data-reaction-emoji="🎉">
+                🎉
+                <div class="label">Celebrate</div>
+                <div class="count" id="count-celebrate">0</div>
+            </button>
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Thinking" data-reaction-emoji="🤔">
+                🤔
+                <div class="label">Thinking</div>
+                <div class="count" id="count-thinking">0</div>
+            </button>
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Perfect" data-reaction-emoji="💯">
+                💯
+                <div class="label">Perfect</div>
+                <div class="count" id="count-perfect">0</div>
+            </button>
+            <button class="emoji-button" data-onclick-topic="send-reaction" data-reaction-type="Rocket" data-reaction-emoji="🚀">
+                🚀
+                <div class="label">Rocket</div>
+                <div class="count" id="count-rocket">0</div>
+            </button>
+        </div>
+
+        <div class="stats">
+            <h3>📊 Session Stats</h3>
+            <div class="total-reactions" id="totalReactions">0</div>
+            <div style="color: #666; margin-top: 5px;">total reactions</div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
+    <script>
+        const broker = "test.mosquitto.org:8081";
+        const broker_path = "/mqtt";
+        const userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
+        
+        let reactionCounts = {
+            'love': 0,
+            'laugh': 0,
+            'applause': 0,
+            'fire': 0,
+            'celebrate': 0,
+            'thinking': 0,
+            'perfect': 0,
+            'rocket': 0
+        };
+        let totalReactions = 0;
+        let viewers = new Set([userId]);
+
+        // Configure MQTT connection
+        cotonic.mqtt_bridge.newBridge(broker, {
+            name: 'broker',
+            protocol: "wss",
+            controller_path: broker_path,
+            is_ui_state: true
+        });
+
+        cotonic.broker.subscribe("$bridge/broker/status", (m) => {
+            if(m.payload.hasOwnProperty("is_connected")) {
+                announcePresence();
+            }
+        });
+
+        // Subscribe to reactions from all users
+        cotonic.broker.subscribe("bridge/broker/cotonic/reactions/emoji", (msg) => {
+            if(msg.dup === false) {
+                const { emoji, type, userId: senderId, timestamp } = msg.payload;
+                showReaction(emoji, senderId);
+                updateCount(type);
+            }
+        });
+
+        // Subscribe to viewer presence
+        cotonic.broker.subscribe("bridge/broker/cotonic/reactions/presence", (msg) => {
+            const { userId: viewerId, status } = msg.payload;
+
+            if (status === 'online') {
+                viewers.add(viewerId);
+            } else if (status === 'offline') {
+                viewers.delete(viewerId);
+            }
+
+            document.getElementById('viewers').textContent = viewers.size;
+        });
+
+        // Keep-alive (every 30 seconds)
+        setInterval(announcePresence, 30000);
+
+        function announcePresence() {
+            cotonic.broker.publish("bridge/broker/cotonic/reactions/presence", {
+                userId: userId,
+                status: 'online',
+                timestamp: Date.now()
+            });
+        }
+
+        cotonic.broker.subscribe("send-reaction", (msg) => {
+            const { "data-reaction-emoji": emoji, "data-reaction-type": type } = msg.payload.message;
+
+            cotonic.broker.publish("bridge/broker/cotonic/reactions/emoji", {
+                emoji: emoji,
+                type: type.toLowerCase(),
+                userId: userId,
+                timestamp: Date.now()
+            });
+
+            // Haptic feedback on mobile
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        })
+
+        function showReaction(emoji, senderId) {
+            const reaction = document.createElement('div');
+            reaction.className = 'reaction';
+            reaction.textContent = emoji;
+            
+            // Random horizontal position
+            const randomX = Math.random() * (window.innerWidth - 100);
+            reaction.style.left = randomX + 'px';
+            reaction.style.bottom = '-50px';
+            
+            // Add subtle random rotation
+            const randomRotation = (Math.random() - 0.5) * 30;
+            reaction.style.transform = `rotate(${randomRotation}deg)`;
+            
+            document.body.appendChild(reaction);
+            
+            // Remove after animation completes
+            setTimeout(() => reaction.remove(), 3000);
+        }
+
+        function updateCount(type) {
+            reactionCounts[type]++;
+            totalReactions++;
+            
+            // Update individual count
+            const countEl = document.getElementById('count-' + type);
+            if (countEl) {
+                countEl.textContent = reactionCounts[type];
+                
+                // Pulse animation
+                countEl.style.transform = 'scale(1.5)';
+                setTimeout(() => {
+                    countEl.style.transform = 'scale(1)';
+                }, 200);
+            }
+            
+            // Update total
+            const totalEl = document.getElementById('totalReactions');
+            totalEl.textContent = totalReactions;
+            totalEl.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                totalEl.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Announce offline when leaving
+        window.addEventListener('beforeunload', function() {
+            cotonic.broker.publish("bridge/broker/cotonic/reactions/presence", {
+                userId: userId,
+                status: 'offline',
+                timestamp: Date.now()
+            });
+        });
+
+        // Add CSS transition for count changes
+        document.querySelectorAll('.count').forEach(el => {
+            el.style.transition = 'transform 0.2s ease';
+        });
+
+        document.getElementById('totalReactions').style.transition = 'transform 0.2s ease';
+    </script>
+</body>
+</html>
