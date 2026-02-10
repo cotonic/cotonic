@@ -3095,7 +3095,7 @@
   function fieldValue(field) {
     if (field.type == "select-multiple") {
       v = [];
-      l = form.elements[i].options.length;
+      l = field.options.length;
       for (let j = 0; j < l; j++) {
         if (field.options[j].selected) {
           v[v.length] = field.options[j].value;
