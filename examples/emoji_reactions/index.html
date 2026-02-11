@@ -252,8 +252,10 @@
 
     <script type="text/javascript" src="/cotonic.js" data-base-worker-src="/cotonic-worker.js"></script>
     <script>
-        const broker = "test.mosquitto.org:8081";
+        // const broker = "test.mosquitto.org:8081";
+        const broker = "broker.emqx.io:8084"
         const broker_path = "/mqtt";
+
         const userId = 'user_' + Math.random().toString(36).substr(2, 9);
         const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
         
