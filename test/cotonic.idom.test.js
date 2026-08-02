@@ -60,6 +60,37 @@ QUnit.test("Idom patch tokens", function(assert) {
     assert.equal(p2[1].innerHTML, "Yes");
 });
 
+QUnit.test("Cotonic preserve already in dom test", function(assert) {
+    let element = document.getElementById("cotonic-preserve-already-in-dom-test");
+
+    const prePatchHTML = element.innerHTML;
+
+    /* The patch replaces the preserve...  */
+    idom.patchInner(element, [
+        {type: "open", tag: "p", attributes: []},
+            {type: "open", tag: "span", attributes: []},
+                {type: "text", data: "Hello World!"},
+            {type: "close", tag: "span"},
+        {type: "close", tag: "p"}
+    ]);
+    assert.equal(element.innerHTML, "<p><span>Hello World!</span></p>");
+
+    // Reset
+    element.innerHTML = prePatchHTML;
+
+    /* The data in the dom is kept in place */
+    idom.patchInner(element, [
+        {type: "text", data: "\n            "},
+        {type: "open", tag: "div", attributes: ["class", "update-some-class", "data-cotonic-preserve", "data-cotonic-preserve"]},
+        {type: "open", tag: "span", attributes: []},
+        {type: "text", data: "Hello World!"},
+        {type: "close", tag: "span"},
+        {type: "close", tag: "div"},
+        {type: "text", data: "\n        "},
+    ]);
+
+    assert.equal(element.innerHTML, prePatchHTML);
+})
 
 QUnit.test("Idom skip node", function(assert) {
     let element = document.getElementById("skip-test");

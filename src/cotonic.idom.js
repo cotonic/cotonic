@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2023 The Cotonic Authors. All Rights Reserved.
+ * Copyright 2017-2026 The Cotonic Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,47 @@ const idom = IncrementalDOM;
 import { tokens as getTokens } from "./cotonic.tokenizer.js";
 
 function render(tokens) {
+    let preserveSkipLevel = 0;
+
     function renderToken(token) {
         switch(token.type) {
             case "text":
-                return idom.text(token.data);
+                if(preserveSkipLevel === 0) {
+                    idom.text(token.data);
+                }
+
+                break;
             case "open":
-                return idom.elementOpen.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+                if(preserveSkipLevel === 0) {
+                    if(hasPreserveAttribute(idom.currentPointer()) && hasPreserveAttribute(token)) {
+                        console.log("skip");
+                        preserveSkipLevel = 1;
+                    }
+                    idom.elementOpen.apply(null,
+                        [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+                } else {
+                    preserveSkipLevel++;
+                }
+
+                break;
             case "void":
-                return voidNode(token);
+                if(preserveSkipLevel === 0) {
+                    idom.elementVoid.apply(null,
+                        [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+                    voidNode(token);
+                } 
+
+                break;
             case "close":
-                return closeNode(token);
+                if(preserveSkipLevel > 0) {
+                    preserveSkipLevel--;
+                }
+
+                if(preserveSkipLevel === 0) {
+                    closeNode(token);
+                } 
+
+                break;
         }
     }
 
@@ -51,45 +82,24 @@ function closeNode(token) {
     return idom.elementClose(token.tag);
 }
 
-function voidNode(token) {
-    if(token.tag === "cotonic-idom-skip") {
-        return skipNode(token);
+function hasPreserveAttribute(nodeOrToken) {
+    const preserveAttribute = "data-cotonic-preserve";
+
+    if (nodeOrToken?.nodeType === Node.ELEMENT_NODE) {
+        return nodeOrToken.hasAttribute(preserveAttribute);
     }
 
-    return idom.elementVoid.apply(null,  [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
-}
+    const attributes = nodeOrToken?.attributes;
 
-function skipNode(token) {
-    const currentPointer = idom.currentPointer();
-    let id;
-
-    for(let i = 0; i < token.attributes.length; i=i+2) {
-        if(token.attributes[i] === "id") {
-            id = token.attributes[i+1];
-            break;
-        }
-    }
-
-    if(!id) {
-        throw("No id attribute found in cotonic-idom-skip node");
-    }
-
-    if(!currentPointer || currentPointer.id !== id) {
-        let tag = "div", attributes = [];
-
-        for(let i = 0; i < token.attributes.length; i=i+2) {
-            if(token.attributes[i] === "tag") {
-                tag = token.attributes[i+1];
-            } else {
-                attributes.push(token.attributes[i]);
-                attributes.push(token.attributes[i+1]);
+    if (attributes) {
+        for (let i = 0; i < attributes.length; i += 2) {
+            if (attributes[i] === preserveAttribute) {
+                return true;
             }
         }
+    }
 
-        return idom.elementVoid.apply(null,  [tag, token.hasOwnProperty("key")?token.key:null, null].concat(attributes));
-    } 
-
-    idom.skipNode();
+    return false;
 }
 
 function patch(patch, element, HTMLorTokens) {
@@ -101,7 +111,7 @@ function patch(patch, element, HTMLorTokens) {
         tokens = getTokens(HTMLorTokens);
     }
 
-    patch(element, function() { render(tokens); });
+    patch(element, () => { render(tokens); });
 }
 
 const patchInner = patch.bind(this, idom.patch);
