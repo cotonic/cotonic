@@ -65,7 +65,7 @@ QUnit.test("Cotonic preserve already in dom test", function(assert) {
 
     const prePatchHTML = element.innerHTML;
 
-    /* The patch replaces the preserve...  */
+    /* This patch replaces the preserve...  */
     idom.patchInner(element, [
         {type: "open", tag: "p", attributes: []},
             {type: "open", tag: "span", attributes: []},
@@ -78,57 +78,22 @@ QUnit.test("Cotonic preserve already in dom test", function(assert) {
     // Reset
     element.innerHTML = prePatchHTML;
 
-    /* The data in the dom is kept in place */
+    /* Now the data in the dom is kept in place */
     idom.patchInner(element, [
-        {type: "text", data: "\n            "},
+        {type: "text", data: "\n"},
         {type: "open", tag: "div", attributes: ["class", "update-some-class", "data-cotonic-preserve", "data-cotonic-preserve"]},
         {type: "open", tag: "span", attributes: []},
         {type: "text", data: "Hello World!"},
         {type: "close", tag: "span"},
         {type: "close", tag: "div"},
-        {type: "text", data: "\n        "},
+        {type: "text", data: "\n"},
     ]);
 
-    assert.equal(element.innerHTML, prePatchHTML);
+    assert.equal(element.innerHTML, 
+"\n<div class=\"update-some-class\" data-cotonic-preserve=\"data-cotonic-preserve\">\n                <p>This node is already in the dom</p>\n            </div>\n");
+
+
+    // Reset
+    element.innerHTML = prePatchHTML;
+
 })
-
-QUnit.test("Idom skip node", function(assert) {
-    let element = document.getElementById("skip-test");
-
-    idom.patchInner(element, [
-        {type: "open", tag: "p", attributes: []},
-        {type: "text", data: "Hello World!\n"},
-        {type: "void", tag: "cotonic-idom-skip", attributes: ["id", "skip-this", "tag", "div"]},
-        {type: "open", tag: "span"},
-        {type: "text", data: "Hela hola, tijd voor ...!\n"},
-        {type: "close", tag: "span"},
-        {type: "close", tag: "p"}
-    ]);
-
-    assert.equal(element.innerHTML,
-        '<p>Hello World!\n<div id="skip-this"></div><span>Hela hola, tijd voor ...!\n</span></p>')
-
-    let skipThis = document.getElementById("skip-this");
-    skipThis.innerHTML = "<p>Externally managed</p>";
-    assert.ok(skipThis.innerHTML === "<p>Externally managed</p>");
-
-    idom.patchInner(element, [
-        {type: "open", tag: "p", attributes: []},
-        {type: "text", data: "Hallo Wereld!\n"},
-        {type: "void", tag: "cotonic-idom-skip", attributes: ["id", "skip-this", "tag", "div"]},
-        {type: "open", tag: "span"},
-        {type: "text", data: "Hela hola, tijd voor chips en cola!\n"},
-        {type: "close", tag: "span"},
-        {type: "close", tag: "p"}
-    ]);
-
-    // After another patch, the inner text of the element should not
-    // have been changed.
-    skipThis = document.getElementById("skip-this");
-    assert.ok(skipThis.innerHTML === "<p>Externally managed</p>");
-
-    assert.equal(element.innerHTML,
-        '<p>Hallo Wereld!\n<div id="skip-this"><p>Externally managed</p></div><span>Hela hola, tijd voor chips en cola!\n</span></p>')
-
-    
-});

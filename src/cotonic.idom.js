@@ -32,12 +32,18 @@ function render(tokens) {
                 break;
             case "open":
                 if(preserveSkipLevel === 0) {
-                    if(hasPreserveAttribute(idom.currentPointer()) && hasPreserveAttribute(token)) {
-                        console.log("skip");
-                        preserveSkipLevel = 1;
-                    }
+                    const shouldPreserve = hasPreserveAttribute(token) && hasPreserveAttribute(idom.currentPointer());
+
                     idom.elementOpen.apply(null,
                         [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
+
+                    if(shouldPreserve) {
+                        preserveSkipLevel = 1;
+
+                        while(idom.currentPointer()) {
+                            idom.skipNode();
+                        }
+                    }
                 } else {
                     preserveSkipLevel++;
                 }
@@ -47,7 +53,6 @@ function render(tokens) {
                 if(preserveSkipLevel === 0) {
                     idom.elementVoid.apply(null,
                         [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
-                    voidNode(token);
                 } 
 
                 break;
