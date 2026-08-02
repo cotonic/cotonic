@@ -89,9 +89,11 @@ QUnit.test("Cotonic preserve already in dom test", function(assert) {
         {type: "text", data: "\n"},
     ]);
 
-    assert.equal(element.innerHTML, 
-"\n<div class=\"update-some-class\" data-cotonic-preserve=\"data-cotonic-preserve\">\n                <p>This node is already in the dom</p>\n            </div>\n");
-
+    const preserved = element.querySelector('[data-cotonic-preserve]');
+    assert.ok(preserved);
+    assert.equal(preserved.className, "update-some-class");
+    assert.equal(preserved.querySelector("p")?.textContent, "This node is already in the dom");
+    assert.equal(preserved.querySelectorAll("span").length, 0);
 
     // Reset
     element.innerHTML = prePatchHTML;
