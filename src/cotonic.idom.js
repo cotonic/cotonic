@@ -90,7 +90,7 @@ function closeNode(token) {
 function hasPreserveAttribute(nodeOrToken) {
     const preserveAttribute = "data-cotonic-preserve";
 
-    if (nodeOrToken?.nodeType === Node.ELEMENT_NODE) {
+    if (typeof Node !== "undefined" && nodeOrToken?.nodeType === Node.ELEMENT_NODE) {
         return nodeOrToken.hasAttribute(preserveAttribute);
     }
 
