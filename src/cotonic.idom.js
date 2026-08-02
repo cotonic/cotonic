@@ -32,17 +32,15 @@ function render(tokens) {
                 break;
             case "open":
                 if(preserveSkipLevel === 0) {
-                    const shouldPreserve = hasPreserveAttribute(token) && hasPreserveAttribute(idom.currentPointer());
+                    const shouldPreserve = hasPreserveAttribute(token)
+                        && hasPreserveAttribute(idom.currentPointer());
 
                     idom.elementOpen.apply(null,
                         [token.tag, token.hasOwnProperty("key")?token.key:null, null].concat(token.attributes));
 
                     if(shouldPreserve) {
                         preserveSkipLevel = 1;
-
-                        while(idom.currentPointer()) {
-                            idom.skipNode();
-                        }
+                        idom.skip();
                     }
                 } else {
                     preserveSkipLevel++;
