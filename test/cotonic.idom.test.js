@@ -60,44 +60,42 @@ QUnit.test("Idom patch tokens", function(assert) {
     assert.equal(p2[1].innerHTML, "Yes");
 });
 
+QUnit.test("Cotonic preserve already in dom test", function(assert) {
+    let element = document.getElementById("cotonic-preserve-already-in-dom-test");
 
-QUnit.test("Idom skip node", function(assert) {
-    let element = document.getElementById("skip-test");
+    const prePatchHTML = element.innerHTML;
 
+    /* This patch replaces the preserve...  */
     idom.patchInner(element, [
         {type: "open", tag: "p", attributes: []},
-        {type: "text", data: "Hello World!\n"},
-        {type: "void", tag: "cotonic-idom-skip", attributes: ["id", "skip-this", "tag", "div"]},
-        {type: "open", tag: "span"},
-        {type: "text", data: "Hela hola, tijd voor ...!\n"},
-        {type: "close", tag: "span"},
+            {type: "open", tag: "span", attributes: []},
+                {type: "text", data: "Hello World!"},
+            {type: "close", tag: "span"},
         {type: "close", tag: "p"}
     ]);
+    assert.equal(element.innerHTML, "<p><span>Hello World!</span></p>");
 
-    assert.equal(element.innerHTML,
-        '<p>Hello World!\n<div id="skip-this"></div><span>Hela hola, tijd voor ...!\n</span></p>')
+    // Reset
+    element.innerHTML = prePatchHTML;
 
-    let skipThis = document.getElementById("skip-this");
-    skipThis.innerHTML = "<p>Externally managed</p>";
-    assert.ok(skipThis.innerHTML === "<p>Externally managed</p>");
-
+    /* Now the data in the dom is kept in place */
     idom.patchInner(element, [
-        {type: "open", tag: "p", attributes: []},
-        {type: "text", data: "Hallo Wereld!\n"},
-        {type: "void", tag: "cotonic-idom-skip", attributes: ["id", "skip-this", "tag", "div"]},
-        {type: "open", tag: "span"},
-        {type: "text", data: "Hela hola, tijd voor chips en cola!\n"},
+        {type: "text", data: "\n"},
+        {type: "open", tag: "div", attributes: ["class", "update-some-class", "data-cotonic-preserve", "data-cotonic-preserve"]},
+        {type: "open", tag: "span", attributes: []},
+        {type: "text", data: "Hello World!"},
         {type: "close", tag: "span"},
-        {type: "close", tag: "p"}
+        {type: "close", tag: "div"},
+        {type: "text", data: "\n"},
     ]);
 
-    // After another patch, the inner text of the element should not
-    // have been changed.
-    skipThis = document.getElementById("skip-this");
-    assert.ok(skipThis.innerHTML === "<p>Externally managed</p>");
+    const preserved = element.querySelector('[data-cotonic-preserve]');
+    assert.ok(preserved);
+    assert.equal(preserved.className, "update-some-class");
+    assert.equal(preserved.querySelector("p")?.textContent, "This node is already in the dom");
+    assert.equal(preserved.querySelectorAll("span").length, 0);
 
-    assert.equal(element.innerHTML,
-        '<p>Hallo Wereld!\n<div id="skip-this"><p>Externally managed</p></div><span>Hela hola, tijd voor chips en cola!\n</span></p>')
+    // Reset
+    element.innerHTML = prePatchHTML;
 
-    
-});
+})
