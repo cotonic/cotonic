@@ -26,16 +26,16 @@
     const patternLength = patternSegments.length;
     const topicLength = topicSegments.length;
     const lastIndex = patternLength - 1;
-    for (let i2 = 0; i2 < patternLength; i2++) {
-      const currentPattern = patternSegments[i2];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
       const patternChar = currentPattern[0];
-      const currentTopic = topicSegments[i2];
+      const currentTopic = topicSegments[i];
       if (!currentTopic && !currentPattern)
         continue;
       if (!currentTopic && currentPattern !== ALL)
         return false;
       if (patternChar === ALL)
-        return i2 === lastIndex;
+        return i === lastIndex;
       if (patternChar !== SINGLE && currentPattern !== currentTopic)
         return false;
     }
@@ -45,8 +45,8 @@
     const patternSegments = pattern.split(SEPARATOR);
     const patternLength = patternSegments.length;
     const result = [];
-    for (let i2 = 0; i2 < patternLength; i2++) {
-      const currentPattern = patternSegments[i2];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
       const patternChar = currentPattern[0];
       const patternParam = currentPattern.slice(1);
       const paramValue = params[patternParam];
@@ -65,16 +65,16 @@
     const patternSegments = pattern.split(SEPARATOR);
     const topicSegments = topic.split(SEPARATOR);
     const patternLength = patternSegments.length;
-    for (let i2 = 0; i2 < patternLength; i2++) {
-      const currentPattern = patternSegments[i2];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
       const patternChar = currentPattern[0];
       if (currentPattern.length === 1)
         continue;
       if (patternChar === ALL) {
-        params[currentPattern.slice(1)] = topicSegments.slice(i2);
+        params[currentPattern.slice(1)] = topicSegments.slice(i);
         break;
       } else if (patternChar === SINGLE) {
-        params[currentPattern.slice(1)] = topicSegments[i2];
+        params[currentPattern.slice(1)] = topicSegments[i];
       }
     }
     return params;
@@ -83,8 +83,8 @@
     const patternSegments = pattern.split(SEPARATOR);
     const patternLength = patternSegments.length;
     const mqttPattern = [];
-    for (let i2 = 0; i2 < patternLength; i2++) {
-      const currentPattern = patternSegments[i2];
+    for (let i = 0; i < patternLength; i++) {
+      const currentPattern = patternSegments[i];
       const patternChar = currentPattern[0];
       if (patternChar === ALL || patternChar == SINGLE) {
         mqttPattern.push(patternChar);
@@ -126,9 +126,9 @@
   var NORMAL = 3;
   function TokenBuilder(acc) {
     function addKey(token, attributes2) {
-      for (let i2 = 0; i2 < attributes2.length; i2 = i2 + 2) {
-        if (attributes2[i2] === "key") {
-          token.key = attributes2[i2 + 1];
+      for (let i = 0; i < attributes2.length; i = i + 2) {
+        if (attributes2[i] === "key") {
+          token.key = attributes2[i + 1];
           break;
         }
       }
@@ -400,7 +400,7 @@
   }
   function tokenize_word(data, quote, d) {
     const acc = [];
-    let i2 = 0;
+    let i = 0;
     while (true) {
       const c = data.codePointAt(d.offset);
       if (c === void 0) {
@@ -412,9 +412,9 @@
       }
       if (c === AMPERSAND) {
         const charref2 = tokenize_charref(data, d.inc_col());
-        acc[i2++] = charref2.value;
+        acc[i++] = charref2.value;
       }
-      acc[i2++] = data[d.offset];
+      acc[i++] = data[d.offset];
       d.inc_char(c);
     }
   }
@@ -429,7 +429,7 @@
     }
   }
   function tokenize_literal(data, d, type) {
-    let literal = [], i2 = 0, c = data.codePointAt(d.offset);
+    let literal = [], i = 0, c = data.codePointAt(d.offset);
     if (c === GT || c === SLASH || c === EQUALS) {
       return value(data.charAt(d.offset), d.inc_col());
     }
@@ -437,12 +437,12 @@
       c = data.codePointAt(d.offset);
       if (c === AMPERSAND) {
         charref = tokenize_charref(data, d.inc_col());
-        literal[i2++] = charref.value;
+        literal[i++] = charref.value;
         continue;
       }
       if (c !== void 0) {
         if (!(is_whitespace(c) || c === GT || c === SLASH || c === EQUALS)) {
-          literal[i2++] = data[d.offset];
+          literal[i++] = data[d.offset];
           d.inc_col();
           continue;
         }
@@ -536,7 +536,7 @@
   }
   function tokenize_quoted_attr_value(data, start_quote, d) {
     const v2 = [];
-    let i2 = 0;
+    let i = 0;
     while (true) {
       const c = data.codePointAt(d.offset);
       if (c === void 0) {
@@ -544,19 +544,19 @@
       }
       if (c === AMPERSAND) {
         const charref2 = tokenize_charref(data, d.inc_col());
-        v2[i2++] = charref2.value;
+        v2[i++] = charref2.value;
         continue;
       }
       if (c === start_quote) {
         return value(v2.join(""), d.inc_col());
       }
-      v2[i2++] = data[d.offset];
+      v2[i++] = data[d.offset];
       d.inc_char(c);
     }
   }
   function tokenize_unquoted_attr_value(data, d) {
     const v2 = [];
-    let i2 = 0;
+    let i = 0;
     while (true) {
       const c = data.codePointAt(d.offset);
       if (c === void 0) {
@@ -564,7 +564,7 @@
       }
       if (c === AMPERSAND) {
         const charref2 = tokenize_charref(data, d.inc_col());
-        v2[i2++] = charref2.value;
+        v2[i++] = charref2.value;
         continue;
       }
       if (c === SLASH) {
@@ -573,7 +573,7 @@
       if (is_probable_close(c)) {
         return value(v2.join(""), d);
       }
-      v2[i2++] = data[d.offset];
+      v2[i++] = data[d.offset];
       d.inc_col();
     }
   }
@@ -930,7 +930,7 @@
     width: true,
     wrap: true
   };
-  var charref = function() {
+  var charref = (function() {
     const element = document.createElement("div");
     const cache = {};
     return function(raw) {
@@ -949,7 +949,7 @@
       cache[raw] = d;
       return d;
     };
-  }();
+  })();
 
   // src/cotonic.keyserver.js
   var cotonic_keyserver_exports = {};
@@ -1210,15 +1210,15 @@
     let r = 0;
     if (buf.length < nrBytes)
       throw new Error("Buffer too small to convert.");
-    for (let i2 = 0; i2 < nrBytes; i2++) {
-      r += buf[i2] * Math.pow(2, lshift);
+    for (let i = 0; i < nrBytes; i++) {
+      r += buf[i] * Math.pow(2, lshift);
       lshift -= 8;
     }
     return r;
   }
 
   // src/cotonic.js
-  var VERSION = "1.8.2";
+  var VERSION = "1.9.0";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -1327,8 +1327,8 @@
     }
     if (sessionStorage.getItem("windowName") != window.name) {
       let keys = Object.keys(sessionStorage);
-      for (let i2 in keys) {
-        let k = keys[i2];
+      for (let i in keys) {
+        let k = keys[i];
         if (!k.match(/^persist-/)) {
           sessionStorage.removeItem(k);
         }
@@ -1340,7 +1340,7 @@
     let result = "";
     let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let len = characters.length;
-    for (let i2 = 0; i2 < length; i2++) {
+    for (let i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * len));
     }
     return result;
@@ -1653,8 +1653,8 @@
       return;
     }
     const attrsArr = data.getAttrsArr(length);
-    for (let i2 = 0, j = 0; i2 < length; i2 += 1, j += 2) {
-      const attr2 = attributes2[i2];
+    for (let i = 0, j = 0; i < length; i += 1, j += 2) {
+      const attr2 = attributes2[i];
       const name = attr2.name;
       const value2 = attr2.value;
       attrsArr[j] = name;
@@ -1968,9 +1968,9 @@
     const start = bufferStart;
     const end = buffer.length;
     bufferStart = end;
-    for (let i2 = start; i2 < end; i2 += 4) {
-      const fn = buffer[i2];
-      fn(buffer[i2 + 1], buffer[i2 + 2], buffer[i2 + 3]);
+    for (let i = start; i < end; i += 4) {
+      const fn = buffer[i];
+      fn(buffer[i + 1], buffer[i + 2], buffer[i + 3]);
     }
     bufferStart = start;
     truncateArray(buffer, start);
@@ -1980,33 +1980,33 @@
   var prevValuesMap = createMap();
   function calculateDiff(prev, next, updateCtx, updateFn, alwaysDiffAttributes2) {
     const isNew = !prev.length || alwaysDiffAttributes2;
-    let i2 = 0;
-    for (; i2 < next.length; i2 += 2) {
-      const name = next[i2];
+    let i = 0;
+    for (; i < next.length; i += 2) {
+      const name = next[i];
       if (isNew) {
-        prev[i2] = name;
-      } else if (prev[i2] !== name) {
+        prev[i] = name;
+      } else if (prev[i] !== name) {
         break;
       }
-      const value2 = next[i2 + 1];
-      if (isNew || prev[i2 + 1] !== value2) {
-        prev[i2 + 1] = value2;
+      const value2 = next[i + 1];
+      if (isNew || prev[i + 1] !== value2) {
+        prev[i + 1] = value2;
         queueChange(updateFn, updateCtx, name, value2);
       }
     }
-    if (i2 < next.length || i2 < prev.length) {
-      const startIndex = i2;
-      for (i2 = startIndex; i2 < prev.length; i2 += 2) {
-        prevValuesMap[prev[i2]] = prev[i2 + 1];
+    if (i < next.length || i < prev.length) {
+      const startIndex = i;
+      for (i = startIndex; i < prev.length; i += 2) {
+        prevValuesMap[prev[i]] = prev[i + 1];
       }
-      for (i2 = startIndex; i2 < next.length; i2 += 2) {
-        const name = next[i2];
-        const value2 = next[i2 + 1];
+      for (i = startIndex; i < next.length; i += 2) {
+        const name = next[i];
+        const value2 = next[i + 1];
         if (prevValuesMap[name] !== value2) {
           queueChange(updateFn, updateCtx, name, value2);
         }
-        prev[i2] = name;
-        prev[i2 + 1] = value2;
+        prev[i] = name;
+        prev[i + 1] = value2;
         delete prevValuesMap[name];
       }
       truncateArray(prev, next.length);
@@ -2042,19 +2042,19 @@
       return;
     }
     if (data.hasEmptyAttrsArr()) {
-      for (let i2 = 0; i2 < statics.length; i2 += 2) {
-        updateAttribute(node, statics[i2], statics[i2 + 1]);
+      for (let i = 0; i < statics.length; i += 2) {
+        updateAttribute(node, statics[i], statics[i + 1]);
       }
       return;
     }
-    for (let i2 = 0; i2 < statics.length; i2 += 2) {
-      prevAttrsMap[statics[i2]] = i2 + 1;
+    for (let i = 0; i < statics.length; i += 2) {
+      prevAttrsMap[statics[i]] = i + 1;
     }
     const attrsArr = data.getAttrsArr(0);
     let j = 0;
-    for (let i2 = 0; i2 < attrsArr.length; i2 += 2) {
-      const name = attrsArr[i2];
-      const value2 = attrsArr[i2 + 1];
+    for (let i = 0; i < attrsArr.length; i += 2) {
+      const name = attrsArr[i];
+      const value2 = attrsArr[i + 1];
       const staticsIndex = prevAttrsMap[name];
       if (staticsIndex) {
         if (statics[staticsIndex] === value2) {
@@ -2115,9 +2115,9 @@
     const argsBuilder2 = getArgsBuilder();
     const statics = argsBuilder2[2];
     if (statics) {
-      for (let i2 = 0; i2 < statics.length; i2 += 2) {
-        if (statics[i2] === "nonce") {
-          return statics[i2 + 1];
+      for (let i = 0; i < statics.length; i += 2) {
+        if (statics[i] === "nonce") {
+          return statics[i + 1];
         }
       }
     }
@@ -2129,8 +2129,8 @@
       assertNotInSkip("elementOpen");
     }
     elementOpenStart(nameOrCtor, key3, statics);
-    for (let i2 = ATTRIBUTES_OFFSET; i2 < arguments.length; i2 += 2) {
-      attr(arguments[i2], arguments[i2 + 1]);
+    for (let i = ATTRIBUTES_OFFSET; i < arguments.length; i += 2) {
+      attr(arguments[i], arguments[i + 1]);
     }
     return elementOpenEnd();
   }
@@ -2168,8 +2168,8 @@
     if (data.text !== value2) {
       data.text = value2;
       let formatted = value2;
-      for (let i2 = 1; i2 < arguments.length; i2 += 1) {
-        const fn = arguments[i2];
+      for (let i = 1; i < arguments.length; i += 1) {
+        const fn = arguments[i];
         formatted = fn(formatted);
       }
       if (node.data !== formatted) {
@@ -2228,20 +2228,49 @@
   });
   var idom = IncrementalDOM;
   function render(tokens2) {
+    let preserveSkipLevel = 0;
     function renderToken(token) {
       switch (token.type) {
         case "text":
-          return idom.text(token.data);
+          if (preserveSkipLevel === 0) {
+            idom.text(token.data);
+          }
+          break;
         case "open":
-          return idom.elementOpen.apply(null, [token.tag, token.hasOwnProperty("key") ? token.key : null, null].concat(token.attributes));
+          if (preserveSkipLevel === 0) {
+            const shouldPreserve = hasPreserveAttribute(token) && hasPreserveAttribute(idom.currentPointer());
+            idom.elementOpen.apply(
+              null,
+              [token.tag, token.hasOwnProperty("key") ? token.key : null, null].concat(token.attributes)
+            );
+            if (shouldPreserve) {
+              preserveSkipLevel = 1;
+              idom.skip();
+            }
+          } else {
+            preserveSkipLevel++;
+          }
+          break;
         case "void":
-          return voidNode(token);
+          if (preserveSkipLevel === 0) {
+            idom.elementVoid.apply(
+              null,
+              [token.tag, token.hasOwnProperty("key") ? token.key : null, null].concat(token.attributes)
+            );
+          }
+          break;
         case "close":
-          return closeNode(token);
+          if (preserveSkipLevel > 0) {
+            preserveSkipLevel--;
+          }
+          if (preserveSkipLevel === 0) {
+            closeNode(token);
+          }
+          break;
       }
     }
-    for (let i2 = 0; i2 < tokens2.length; i2++) {
-      renderToken(tokens2[i2]);
+    for (let i = 0; i < tokens2.length; i++) {
+      renderToken(tokens2[i]);
     }
   }
   function closeNode(token) {
@@ -2251,37 +2280,20 @@
     }
     return idom.elementClose(token.tag);
   }
-  function voidNode(token) {
-    if (token.tag === "cotonic-idom-skip") {
-      return skipNode(token);
+  function hasPreserveAttribute(nodeOrToken) {
+    const preserveAttribute = "data-cotonic-preserve";
+    if (typeof Node !== "undefined" && (nodeOrToken == null ? void 0 : nodeOrToken.nodeType) === Node.ELEMENT_NODE) {
+      return nodeOrToken.hasAttribute(preserveAttribute);
     }
-    return idom.elementVoid.apply(null, [token.tag, token.hasOwnProperty("key") ? token.key : null, null].concat(token.attributes));
-  }
-  function skipNode(token) {
-    const currentPointer2 = idom.currentPointer();
-    let id;
-    for (let i2 = 0; i2 < token.attributes.length; i2 = i2 + 2) {
-      if (token.attributes[i2] === "id") {
-        id = token.attributes[i2 + 1];
-        break;
-      }
-    }
-    if (!id) {
-      throw "No id attribute found in cotonic-idom-skip node";
-    }
-    if (!currentPointer2 || currentPointer2.id !== id) {
-      let tag = "div", attributes2 = [];
-      for (let i2 = 0; i2 < token.attributes.length; i2 = i2 + 2) {
-        if (token.attributes[i2] === "tag") {
-          tag = token.attributes[i2 + 1];
-        } else {
-          attributes2.push(token.attributes[i2]);
-          attributes2.push(token.attributes[i2 + 1]);
+    const attributes2 = nodeOrToken == null ? void 0 : nodeOrToken.attributes;
+    if (attributes2) {
+      for (let i = 0; i < attributes2.length; i += 2) {
+        if (attributes2[i] === preserveAttribute) {
+          return true;
         }
       }
-      return idom.elementVoid.apply(null, [tag, token.hasOwnProperty("key") ? token.key : null, null].concat(attributes2));
     }
-    idom.skipNode();
+    return false;
   }
   function patch(patch2, element, HTMLorTokens) {
     let tokens2;
@@ -2290,7 +2302,7 @@
     } else {
       tokens2 = tokens(HTMLorTokens);
     }
-    patch2(element, function() {
+    patch2(element, () => {
       render(tokens2);
     });
   }
@@ -2325,17 +2337,17 @@
   }
   function add(topic, thing) {
     const path = topic.split("/");
-    let i2 = 0;
+    let i = 0;
     let current = root;
-    for (i2 = 0; i2 < path.length; i2++) {
+    for (i = 0; i < path.length; i++) {
       let children = current[CHILDREN];
       if (children === null) {
         children = current[CHILDREN] = {};
       }
-      if (!children.hasOwnProperty(path[i2])) {
-        children[path[i2]] = new_node(null);
+      if (!children.hasOwnProperty(path[i])) {
+        children[path[i]] = new_node(null);
       }
-      current = children[path[i2]];
+      current = children[path[i]];
     }
     let v2 = current[VALUE];
     if (v2 === null) {
@@ -2379,17 +2391,17 @@
   function remove(topic, thing) {
     const path = topic.split("/");
     let current = root;
-    let i2 = 0;
+    let i = 0;
     let visited = [current];
-    for (i2 = 0; i2 < path.length; i2++) {
+    for (i = 0; i < path.length; i++) {
       let children = current[CHILDREN];
       if (children === null) {
         return;
       }
-      if (!children.hasOwnProperty(path[i2])) {
+      if (!children.hasOwnProperty(path[i])) {
         return;
       }
-      current = children[path[i2]];
+      current = children[path[i]];
       visited.unshift(current);
     }
     let v2 = current[VALUE];
@@ -2399,11 +2411,11 @@
       if (v2.length === 0) {
         current[VALUE] = null;
         path.reverse();
-        for (i2 = 0; i2 < visited.length - 1; i2++) {
-          let v3 = visited[i2];
+        for (i = 0; i < visited.length - 1; i++) {
+          let v3 = visited[i];
           if (v3[CHILDREN] === null && v3[VALUE] === null) {
-            let v1 = visited[i2 + 1];
-            delete v1[CHILDREN][path[i2]];
+            let v1 = visited[i + 1];
+            delete v1[CHILDREN][path[i]];
             if (Object.keys(v1[CHILDREN]).length == 0) {
               v1[CHILDREN] = null;
             }
@@ -2481,8 +2493,8 @@
     send_retained(result.retained);
   }
   function send_retained(retained) {
-    for (let i2 = 0; i2 < retained.length; i2++) {
-      const r = retained[i2];
+    for (let i = 0; i < retained.length; i++) {
+      const r = retained[i];
       for (let j = 0; j < r.retained.length; j++) {
         publish_subscriber(r.subscription, r.retained[j].retained.message, r.subscription.wid);
       }
@@ -2572,9 +2584,9 @@
     }
     for (let b in bridge_topics) {
       let topics = [];
-      for (let i2 = 0; i2 < bridge_topics[b].length; i2++) {
-        let merged = mergeSubscriptions(bridge_topics[b][i2].subs);
-        merged.topic = bridge_topics[b][i2].topic;
+      for (let i = 0; i < bridge_topics[b].length; i++) {
+        let merged = mergeSubscriptions(bridge_topics[b][i].subs);
+        merged.topic = bridge_topics[b][i].topic;
         topics.push(merged);
       }
       let sub = {
@@ -2588,8 +2600,8 @@
   }
   function mergeSubscriptions(subs) {
     var best = Object.assign({}, subs[0].sub);
-    for (let i2 = 1; i2 < subs.length; i2++) {
-      let s = subs[i2].sub;
+    for (let i = 1; i < subs.length; i++) {
+      let s = subs[i].sub;
       best.qos = Math.max(best.qos, s.qos);
       best.retain_handling = Math.min(best.retain_handling, s.retain_handling);
       best.retain_as_published = best.retain_as_published || s.retain_as_published;
@@ -2611,10 +2623,10 @@
   function unsubscribe_subscriber(sub, msg) {
     let bridge_topics = {};
     let acks = [];
-    for (let i2 = 0; i2 < msg.topics.length; i2++) {
-      remove(msg.topics[i2], sub);
+    for (let i = 0; i < msg.topics.length; i++) {
+      remove(msg.topics[i], sub);
       acks.push(0);
-      const mqtt_topic = remove_named_wildcards(msg.topics[i2]);
+      const mqtt_topic = remove_named_wildcards(msg.topics[i]);
       let m = mqtt_topic.match(/^bridge\/([^\/]+)\/.*/);
       if (m !== null && m[1] != "+") {
         if (bridge_topics[m[1]] === void 0) {
@@ -2663,8 +2675,8 @@
       }
       promised[msg.topic].push({ message: msg, options });
     } else {
-      for (let i2 = 0; i2 < subscriptionsCount; i2++) {
-        publish_subscriber(subscriptions[i2], msg, wid);
+      for (let i = 0; i < subscriptionsCount; i++) {
+        publish_subscriber(subscriptions[i], msg, wid);
       }
     }
   }
@@ -2695,8 +2707,8 @@
   }
   function get_matching_retained(topic) {
     let matching = [];
-    for (let i2 = 0; i2 < sessionStorage.length; i2++) {
-      let key3 = sessionStorage.key(i2);
+    for (let i = 0; i < sessionStorage.length; i++) {
+      let key3 = sessionStorage.key(i);
       if (key3.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
@@ -2724,8 +2736,8 @@
     return Obj;
   }
   function delete_all_retained() {
-    for (let i2 = 0; i2 < sessionStorage.length; i2++) {
-      const key3 = sessionStorage.key(i2);
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key3 = sessionStorage.key(i);
       if (key3.substring(0, retained_prefix.length) !== retained_prefix) {
         continue;
       }
@@ -2837,11 +2849,11 @@
   }
   function remove2(id) {
     delete state[id];
-    for (let i2 = 0; i2 < order.length; i2++) {
+    for (let i = 0; i < order.length; i++) {
       if (order.id != id) {
         continue;
       }
-      delete order[i2];
+      delete order[i];
     }
     publish("model/ui/event/delete/" + id, void 0);
   }
@@ -2932,15 +2944,15 @@
   }
   function render2() {
     const updated_ids = [];
-    for (let i2 = 0; i2 < order.length; i2++) {
-      if (renderId(order[i2].id)) {
-        updated_ids.push(order[i2].id);
+    for (let i = 0; i < order.length; i++) {
+      if (renderId(order[i].id)) {
+        updated_ids.push(order[i].id);
       }
     }
     setTimeout(
       function() {
-        for (let i2 = 0; i2 < updated_ids.length; i2++) {
-          publish("model/ui/event/dom-updated/" + updated_ids[i2], { id: updated_ids[i2] });
+        for (let i = 0; i < updated_ids.length; i++) {
+          publish("model/ui/event/dom-updated/" + updated_ids[i], { id: updated_ids[i] });
         }
       },
       0
@@ -3042,9 +3054,9 @@
       return d;
     if (topicTarget.hasOwnProperty("attributes")) {
       const attrs = topicTarget.attributes;
-      for (let i2 = 0; i2 < attrs.length; i2++) {
-        if (attrs[i2].name.startsWith("data-")) {
-          d[attrs[i2].name.substr(5)] = attrs[i2].value;
+      for (let i = 0; i < attrs.length; i++) {
+        if (attrs[i].name.startsWith("data-")) {
+          d[attrs[i].name.substr(5)] = attrs[i].value;
         }
       }
     }
@@ -3115,33 +3127,33 @@
     }
     return false;
   }
-  function fieldSubmitIfOk(field, form2) {
+  function fieldSubmitIfOk(field, form) {
     var _a, _b;
     if (field.disabled || field.classList.contains("nosubmit")) {
       return false;
     }
     if (field.dataset.submitIf) {
-      const submitIf = (_a = form2.elements[field.dataset.submitIf]) != null ? _a : document.getElementById(field.dataset.submitIf);
+      const submitIf = (_a = form.elements[field.dataset.submitIf]) != null ? _a : document.getElementById(field.dataset.submitIf);
       if (!submitIf || !fieldValue(submitIf)) {
         return false;
       }
     }
     if (field.dataset.submitIfNot) {
-      const submitIfNot = (_b = form2.elements[field.dataset.submitIfNot]) != null ? _b : document.getElementById(field.dataset.submitIf);
+      const submitIfNot = (_b = form.elements[field.dataset.submitIfNot]) != null ? _b : document.getElementById(field.dataset.submitIf);
       if (submitIfNot && !!fieldValue(submitIfNot)) {
         return false;
       }
     }
     return true;
   }
-  function serializeFormToObject(form2) {
+  function serializeFormToObject(form) {
     let field, l2, v2, s = {};
-    if (typeof form2 == "object" && form2.nodeName == "FORM") {
-      const len = form2.elements.length;
-      for (let i2 = 0; i2 < len; i2++) {
-        field = form2.elements[i2];
+    if (typeof form == "object" && form.nodeName == "FORM") {
+      const len = form.elements.length;
+      for (let i = 0; i < len; i++) {
+        field = form.elements[i];
         if (field.name && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
-          if (!fieldSubmitIfOk(field, form2)) {
+          if (!fieldSubmitIfOk(field, form)) {
             continue;
           }
           const val = fieldValue(field);
@@ -3153,14 +3165,14 @@
     }
     return s;
   }
-  function serializeFormToList(form2) {
+  function serializeFormToList(form) {
     let field, l2, v2, s = [], prev = "", skipped = false;
-    if (typeof form2 == "object" && form2.nodeName == "FORM") {
-      const len = form2.elements.length;
-      for (let i2 = 0; i2 < len; i2++) {
-        field = form2.elements[i2];
+    if (typeof form == "object" && form.nodeName == "FORM") {
+      const len = form.elements.length;
+      for (let i = 0; i < len; i++) {
+        field = form.elements[i];
         if (field.name && field.type != "file" && field.type != "reset" && field.type != "submit" && field.type != "button") {
-          if (!fieldSubmitIfOk(field, form2)) {
+          if (!fieldSubmitIfOk(field, form)) {
             continue;
           }
           if (skipped && field.name != skipped) {
@@ -3168,7 +3180,7 @@
             skipped = false;
           }
           if (field.type == "select-multiple") {
-            l2 = form2.elements[i2].options.length;
+            l2 = form.elements[i].options.length;
             for (let j = 0; j < l2; j++) {
               if (field.options[j].selected) {
                 s.push([field.name, field.options[j].value]);
@@ -3212,15 +3224,15 @@
     let attr2 = document.body.parentElement.getAttribute("class") || "";
     let classes = attr2.split(/\s+/);
     let keep = [];
-    var i2, j;
-    for (i2 = classes.length - 1; i2 >= 0; i2--) {
-      if (!classes[i2].startsWith("ui-state-")) {
-        keep.push(classes[i2]);
+    var i, j;
+    for (i = classes.length - 1; i >= 0; i--) {
+      if (!classes[i].startsWith("ui-state-")) {
+        keep.push(classes[i]);
       }
     }
     let ms = Object.keys(stateClass);
-    for (i2 = ms.length - 1; i2 >= 0; i2--) {
-      let m = ms[i2];
+    for (i = ms.length - 1; i >= 0; i--) {
+      let m = ms[i];
       for (j = stateClass[m].length - 1; j >= 0; j--) {
         keep.push("ui-state-" + m + "-" + stateClass[m][j]);
       }
@@ -3234,33 +3246,33 @@
     let root2 = document.body.parentElement;
     var current = {};
     var attrs = {};
-    var i2, j;
+    var i, j;
     var ks;
     if (root2.hasAttributes()) {
       var rs = root2.attributes;
-      for (i2 = rs.length - 1; i2 >= 0; i2--) {
-        if (rs[i2].name.startsWith("data-ui-state-")) {
-          current[rs[i2].name] = rs[i2].value;
+      for (i = rs.length - 1; i >= 0; i--) {
+        if (rs[i].name.startsWith("data-ui-state-")) {
+          current[rs[i].name] = rs[i].value;
         }
       }
     }
     let ms = Object.keys(stateData);
-    for (i2 = ms.length - 1; i2 >= 0; i2--) {
-      let m = ms[i2];
+    for (i = ms.length - 1; i >= 0; i--) {
+      let m = ms[i];
       let ks2 = Object.keys(stateData[m]);
       for (j = ks2.length - 1; j >= 0; j--) {
         attrs["data-ui-state-" + m + "-" + ks2[j]] = stateData[m][ks2[j]];
       }
     }
     ks = Object.keys(current);
-    for (i2 = ks.length - 1; i2 >= 0; i2--) {
-      if (!(ks[i2] in attrs)) {
-        root2.removeAttribute(ks[i2]);
+    for (i = ks.length - 1; i >= 0; i--) {
+      if (!(ks[i] in attrs)) {
+        root2.removeAttribute(ks[i]);
       }
     }
     ks = Object.keys(attrs);
-    for (i2 = ks.length - 1; i2 >= 0; i2--) {
-      var k = ks[i2];
+    for (i = ks.length - 1; i >= 0; i--) {
+      var k = ks[i];
       if (!(k in current) || attrs[k] != current[k]) {
         root2.setAttribute(k, attrs[k]);
       }
@@ -3962,8 +3974,8 @@
     };
   }
   function serializeSubscribeTopics(v2, topics) {
-    for (let i2 = 0; i2 < topics.length; i2++) {
-      let topic = topics[i2];
+    for (let i = 0; i < topics.length; i++) {
+      let topic = topics[i];
       if (typeof topic == "string") {
         topic = { topic };
       }
@@ -3981,8 +3993,8 @@
     }
   }
   function serializeSubscribeAcks(v2, acks) {
-    for (let i2 = 0; i2 < acks.length; i2++) {
-      const ack = acks[i2];
+    for (let i = 0; i < acks.length; i++) {
+      const ack = acks[i];
       if (ack >= 0 && ack <= 2) {
         v2.append1(ack);
       } else if (ack >= 128 && ack <= 255) {
@@ -3993,13 +4005,13 @@
     }
   }
   function serializeUnsubscribeTopics(v2, topics) {
-    for (let i2 = 0; i2 < topics.length; i2++) {
-      v2.appendUTF8(topics[i2]);
+    for (let i = 0; i < topics.length; i++) {
+      v2.appendUTF8(topics[i]);
     }
   }
   function serializeUnsubscribeAcks(v2, acks) {
-    for (let i2 = 0; i2 < acks.length; i2++) {
-      const ack = acks[i2];
+    for (let i = 0; i < acks.length; i++) {
+      const ack = acks[i];
       if (ack == 0 || ack == 17) {
         v2.append1(ack);
       } else if (ack >= 128 && ack <= 255) {
@@ -4013,8 +4025,8 @@
     const mbi = encodeMBI(binary2.length());
     const pack = new Uint8Array(1 + mbi.length + binary2.length());
     pack[0] = first;
-    for (let i2 = 0; i2 < mbi.length; i2++) {
-      pack[1 + i2] = mbi[i2];
+    for (let i = 0; i < mbi.length; i++) {
+      pack[1 + i] = mbi[i];
     }
     binary2.copyInto(pack, 1 + mbi.length);
     return pack;
@@ -4027,8 +4039,8 @@
       return this.len;
     };
     this.copyInto = (buf, offset) => {
-      for (let i2 = this.len - 1; i2 >= 0; i2--) {
-        buf[i2 + offset] = this.buf[i2];
+      for (let i = this.len - 1; i >= 0; i--) {
+        buf[i + offset] = this.buf[i];
       }
     };
     this.val = () => {
@@ -4036,8 +4048,8 @@
     };
     this.append = (bytes) => {
       this.reserve(bytes.length);
-      for (let i2 = 0; i2 < bytes.length; i2++) {
-        this.buf[this.len++] = bytes[i2];
+      for (let i = 0; i < bytes.length; i++) {
+        this.buf[this.len++] = bytes[i];
       }
     };
     this.append1 = (byte) => {
@@ -4081,8 +4093,8 @@
       const b = stringToUTF8(s);
       this.appendUint16(b.length);
       this.reserve(b.length);
-      for (let i2 = 0; i2 < b.length; i2++) {
-        this.buf[this.len++] = b[i2];
+      for (let i = 0; i < b.length; i++) {
+        this.buf[this.len++] = b[i];
       }
     };
     this.appendBin = (b, addlen) => {
@@ -4098,8 +4110,8 @@
             this.appendUint16(b.length);
           }
           this.reserve(b.length);
-          for (let i2 = 0; i2 < b.length; i2++) {
-            this.buf[this.len++] = b[i2];
+          for (let i = 0; i < b.length; i++) {
+            this.buf[this.len++] = b[i];
           }
           break;
         case "object":
@@ -4121,8 +4133,8 @@
             if (addlen) {
               this.appendUint16(v2.length);
             }
-            for (let i2 = 0; i2 < v2.length; i2++) {
-              this.buf[this.len++] = v2[i2];
+            for (let i = 0; i < v2.length; i++) {
+              this.buf[this.len++] = v2[i];
             }
           } else {
             throw "Can't serialize unknown object";
@@ -4144,8 +4156,8 @@
           newsize = newsize * 2;
         }
         const newbuf = new Uint8Array(newsize);
-        for (let i2 = this.len - 1; i2 >= 0; i2--) {
-          newbuf[i2] = this.buf[i2];
+        for (let i = this.len - 1; i >= 0; i--) {
+          newbuf[i] = this.buf[i];
         }
         this.size = newsize;
         this.buf = newbuf;
@@ -4169,9 +4181,9 @@
       }
       const p = PROPERTY[k] || PROPERTY.__user;
       if (p[2] && props[k].constructor === Array) {
-        for (let i2 = 0; i2 < props[k].length; i2++) {
+        for (let i = 0; i < props[k].length; i++) {
           b.append1(p[0]);
-          serializeProperty(p[1], k, props[k][i2], b);
+          serializeProperty(p[1], k, props[k][i], b);
         }
       } else {
         b.append1(p[0]);
@@ -4424,8 +4436,8 @@
     };
     function equalData(a, b) {
       if (a.length == b.length) {
-        for (let i2 = 0; i2 < a.length; i2++) {
-          if (a[i2] != b[i2]) {
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] != b[i]) {
             return false;
           }
         }
@@ -4440,11 +4452,11 @@
       } else {
         let k = 0;
         const newdata = new Uint8Array(this.data.length, rcvd.length);
-        for (let i2 = 0; i2 < this.data.length; i2++) {
-          newdata[k++] = this.data[i2];
+        for (let i = 0; i < this.data.length; i++) {
+          newdata[k++] = this.data[i];
         }
-        for (let i2 = 0; i2 < rcvd.length; i2++) {
-          newdata[k++] = rcvd[i2];
+        for (let i = 0; i < rcvd.length; i++) {
+          newdata[k++] = rcvd[i];
         }
         this.data = newdata;
       }
@@ -4902,8 +4914,8 @@
       }
     }
     const doReceive = () => {
-      for (let i2 = 0; i2 < this.receiveQueue.length; i2++) {
-        handleReceivedMessage(this.receiveQueue[i2]);
+      for (let i = 0; i < this.receiveQueue.length; i++) {
+        handleReceivedMessage(this.receiveQueue[i]);
       }
       this.receiveQueue = [];
       this.receiveTimer = false;
@@ -5648,11 +5660,11 @@
     function resubscribeTopics() {
       const subs = find_subscriptions_below(`bridge/${name}`);
       const topics = {};
-      for (let i2 = 0; i2 < subs.length; i2++) {
-        if (subs[i2].wid == wid) {
+      for (let i = 0; i < subs.length; i++) {
+        if (subs[i].wid == wid) {
           continue;
         }
-        const sub = Object.assign({}, subs[i2].sub);
+        const sub = Object.assign({}, subs[i].sub);
         sub.topic = remove_named_wildcards(sub.topic);
         if (!topics[sub.topic]) {
           topics[sub.topic] = sub;
@@ -5817,8 +5829,8 @@
   function getCookie(cname) {
     const name = cname + "=";
     const ca = document.cookie.split(";");
-    for (let i2 = 0; i2 < ca.length; i2++) {
-      let c = ca[i2];
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
       while (c.charAt(0) == " ") {
         c = c.substring(1);
       }
@@ -6017,8 +6029,8 @@
     if (transitions === void 0) return;
     const transitionPath = transitions[newState];
     if (transitionPath === void 0) return;
-    for (let i2 = 0; i2 < transitionPath.length; i2++) {
-      publish("model/lifecycle/event/state", transitionPath[i2], { retain: true });
+    for (let i = 0; i < transitionPath.length; i++) {
+      publish("model/lifecycle/event/state", transitionPath[i], { retain: true });
     }
     publish("model/lifecycle/event/state", newState, { retain: true });
     model2.state = newState;
@@ -6278,8 +6290,8 @@
   }
   function searchParamsIndexed(ps) {
     let q = {};
-    for (let i2 = 0; i2 < ps.length; i2++) {
-      const name = ps[i2][0];
+    for (let i = 0; i < ps.length; i++) {
+      const name = ps[i][0];
       const indexed = name.match(/^(.*)\[([^\[]*)\]$/);
       if (indexed) {
         const iname = indexed[1] + "[]";
@@ -6287,12 +6299,12 @@
           q[iname] = [];
         }
         if (indexed[2].length > 0) {
-          q[iname][indexed[2]] = ps[i2][1];
+          q[iname][indexed[2]] = ps[i][1];
         } else {
-          q[iname].push(ps[i2][1]);
+          q[iname].push(ps[i][1]);
         }
       } else {
-        q[name] = ps[i2][1];
+        q[name] = ps[i][1];
       }
     }
     return q;
@@ -6427,8 +6439,8 @@
     const args = msg.payload;
     if (Array.isArray(args) && args.length > 0) {
       let s = new URLSearchParams();
-      for (let i2 = 0; i2 < args.length; i2++) {
-        s.append(args[i2][0], "" + args[i2][1]);
+      for (let i = 0; i < args.length; i++) {
+        s.append(args[i][0], "" + args[i][1]);
       }
       window.history.replaceState({}, "", "?" + s.toString());
     } else {
@@ -6441,8 +6453,8 @@
     const args = (_b = (_a = msg.payload) == null ? void 0 : _a.valueList) != null ? _b : [];
     if (Array.isArray(args) && args.length > 0) {
       let s = new URLSearchParams();
-      for (let i2 = 0; i2 < args.length; i2++) {
-        s.append(args[i2][0], "" + args[i2][1]);
+      for (let i = 0; i < args.length; i++) {
+        s.append(args[i][0], "" + args[i][1]);
       }
       window.history.replaceState({}, "", "?" + s.toString());
     } else {
@@ -6633,9 +6645,9 @@
     }
   }
   function hashCode(s) {
-    let hash = 0, i2 = 0, len = s.length;
-    while (i2 < len) {
-      hash = (hash << 5) - hash + s.charCodeAt(i2++) << 0;
+    let hash = 0, i = 0, len = s.length;
+    while (i < len) {
+      hash = (hash << 5) - hash + s.charCodeAt(i++) << 0;
     }
     return hash;
   }
@@ -6766,10 +6778,10 @@
       options.response_topic = responseTopic;
     }
     if (event.type == "input") {
-      for (let i2 = 0; i2 < oninput_delay.length; i2++) {
-        if (oninput_delay[i2].element === topicTarget) {
-          clearTimeout(oninput_delay[i2].timer);
-          oninput_delay.splice(i2, 1);
+      for (let i = 0; i < oninput_delay.length; i++) {
+        if (oninput_delay[i].element === topicTarget) {
+          clearTimeout(oninput_delay[i].timer);
+          oninput_delay.splice(i, 1);
         }
       }
       const index = oninput_delay.length;
@@ -6808,10 +6820,10 @@
     let attrs = {};
     do {
       let attributes2 = elt.attributes;
-      for (let i2 = attributes2.length - 1; i2 >= 0; i2--) {
-        let name = attributes2[i2].name;
+      for (let i = attributes2.length - 1; i >= 0; i--) {
+        let name = attributes2[i].name;
         if (!attrs[name]) {
-          attrs[name] = attributes2[i2].value;
+          attrs[name] = attributes2[i].value;
         }
       }
       if (elt === endElt)
