@@ -50,6 +50,7 @@ function ws ( remote, mqttSession, options ) {
     let isSocketCloseSettled = true;
     let isReconnectPending = false;
     let isLifecycleSubscribed = false;
+    let isLifecycleTerminated = false;
 
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
@@ -87,7 +88,6 @@ function ws ( remote, mqttSession, options ) {
      * Force a close of this ws connection.
      */
     this.closeConnection = () => {
-        this.isLifecycleSuspended = false;
         this.isForceClosed = true;
         isReconnectPending = false;
         closeSocket();
@@ -99,10 +99,11 @@ function ws ( remote, mqttSession, options ) {
      */
     this.closeReconnect = ( isNoBackOff ) => {
         closeSocket();
-        this.isForceClosed = false;
         if (isNoBackOff === true) {
             this.backoff = 0;
-            requestConnection();
+            if (!isStateForceClosed()) {
+                requestConnection();
+            }
         } else {
             setBackoff();
         }
@@ -112,7 +113,9 @@ function ws ( remote, mqttSession, options ) {
      * Ask to reopen the connection.
      */
     this.openConnection = () => {
-        this.isLifecycleSuspended = false;
+        if (isLifecycleTerminated) {
+            return;
+        }
         this.isForceClosed = false;
         subscribeLifecycle();
         if (!isStateForceClosed()) {
@@ -121,14 +124,28 @@ function ws ( remote, mqttSession, options ) {
     }
 
     /**
-     * Close the websocket while the page is in the back-forward cache.
+     * Close the websocket while the page is frozen, including in the back-forward cache.
      * Keep the lifecycle subscription so the connection can be restored.
      */
     const suspendConnection = () => {
         this.isLifecycleSuspended = true;
-        this.isForceClosed = true;
         isReconnectPending = false;
         closeSocket();
+    }
+
+    const resumeConnection = () => {
+        if (this.isLifecycleSuspended) {
+            this.isLifecycleSuspended = false;
+            this.backoff = 0;
+            // The lifecycle model publishes intermediate states synchronously,
+            // including hidden on the way from frozen to terminated. Wait for
+            // the final state before opening a socket.
+            setTimeout(() => {
+                if (!isStateForceClosed()) {
+                    requestConnection();
+                }
+            }, 0);
+        }
     }
 
     const closeSocket = () => {
@@ -160,14 +177,16 @@ function ws ( remote, mqttSession, options ) {
         switch (message.payload) {
             case "active":
                 this.backoff = 0;
-                if (this.isLifecycleSuspended) {
-                    this.openConnection();
-                }
+                /* falls through */
+            case "passive":
+            case "hidden":
+                resumeConnection();
                 break;
             case "frozen":
                 suspendConnection();
                 break;
             case "terminated":
+                isLifecycleTerminated = true;
                 this.closeConnection();
                 break;
             default:
@@ -209,7 +228,7 @@ function ws ( remote, mqttSession, options ) {
     }
 
     const isStateForceClosed = () => {
-        return this.isForceClosed;
+        return this.isForceClosed || this.isLifecycleSuspended || isLifecycleTerminated;
     }
 
     /**

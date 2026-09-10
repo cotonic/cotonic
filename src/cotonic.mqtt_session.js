@@ -348,7 +348,7 @@ function mqttSession( mqttBridgeTopics ) {
 
     this.keepAlive = () => {
         if (isStateWaitingPingResp()) {
-            closeConnections();
+            closeConnections(true);
         } else {
             this.isWaitPingResp = true;
             this.sendMessage({ type: 'pingreq' });
@@ -872,15 +872,20 @@ function mqttSession( mqttBridgeTopics ) {
     }
 
     /**
-     * Force all connections closed - happens on:
-     * - receive of 'DISCONNECT'
-     * - keep-alive timeout
+     * Close all connections on DISCONNECT or keep-alive timeout.
+     * A keep-alive timeout preserves transports so they can reconnect.
      */
-    const closeConnections = () => {
+    const closeConnections = ( reconnect = false ) => {
         for (const k in this.connections) {
-            this.connections[k].closeConnection();
+            if (reconnect) {
+                this.connections[k].closeReconnect();
+            } else {
+                this.connections[k].closeConnection();
+            }
         }
-        this.connections = {};
+        if (!reconnect) {
+            this.connections = {};
+        }
         this.isWaitPingResp = false;
         this.isSentConnect = false;
         this.isWaitConnack = false;

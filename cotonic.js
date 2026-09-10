@@ -4277,6 +4277,7 @@
     let isSocketCloseSettled = true;
     let isReconnectPending = false;
     let isLifecycleSubscribed = false;
+    let isLifecycleTerminated = false;
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
     const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
@@ -4297,7 +4298,6 @@
       return "mqtt_transport.ws: " + this.remoteUrl;
     };
     this.closeConnection = () => {
-      this.isLifecycleSuspended = false;
       this.isForceClosed = true;
       isReconnectPending = false;
       closeSocket();
@@ -4305,16 +4305,19 @@
     };
     this.closeReconnect = (isNoBackOff) => {
       closeSocket();
-      this.isForceClosed = false;
       if (isNoBackOff === true) {
         this.backoff = 0;
-        requestConnection();
+        if (!isStateForceClosed()) {
+          requestConnection();
+        }
       } else {
         setBackoff();
       }
     };
     this.openConnection = () => {
-      this.isLifecycleSuspended = false;
+      if (isLifecycleTerminated) {
+        return;
+      }
       this.isForceClosed = false;
       subscribeLifecycle();
       if (!isStateForceClosed()) {
@@ -4323,9 +4326,19 @@
     };
     const suspendConnection = () => {
       this.isLifecycleSuspended = true;
-      this.isForceClosed = true;
       isReconnectPending = false;
       closeSocket();
+    };
+    const resumeConnection = () => {
+      if (this.isLifecycleSuspended) {
+        this.isLifecycleSuspended = false;
+        this.backoff = 0;
+        setTimeout(() => {
+          if (!isStateForceClosed()) {
+            requestConnection();
+          }
+        }, 0);
+      }
     };
     const closeSocket = () => {
       this.isConnected = false;
@@ -4350,14 +4363,16 @@
       switch (message.payload) {
         case "active":
           this.backoff = 0;
-          if (this.isLifecycleSuspended) {
-            this.openConnection();
-          }
+        /* falls through */
+        case "passive":
+        case "hidden":
+          resumeConnection();
           break;
         case "frozen":
           suspendConnection();
           break;
         case "terminated":
+          isLifecycleTerminated = true;
           this.closeConnection();
           break;
         default:
@@ -4387,7 +4402,7 @@
       return !this.socket || this.socket.readyState == 3;
     };
     const isStateForceClosed = () => {
-      return this.isForceClosed;
+      return this.isForceClosed || this.isLifecycleSuspended || isLifecycleTerminated;
     };
     const periodic = () => {
       if (isStateClosed() && !isStateForceClosed()) {
@@ -4836,7 +4851,7 @@
     };
     this.keepAlive = () => {
       if (isStateWaitingPingResp()) {
-        closeConnections();
+        closeConnections(true);
       } else {
         this.isWaitPingResp = true;
         this.sendMessage({ type: "pingreq" });
@@ -5305,11 +5320,17 @@
         }, 0);
       }
     };
-    const closeConnections = () => {
+    const closeConnections = (reconnect = false) => {
       for (const k in this.connections) {
-        this.connections[k].closeConnection();
+        if (reconnect) {
+          this.connections[k].closeReconnect();
+        } else {
+          this.connections[k].closeConnection();
+        }
       }
-      this.connections = {};
+      if (!reconnect) {
+        this.connections = {};
+      }
       this.isWaitPingResp = false;
       this.isSentConnect = false;
       this.isWaitConnack = false;
