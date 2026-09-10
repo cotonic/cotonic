@@ -4271,6 +4271,7 @@
     this.awaitPong = false;
     this.isConnected = false;
     this.isForceClosed = false;
+    this.isLifecycleSuspended = false;
     this.data = void 0;
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
@@ -4292,12 +4293,10 @@
       return "mqtt_transport.ws: " + this.remoteUrl;
     };
     this.closeConnection = () => {
-      if (isStateConnected() || isStateConnecting()) {
-        this.socket.close();
-        this.isConnected = false;
-        this.isForceClosed = true;
-        unsubscribe("model/lifecycle/event/state", { wid: this.name() });
-      }
+      this.isLifecycleSuspended = false;
+      this.isForceClosed = true;
+      closeSocket();
+      unsubscribe("model/lifecycle/event/state", { wid: this.name() });
     };
     this.closeReconnect = (isNoBackOff) => {
       if (isStateConnected() || isStateConnecting()) {
@@ -4313,8 +4312,38 @@
       }
     };
     this.openConnection = () => {
+      this.isLifecycleSuspended = false;
       this.isForceClosed = false;
       connect();
+    };
+    const suspendConnection = () => {
+      this.isLifecycleSuspended = true;
+      this.isForceClosed = true;
+      closeSocket();
+    };
+    const closeSocket = () => {
+      this.isConnected = false;
+      if (this.socket && this.socket.readyState < 2) {
+        this.socket.close();
+      }
+    };
+    const handleLifecycleState = (message) => {
+      switch (message.payload) {
+        case "active":
+          this.backoff = 0;
+          if (this.isLifecycleSuspended) {
+            this.openConnection();
+          }
+          break;
+        case "frozen":
+          suspendConnection();
+          break;
+        case "terminated":
+          this.closeConnection();
+          break;
+        default:
+          break;
+      }
     };
     const isStateConnected = () => {
       return !this.awaitPong && this.isConnected && this.socket && this.socket.readyState == 1;
@@ -4423,15 +4452,6 @@
       if (callOnOpen) {
         onopen();
       }
-      subscribe(
-        "model/lifecycle/event/state",
-        (m) => {
-          if (m.payload === "active") {
-            this.backoff = 0;
-          }
-        },
-        { wid: this.name() }
-      );
       return true;
     };
     function equalData(a, b) {
@@ -4502,6 +4522,11 @@
         this.remoteHost = remote;
       }
       this.remoteUrl = protocol + "://" + this.remoteHost + controller_path;
+      subscribe(
+        "model/lifecycle/event/state",
+        handleLifecycleState,
+        { wid: this.name() }
+      );
       setTimeout(connect, connect_delay);
       setInterval(periodic, periodic_delay);
     };
@@ -5219,10 +5244,10 @@
       }
     };
     const closeConnections = () => {
-      for (const k in this.connection) {
-        this.connection[k].closeConnection();
+      for (const k in this.connections) {
+        this.connections[k].closeConnection();
       }
-      this.connection = {};
+      this.connections = {};
       this.isWaitPingResp = false;
       this.isSentConnect = false;
       this.isWaitConnack = false;

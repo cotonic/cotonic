@@ -43,6 +43,7 @@ function ws ( remote, mqttSession, options ) {
     this.awaitPong = false;
     this.isConnected = false;
     this.isForceClosed = false;
+    this.isLifecycleSuspended = false;
     this.data = undefined;
 
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
@@ -81,13 +82,11 @@ function ws ( remote, mqttSession, options ) {
      * Force a close of this ws connection.
      */
     this.closeConnection = () => {
-        if (isStateConnected() || isStateConnecting()) {
-            this.socket.close();
-            this.isConnected = false;
-            this.isForceClosed = true;
+        this.isLifecycleSuspended = false;
+        this.isForceClosed = true;
+        closeSocket();
 
-            unsubscribe("model/lifecycle/event/state", {wid: this.name()});
-        }
+        unsubscribe("model/lifecycle/event/state", {wid: this.name()});
     }
 
     /**
@@ -111,8 +110,45 @@ function ws ( remote, mqttSession, options ) {
      * Ask to reopen the connection.
      */
     this.openConnection = () => {
+        this.isLifecycleSuspended = false;
         this.isForceClosed = false;
         connect();
+    }
+
+    /**
+     * Close the websocket while the page is in the back-forward cache.
+     * Keep the lifecycle subscription so the connection can be restored.
+     */
+    const suspendConnection = () => {
+        this.isLifecycleSuspended = true;
+        this.isForceClosed = true;
+        closeSocket();
+    }
+
+    const closeSocket = () => {
+        this.isConnected = false;
+        if (this.socket && this.socket.readyState < 2) {
+            this.socket.close();
+        }
+    }
+
+    const handleLifecycleState = ( message ) => {
+        switch (message.payload) {
+            case "active":
+                this.backoff = 0;
+                if (this.isLifecycleSuspended) {
+                    this.openConnection();
+                }
+                break;
+            case "frozen":
+                suspendConnection();
+                break;
+            case "terminated":
+                this.closeConnection();
+                break;
+            default:
+                break;
+        }
     }
 
 
@@ -247,17 +283,6 @@ function ws ( remote, mqttSession, options ) {
             onopen();
         }
 
-        // Listen for ui state changes. Reset the backoff to allow quick reconnects
-        // when a page is activated. 
-        subscribe("model/lifecycle/event/state",
-            (m) => {
-                if(m.payload === "active") {
-                    this.backoff = 0;
-                }
-            },
-            {wid: this.name()}
-        );
-
         return true;
     }
 
@@ -336,6 +361,12 @@ function ws ( remote, mqttSession, options ) {
 
         this.remoteUrl = protocol + "://" + this.remoteHost + controller_path;
 
+        subscribe(
+            "model/lifecycle/event/state",
+            handleLifecycleState,
+            {wid: this.name()}
+        );
+
         setTimeout(connect, connect_delay);
         setInterval(periodic, periodic_delay);
 
@@ -345,4 +376,3 @@ function ws ( remote, mqttSession, options ) {
 }
 
 export { newTransport };
-

@@ -877,10 +877,10 @@ function mqttSession( mqttBridgeTopics ) {
      * - keep-alive timeout
      */
     const closeConnections = () => {
-        for (const k in this.connection) {
-            this.connection[k].closeConnection();
+        for (const k in this.connections) {
+            this.connections[k].closeConnection();
         }
-        this.connection = {};
+        this.connections = {};
         this.isWaitPingResp = false;
         this.isSentConnect = false;
         this.isWaitConnack = false;
@@ -948,4 +948,3 @@ function mqttSession( mqttBridgeTopics ) {
 init();
 
 export { newSession, findSession, deleteSession };
-
