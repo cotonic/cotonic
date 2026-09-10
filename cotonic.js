@@ -4273,6 +4273,9 @@
     this.isForceClosed = false;
     this.isLifecycleSuspended = false;
     this.data = void 0;
+    let isSocketCloseHandled = true;
+    let isSocketCloseSettled = true;
+    let isReconnectPending = false;
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
     const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
@@ -4295,18 +4298,16 @@
     this.closeConnection = () => {
       this.isLifecycleSuspended = false;
       this.isForceClosed = true;
+      isReconnectPending = false;
       closeSocket();
       unsubscribe("model/lifecycle/event/state", { wid: this.name() });
     };
     this.closeReconnect = (isNoBackOff) => {
-      if (isStateConnected() || isStateConnecting()) {
-        this.socket.close();
-        this.isConnected = false;
-      }
+      closeSocket();
       this.isForceClosed = false;
       if (isNoBackOff === true) {
         this.backoff = 0;
-        connect();
+        requestConnection();
       } else {
         setBackoff();
       }
@@ -4314,17 +4315,31 @@
     this.openConnection = () => {
       this.isLifecycleSuspended = false;
       this.isForceClosed = false;
-      connect();
+      requestConnection();
     };
     const suspendConnection = () => {
       this.isLifecycleSuspended = true;
       this.isForceClosed = true;
+      isReconnectPending = false;
       closeSocket();
     };
     const closeSocket = () => {
       this.isConnected = false;
-      if (this.socket && this.socket.readyState < 2) {
-        this.socket.close();
+      if (this.socket && !isSocketCloseHandled) {
+        isSocketCloseSettled = false;
+        if (this.socket.readyState < 2) {
+          this.socket.close();
+        }
+      }
+    };
+    const isSocketClosePending = () => {
+      return this.socket && (!isSocketCloseSettled || this.socket.readyState >= 2 && !isSocketCloseHandled);
+    };
+    const requestConnection = () => {
+      if (isSocketClosePending()) {
+        isReconnectPending = true;
+      } else {
+        connect();
       }
     };
     const handleLifecycleState = (message) => {
@@ -4348,9 +4363,6 @@
     const isStateConnected = () => {
       return !this.awaitPong && this.isConnected && this.socket && this.socket.readyState == 1;
     };
-    const isStateConnecting = () => {
-      return !this.isConnected || this.awaitPing || this.socket && this.socket.readyState == 0;
-    };
     const isStateClosed = () => {
       return !this.socket || this.socket.readyState == 3;
     };
@@ -4366,19 +4378,43 @@
         }
       }
     };
-    const handleError = (reason) => {
+    const handleError = (socket, reason) => {
+      if (socket !== this.socket) {
+        return;
+      }
       console.log("Closing websocket connection to " + this.remoteUrl + " due to " + reason);
       this.errorsSinceLastData++;
       if (isStateConnected()) {
-        this.socket.close();
-        this.isConnected = false;
+        closeSocket();
       } else {
-        this.isConnected = this.socket.readyState == 1;
+        this.isConnected = socket.readyState == 1;
       }
       setBackoff();
       this.session.disconnected("ws", reason);
     };
+    const handleClose = (socket) => {
+      if (socket !== this.socket) {
+        return;
+      }
+      isSocketCloseHandled = true;
+      isSocketCloseSettled = false;
+      handleError(socket, "ws-close");
+      setTimeout(() => {
+        if (socket !== this.socket) {
+          return;
+        }
+        isSocketCloseSettled = true;
+        if (isReconnectPending && !isStateForceClosed()) {
+          isReconnectPending = false;
+          this.backoff = 0;
+          connect();
+        }
+      }, 0);
+    };
     const connect = () => {
+      if (isSocketClosePending()) {
+        return false;
+      }
       if (!isStateClosed()) {
         return false;
       }
@@ -4389,10 +4425,14 @@
       this.isConnected = false;
       this.awaitPong = true;
       this.socket = void 0;
+      isReconnectPending = false;
       let callOnOpen = false;
-      const onopen = () => {
+      const onopen = (socket2) => {
+        if (socket2 !== this.socket) {
+          return;
+        }
         this.isConnected = true;
-        if (this.socket.protocol == "mqtt.cotonic.org") {
+        if (socket2.protocol == "mqtt.cotonic.org") {
           this.randomPing = new Uint8Array([
             255,
             254,
@@ -4400,7 +4440,7 @@
             Math.floor(Math.random() * 100),
             Math.floor(Math.random() * 100)
           ]);
-          this.socket.send(this.randomPing.buffer);
+          socket2.send(this.randomPing.buffer);
           this.awaitPong = true;
         } else {
           this.awaitPong = false;
@@ -4424,17 +4464,23 @@
       if (!this.socket) {
         this.socket = new WebSocket(this.remoteUrl, ["mqtt"]);
       }
-      this.socket.binaryType = "arraybuffer";
-      this.socket.onopen = onopen;
-      this.socket.onclose = function() {
-        handleError("ws-close");
+      const socket = this.socket;
+      isSocketCloseHandled = false;
+      isSocketCloseSettled = true;
+      socket.binaryType = "arraybuffer";
+      socket.onopen = () => {
+        onopen(socket);
       };
-      ;
-      this.socket.onerror = function() {
-        handleError("ws-error");
+      socket.onclose = () => {
+        handleClose(socket);
       };
-      ;
-      this.socket.onmessage = (message) => {
+      socket.onerror = () => {
+        handleError(socket, "ws-error");
+      };
+      socket.onmessage = (message) => {
+        if (socket !== this.socket) {
+          return;
+        }
         if (message.data instanceof ArrayBuffer) {
           const data = new Uint8Array(message.data);
           if (this.awaitPong) {
@@ -4442,7 +4488,7 @@
               this.awaitPong = false;
               this.session.connected("ws");
             } else {
-              handleError("ws-pongdata");
+              handleError(socket, "ws-pongdata");
             }
           } else {
             receiveData(data);
@@ -4450,7 +4496,7 @@
         }
       };
       if (callOnOpen) {
-        onopen();
+        onopen(socket);
       }
       return true;
     };

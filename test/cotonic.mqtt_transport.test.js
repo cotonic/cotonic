@@ -13,6 +13,7 @@ QUnit.test("websocket follows page lifecycle", function(assert) {
     const done = assert.async();
     const nativeWebSocket = globalThis.WebSocket;
     const sockets = [];
+    let disconnectCount = 0;
 
     class TestWebSocket {
         constructor(url) {
@@ -34,7 +35,7 @@ QUnit.test("websocket follows page lifecycle", function(assert) {
 
     const session = {
         connected: function() {},
-        disconnected: function() {},
+        disconnected: function() { disconnectCount++; },
         receiveMessage: function() {}
     };
     const transport = mqtt_transport_ws.newTransport("example.test", session, {
@@ -51,16 +52,26 @@ QUnit.test("websocket follows page lifecycle", function(assert) {
         assert.equal(sockets[0].closeCount, 1, "freezing closes the websocket");
 
         broker.publish("model/lifecycle/event/state", "active");
-        assert.equal(sockets.length, 2, "activation opens a new websocket");
+        assert.equal(sockets.length, 1, "activation waits for the close handler");
 
-        broker.publish("model/lifecycle/event/state", "terminated");
-        assert.equal(sockets[1].closeCount, 1, "termination closes the websocket");
+        sockets[0].onclose();
+        setTimeout(function() {
+            assert.equal(sockets.length, 2, "activation opens a new websocket after close");
+            assert.equal(disconnectCount, 1, "the closed socket resets the MQTT session");
 
-        broker.publish("model/lifecycle/event/state", "active");
-        assert.equal(sockets.length, 2, "a terminated transport stays closed");
+            sockets[0].onerror();
+            assert.equal(sockets[1].closeCount, 0, "a stale callback does not close the new socket");
+            assert.equal(disconnectCount, 1, "a stale callback does not reset the MQTT session");
 
-        transport.closeConnection();
-        globalThis.WebSocket = nativeWebSocket;
-        done();
+            broker.publish("model/lifecycle/event/state", "terminated");
+            assert.equal(sockets[1].closeCount, 1, "termination closes the websocket");
+
+            broker.publish("model/lifecycle/event/state", "active");
+            assert.equal(sockets.length, 2, "a terminated transport stays closed");
+
+            transport.closeConnection();
+            globalThis.WebSocket = nativeWebSocket;
+            done();
+        }, 10);
     }, 10);
 });

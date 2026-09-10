@@ -46,6 +46,10 @@ function ws ( remote, mqttSession, options ) {
     this.isLifecycleSuspended = false;
     this.data = undefined;
 
+    let isSocketCloseHandled = true;
+    let isSocketCloseSettled = true;
+    let isReconnectPending = false;
+
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
     const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
@@ -84,6 +88,7 @@ function ws ( remote, mqttSession, options ) {
     this.closeConnection = () => {
         this.isLifecycleSuspended = false;
         this.isForceClosed = true;
+        isReconnectPending = false;
         closeSocket();
 
         unsubscribe("model/lifecycle/event/state", {wid: this.name()});
@@ -93,14 +98,11 @@ function ws ( remote, mqttSession, options ) {
      * Protocol error, close the connection and retry after backoff
      */
     this.closeReconnect = ( isNoBackOff ) => {
-        if (isStateConnected() || isStateConnecting()) {
-            this.socket.close();
-            this.isConnected = false;
-        }
+        closeSocket();
         this.isForceClosed = false;
         if (isNoBackOff === true) {
             this.backoff = 0;
-            connect();
+            requestConnection();
         } else {
             setBackoff();
         }
@@ -112,7 +114,7 @@ function ws ( remote, mqttSession, options ) {
     this.openConnection = () => {
         this.isLifecycleSuspended = false;
         this.isForceClosed = false;
-        connect();
+        requestConnection();
     }
 
     /**
@@ -122,13 +124,32 @@ function ws ( remote, mqttSession, options ) {
     const suspendConnection = () => {
         this.isLifecycleSuspended = true;
         this.isForceClosed = true;
+        isReconnectPending = false;
         closeSocket();
     }
 
     const closeSocket = () => {
         this.isConnected = false;
-        if (this.socket && this.socket.readyState < 2) {
-            this.socket.close();
+        if (this.socket && !isSocketCloseHandled) {
+            isSocketCloseSettled = false;
+            if (this.socket.readyState < 2) {
+                this.socket.close();
+            }
+        }
+    }
+
+    const isSocketClosePending = () => {
+        return this.socket && (
+            !isSocketCloseSettled
+            || (this.socket.readyState >= 2 && !isSocketCloseHandled)
+        );
+    }
+
+    const requestConnection = () => {
+        if (isSocketClosePending()) {
+            isReconnectPending = true;
+        } else {
+            connect();
         }
     }
 
@@ -162,12 +183,6 @@ function ws ( remote, mqttSession, options ) {
             && this.socket.readyState == 1;
     }
 
-    const isStateConnecting = () => {
-        return !this.isConnected
-            || this.awaitPing
-            || (this.socket && this.socket.readyState == 0);
-    }
-
     const isStateClosed = () => {
         return !this.socket || this.socket.readyState == 3;
     }
@@ -189,23 +204,54 @@ function ws ( remote, mqttSession, options ) {
         }
     }
 
-    const handleError = ( reason ) => {
+    const handleError = ( socket, reason ) => {
+        if (socket !== this.socket) {
+            return;
+        }
+
         console.log("Closing websocket connection to "+this.remoteUrl+" due to "+reason);
         this.errorsSinceLastData++;
         if (isStateConnected()) {
-            this.socket.close();
-            this.isConnected = false;
+            closeSocket();
         } else {
-            this.isConnected = (this.socket.readyState == 1);
+            this.isConnected = (socket.readyState == 1);
         }
         setBackoff();
         this.session.disconnected('ws', reason);
+    }
+
+    const handleClose = ( socket ) => {
+        if (socket !== this.socket) {
+            return;
+        }
+
+        isSocketCloseHandled = true;
+        isSocketCloseSettled = false;
+        handleError(socket, 'ws-close');
+
+        // mqttSession.disconnected() defers its state reset to the next task.
+        // Reconnect after that task so the new socket starts a new MQTT session.
+        setTimeout(() => {
+            if (socket !== this.socket) {
+                return;
+            }
+
+            isSocketCloseSettled = true;
+            if (isReconnectPending && !isStateForceClosed()) {
+                isReconnectPending = false;
+                this.backoff = 0;
+                connect();
+            }
+        }, 0);
     }
 
     /**
      * Connect to the remote server.
      */
     const connect = () => {
+        if (isSocketClosePending()) {
+            return false;
+        }
         if (!isStateClosed()) {
             return false;
         }
@@ -216,16 +262,21 @@ function ws ( remote, mqttSession, options ) {
         this.isConnected = false;
         this.awaitPong = true;
         this.socket = undefined;
+        isReconnectPending = false;
 
         let callOnOpen = false;
-        const onopen = () => {
+        const onopen = ( socket ) => {
+            if (socket !== this.socket) {
+                return;
+            }
+
             this.isConnected = true;
-            if (this.socket.protocol == 'mqtt.cotonic.org') {
+            if (socket.protocol == 'mqtt.cotonic.org') {
                 // Send ping and await pong to check channel.
                 this.randomPing = new Uint8Array([
                     255, 254, 42, Math.floor(Math.random()*100), Math.floor(Math.random()*100)
                 ]);
-                this.socket.send( this.randomPing.buffer );
+                socket.send( this.randomPing.buffer );
                 this.awaitPong = true;
             } else {
                 this.awaitPong = false;
@@ -255,15 +306,25 @@ function ws ( remote, mqttSession, options ) {
             // this.socket = new WebSocket( this.remoteUrl, [ "mqtt.cotonic.org", "mqtt" ] );
             this.socket = new WebSocket( this.remoteUrl, [ "mqtt" ] );
         }
-        this.socket.binaryType = 'arraybuffer';
-        this.socket.onopen = onopen;
-        this.socket.onclose = function() {
-            handleError('ws-close');
-        };;
-        this.socket.onerror = function() {
-            handleError('ws-error');
-        };;
-        this.socket.onmessage = ( message ) => {
+        const socket = this.socket;
+        isSocketCloseHandled = false;
+        isSocketCloseSettled = true;
+
+        socket.binaryType = 'arraybuffer';
+        socket.onopen = () => {
+            onopen(socket);
+        };
+        socket.onclose = () => {
+            handleClose(socket);
+        };
+        socket.onerror = () => {
+            handleError(socket, 'ws-error');
+        };
+        socket.onmessage = ( message ) => {
+            if (socket !== this.socket) {
+                return;
+            }
+
             if (message.data instanceof ArrayBuffer) {
                 const data = new Uint8Array(message.data);
 
@@ -272,7 +333,7 @@ function ws ( remote, mqttSession, options ) {
                         this.awaitPong = false;
                         this.session.connected('ws');
                     } else {
-                        handleError('ws-pongdata');
+                        handleError(socket, 'ws-pongdata');
                     }
                 } else {
                     receiveData(data);
@@ -280,7 +341,7 @@ function ws ( remote, mqttSession, options ) {
             }
         };
         if (callOnOpen) {
-            onopen();
+            onopen(socket);
         }
 
         return true;
