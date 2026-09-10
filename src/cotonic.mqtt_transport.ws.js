@@ -49,6 +49,7 @@ function ws ( remote, mqttSession, options ) {
     let isSocketCloseHandled = true;
     let isSocketCloseSettled = true;
     let isReconnectPending = false;
+    let isLifecycleSubscribed = false;
 
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
@@ -90,8 +91,7 @@ function ws ( remote, mqttSession, options ) {
         this.isForceClosed = true;
         isReconnectPending = false;
         closeSocket();
-
-        unsubscribe("model/lifecycle/event/state", {wid: this.name()});
+        unsubscribeLifecycle();
     }
 
     /**
@@ -114,7 +114,10 @@ function ws ( remote, mqttSession, options ) {
     this.openConnection = () => {
         this.isLifecycleSuspended = false;
         this.isForceClosed = false;
-        requestConnection();
+        subscribeLifecycle();
+        if (!isStateForceClosed()) {
+            requestConnection();
+        }
     }
 
     /**
@@ -169,6 +172,24 @@ function ws ( remote, mqttSession, options ) {
                 break;
             default:
                 break;
+        }
+    }
+
+    const subscribeLifecycle = () => {
+        if (!isLifecycleSubscribed) {
+            isLifecycleSubscribed = true;
+            subscribe(
+                "model/lifecycle/event/state",
+                handleLifecycleState,
+                {wid: this.name()}
+            );
+        }
+    }
+
+    const unsubscribeLifecycle = () => {
+        if (isLifecycleSubscribed) {
+            unsubscribe("model/lifecycle/event/state", {wid: this.name()});
+            isLifecycleSubscribed = false;
         }
     }
 
@@ -336,7 +357,7 @@ function ws ( remote, mqttSession, options ) {
                         handleError(socket, 'ws-pongdata');
                     }
                 } else {
-                    receiveData(data);
+                    receiveData(socket, data);
                 }
             }
         };
@@ -360,7 +381,7 @@ function ws ( remote, mqttSession, options ) {
         }
     }
 
-    const receiveData = ( rcvd ) => {
+    const receiveData = ( socket, rcvd ) => {
         if (this.data.length == 0) {
             this.data = rcvd;
         } else {
@@ -374,10 +395,10 @@ function ws ( remote, mqttSession, options ) {
             }
             this.data = newdata;
         }
-        decodeReceivedData();
+        decodeReceivedData(socket);
     }
 
-    const decodeReceivedData = () => {
+    const decodeReceivedData = ( socket ) => {
         let ok = true;
         while (ok && this.data.length > 0) {
             try {
@@ -387,7 +408,7 @@ function ws ( remote, mqttSession, options ) {
                 this.session.receiveMessage(result[0]);
             } catch (e) {
                 if (e != 'incomplete_packet') {
-                    handleError(e);
+                    handleError(socket, e);
                 }
                 ok = false;
             }
@@ -422,11 +443,7 @@ function ws ( remote, mqttSession, options ) {
 
         this.remoteUrl = protocol + "://" + this.remoteHost + controller_path;
 
-        subscribe(
-            "model/lifecycle/event/state",
-            handleLifecycleState,
-            {wid: this.name()}
-        );
+        subscribeLifecycle();
 
         setTimeout(connect, connect_delay);
         setInterval(periodic, periodic_delay);

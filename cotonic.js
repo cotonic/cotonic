@@ -4276,6 +4276,7 @@
     let isSocketCloseHandled = true;
     let isSocketCloseSettled = true;
     let isReconnectPending = false;
+    let isLifecycleSubscribed = false;
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
     const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
@@ -4300,7 +4301,7 @@
       this.isForceClosed = true;
       isReconnectPending = false;
       closeSocket();
-      unsubscribe("model/lifecycle/event/state", { wid: this.name() });
+      unsubscribeLifecycle();
     };
     this.closeReconnect = (isNoBackOff) => {
       closeSocket();
@@ -4315,7 +4316,10 @@
     this.openConnection = () => {
       this.isLifecycleSuspended = false;
       this.isForceClosed = false;
-      requestConnection();
+      subscribeLifecycle();
+      if (!isStateForceClosed()) {
+        requestConnection();
+      }
     };
     const suspendConnection = () => {
       this.isLifecycleSuspended = true;
@@ -4358,6 +4362,22 @@
           break;
         default:
           break;
+      }
+    };
+    const subscribeLifecycle = () => {
+      if (!isLifecycleSubscribed) {
+        isLifecycleSubscribed = true;
+        subscribe(
+          "model/lifecycle/event/state",
+          handleLifecycleState,
+          { wid: this.name() }
+        );
+      }
+    };
+    const unsubscribeLifecycle = () => {
+      if (isLifecycleSubscribed) {
+        unsubscribe("model/lifecycle/event/state", { wid: this.name() });
+        isLifecycleSubscribed = false;
       }
     };
     const isStateConnected = () => {
@@ -4491,7 +4511,7 @@
               handleError(socket, "ws-pongdata");
             }
           } else {
-            receiveData(data);
+            receiveData(socket, data);
           }
         }
       };
@@ -4512,7 +4532,7 @@
         return false;
       }
     }
-    const receiveData = (rcvd) => {
+    const receiveData = (socket, rcvd) => {
       if (this.data.length == 0) {
         this.data = rcvd;
       } else {
@@ -4526,9 +4546,9 @@
         }
         this.data = newdata;
       }
-      decodeReceivedData();
+      decodeReceivedData(socket);
     };
-    const decodeReceivedData = () => {
+    const decodeReceivedData = (socket) => {
       let ok = true;
       while (ok && this.data.length > 0) {
         try {
@@ -4538,7 +4558,7 @@
           this.session.receiveMessage(result[0]);
         } catch (e) {
           if (e != "incomplete_packet") {
-            handleError(e);
+            handleError(socket, e);
           }
           ok = false;
         }
@@ -4568,11 +4588,7 @@
         this.remoteHost = remote;
       }
       this.remoteUrl = protocol + "://" + this.remoteHost + controller_path;
-      subscribe(
-        "model/lifecycle/event/state",
-        handleLifecycleState,
-        { wid: this.name() }
-      );
+      subscribeLifecycle();
       setTimeout(connect, connect_delay);
       setInterval(periodic, periodic_delay);
     };
