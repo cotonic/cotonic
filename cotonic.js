@@ -1218,7 +1218,7 @@
   }
 
   // src/cotonic.js
-  var VERSION = "1.9.0";
+  var VERSION = "1.10.0";
   var config = globalThis.cotonic && globalThis.cotonic.config ? globalThis.cotonic.config : {};
   (function() {
     const currentScript = document.currentScript;
@@ -6181,6 +6181,64 @@
         publish(msg.properties.response_topic, null);
       }
       publish("model/localStorage/event/" + bindings.key, null);
+    },
+    { wid: "model.localStorage" }
+  );
+  subscribe(
+    "model/localStorage/get/+key/+subkey",
+    function(msg, bindings) {
+      if (msg.properties.response_topic) {
+        let value2 = window.localStorage.getItem(bindings.key);
+        if (typeof value2 == "string") {
+          try {
+            value2 = JSON.parse(value2);
+          } catch (e) {
+            value2 = {};
+          }
+        }
+        value2 = value2 || {};
+        publish(msg.properties.response_topic, value2[bindings.subkey]);
+      }
+    },
+    { wid: "model.localStorage" }
+  );
+  subscribe(
+    "model/localStorage/post/+key/+subkey",
+    function(msg, bindings) {
+      let value2 = window.localStorage.getItem(bindings.key);
+      if (typeof value2 == "string") {
+        try {
+          value2 = JSON.parse(value2);
+        } catch (e) {
+          value2 = {};
+        }
+      }
+      value2 = value2 || {};
+      value2[bindings.subkey] = msg.payload;
+      window.localStorage.setItem(bindings.key, JSON.stringify(value2));
+      if (msg.properties.response_topic) {
+        publish(msg.properties.response_topic, value2);
+      }
+    },
+    { wid: "model.localStorage" }
+  );
+  subscribe(
+    "model/localStorage/delete/+key/+subkey",
+    function(msg, bindings) {
+      let value2 = window.localStorage.getItem(bindings.key);
+      if (typeof value2 == "string") {
+        try {
+          value2 = JSON.parse(value2);
+        } catch (e) {
+          value2 = {};
+        }
+      }
+      value2 = value2 || {};
+      delete value2[bindings.subkey];
+      window.localStorage.setItem(bindings.key, JSON.stringify(value2));
+      if (msg.properties.response_topic) {
+        publish(msg.properties.response_topic, value2);
+      }
     },
     { wid: "model.localStorage" }
   );
