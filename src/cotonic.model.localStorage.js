@@ -52,6 +52,57 @@ subscribe("model/localStorage/delete/+key",
     {wid: "model.localStorage"}
 );
 
+// Item with subkeys
+subscribe("model/localStorage/get/+key/+subkey",
+    function(msg, bindings) {
+        if (msg.properties.response_topic) {
+            let value = window.localStorage.getItem(bindings.key);
+            if (typeof value == "string") {
+                try { value = JSON.parse(value); }
+                catch (e) { value = {}; }
+            }
+            value = value || {};
+            publish(msg.properties.response_topic, value[bindings.subkey]);
+        }
+    },
+    {wid: "model.localStorage"}
+);
+
+subscribe("model/localStorage/post/+key/+subkey",
+    function(msg, bindings) {
+        let value = window.localStorage.getItem(bindings.key);
+        if (typeof value == "string") {
+            try { value = JSON.parse(value); }
+            catch (e) { value = {}; }
+        }
+        value = value || {};
+        value[bindings.subkey] = msg.payload;
+        window.localStorage.setItem(bindings.key, JSON.stringify(value));
+        if (msg.properties.response_topic) {
+            publish(msg.properties.response_topic, value);
+        }
+    },
+    {wid: "model.localStorage"}
+);
+
+subscribe("model/localStorage/delete/+key/+subkey",
+    function(msg, bindings) {
+        let value = window.localStorage.getItem(bindings.key);
+        if (typeof value == "string") {
+            try { value = JSON.parse(value); }
+            catch (e) { value = {}; }
+        }
+        value = value || {};
+        delete value[bindings.subkey];
+        window.localStorage.setItem(bindings.key, JSON.stringify(value));
+        if (msg.properties.response_topic) {
+            publish(msg.properties.response_topic, value);
+        }
+    },
+    {wid: "model.localStorage"}
+);
+
+
 // Called if localStorage is changed in another window
 window.addEventListener(
     'storage',

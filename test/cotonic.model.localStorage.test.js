@@ -59,6 +59,26 @@ QUnit.test("test.model.localStorage - delete", function(assert) {
     assert.equal(window.localStorage.getItem("never-existed"), null);
 });
 
+QUnit.test("test.model.localStorage - subkeys", function(assert) {
+    broker.initialize({
+        delete_all_retained: true,
+        flush: false
+    });
+
+    window.localStorage.removeItem("foo");
+
+    broker.publish("model/localStorage/post/foo/bar", "baz");
+    assert.deepEqual(JSON.parse(window.localStorage.getItem("foo")), { bar: "baz" });
+
+    broker.publish("model/localStorage/post/foo/bar2", "baz2");
+    assert.deepEqual(JSON.parse(window.localStorage.getItem("foo")), { bar: "baz", bar2: "baz2" });
+
+    broker.publish("model/localStorage/delete/foo/bar");
+    assert.deepEqual(JSON.parse(window.localStorage.getItem("foo")), { bar2: "baz2" });
+
+    window.localStorage.removeItem("foo");
+});
+
 QUnit.test("test.model.localStorage - events", function(assert, bindings) {
     let events = [];
 
