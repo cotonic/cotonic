@@ -4271,7 +4271,13 @@
     this.awaitPong = false;
     this.isConnected = false;
     this.isForceClosed = false;
+    this.isLifecycleSuspended = false;
     this.data = void 0;
+    let isSocketCloseHandled = true;
+    let isSocketCloseSettled = true;
+    let isReconnectPending = false;
+    let isLifecycleSubscribed = false;
+    let isLifecycleTerminated = false;
     const controller_path = options.controller_path || WS_CONTROLLER_PATH;
     const connect_delay = options.connect_delay || WS_CONNECT_DELAY;
     const periodic_delay = options.periodic_delay || WS_PERIODIC_DELAY;
@@ -4292,41 +4298,111 @@
       return "mqtt_transport.ws: " + this.remoteUrl;
     };
     this.closeConnection = () => {
-      if (isStateConnected() || isStateConnecting()) {
-        this.socket.close();
-        this.isConnected = false;
-        this.isForceClosed = true;
-        unsubscribe("model/lifecycle/event/state", { wid: this.name() });
-      }
+      this.isForceClosed = true;
+      isReconnectPending = false;
+      closeSocket();
+      unsubscribeLifecycle();
     };
     this.closeReconnect = (isNoBackOff) => {
-      if (isStateConnected() || isStateConnecting()) {
-        this.socket.close();
-        this.isConnected = false;
-      }
-      this.isForceClosed = false;
+      closeSocket();
       if (isNoBackOff === true) {
         this.backoff = 0;
-        connect();
+        if (!isStateForceClosed()) {
+          requestConnection();
+        }
       } else {
         setBackoff();
       }
     };
     this.openConnection = () => {
+      if (isLifecycleTerminated) {
+        return;
+      }
       this.isForceClosed = false;
-      connect();
+      subscribeLifecycle();
+      if (!isStateForceClosed()) {
+        requestConnection();
+      }
+    };
+    const suspendConnection = () => {
+      this.isLifecycleSuspended = true;
+      isReconnectPending = false;
+      closeSocket();
+    };
+    const resumeConnection = () => {
+      if (this.isLifecycleSuspended) {
+        this.isLifecycleSuspended = false;
+        this.backoff = 0;
+        setTimeout(() => {
+          if (!isStateForceClosed()) {
+            requestConnection();
+          }
+        }, 0);
+      }
+    };
+    const closeSocket = () => {
+      this.isConnected = false;
+      if (this.socket && !isSocketCloseHandled) {
+        isSocketCloseSettled = false;
+        if (this.socket.readyState < 2) {
+          this.socket.close();
+        }
+      }
+    };
+    const isSocketClosePending = () => {
+      return this.socket && (!isSocketCloseSettled || this.socket.readyState >= 2 && !isSocketCloseHandled);
+    };
+    const requestConnection = () => {
+      if (isSocketClosePending()) {
+        isReconnectPending = true;
+      } else {
+        connect();
+      }
+    };
+    const handleLifecycleState = (message) => {
+      switch (message.payload) {
+        case "active":
+          this.backoff = 0;
+        /* falls through */
+        case "passive":
+        case "hidden":
+          resumeConnection();
+          break;
+        case "frozen":
+          suspendConnection();
+          break;
+        case "terminated":
+          isLifecycleTerminated = true;
+          this.closeConnection();
+          break;
+        default:
+          break;
+      }
+    };
+    const subscribeLifecycle = () => {
+      if (!isLifecycleSubscribed) {
+        isLifecycleSubscribed = true;
+        subscribe(
+          "model/lifecycle/event/state",
+          handleLifecycleState,
+          { wid: this.name() }
+        );
+      }
+    };
+    const unsubscribeLifecycle = () => {
+      if (isLifecycleSubscribed) {
+        unsubscribe("model/lifecycle/event/state", { wid: this.name() });
+        isLifecycleSubscribed = false;
+      }
     };
     const isStateConnected = () => {
       return !this.awaitPong && this.isConnected && this.socket && this.socket.readyState == 1;
-    };
-    const isStateConnecting = () => {
-      return !this.isConnected || this.awaitPing || this.socket && this.socket.readyState == 0;
     };
     const isStateClosed = () => {
       return !this.socket || this.socket.readyState == 3;
     };
     const isStateForceClosed = () => {
-      return this.isForceClosed;
+      return this.isForceClosed || this.isLifecycleSuspended || isLifecycleTerminated;
     };
     const periodic = () => {
       if (isStateClosed() && !isStateForceClosed()) {
@@ -4337,19 +4413,43 @@
         }
       }
     };
-    const handleError = (reason) => {
+    const handleError = (socket, reason) => {
+      if (socket !== this.socket) {
+        return;
+      }
       console.log("Closing websocket connection to " + this.remoteUrl + " due to " + reason);
       this.errorsSinceLastData++;
       if (isStateConnected()) {
-        this.socket.close();
-        this.isConnected = false;
+        closeSocket();
       } else {
-        this.isConnected = this.socket.readyState == 1;
+        this.isConnected = socket.readyState == 1;
       }
       setBackoff();
       this.session.disconnected("ws", reason);
     };
+    const handleClose = (socket) => {
+      if (socket !== this.socket) {
+        return;
+      }
+      isSocketCloseHandled = true;
+      isSocketCloseSettled = false;
+      handleError(socket, "ws-close");
+      setTimeout(() => {
+        if (socket !== this.socket) {
+          return;
+        }
+        isSocketCloseSettled = true;
+        if (isReconnectPending && !isStateForceClosed()) {
+          isReconnectPending = false;
+          this.backoff = 0;
+          connect();
+        }
+      }, 0);
+    };
     const connect = () => {
+      if (isSocketClosePending()) {
+        return false;
+      }
       if (!isStateClosed()) {
         return false;
       }
@@ -4360,10 +4460,14 @@
       this.isConnected = false;
       this.awaitPong = true;
       this.socket = void 0;
+      isReconnectPending = false;
       let callOnOpen = false;
-      const onopen = () => {
+      const onopen = (socket2) => {
+        if (socket2 !== this.socket) {
+          return;
+        }
         this.isConnected = true;
-        if (this.socket.protocol == "mqtt.cotonic.org") {
+        if (socket2.protocol == "mqtt.cotonic.org") {
           this.randomPing = new Uint8Array([
             255,
             254,
@@ -4371,7 +4475,7 @@
             Math.floor(Math.random() * 100),
             Math.floor(Math.random() * 100)
           ]);
-          this.socket.send(this.randomPing.buffer);
+          socket2.send(this.randomPing.buffer);
           this.awaitPong = true;
         } else {
           this.awaitPong = false;
@@ -4395,17 +4499,23 @@
       if (!this.socket) {
         this.socket = new WebSocket(this.remoteUrl, ["mqtt"]);
       }
-      this.socket.binaryType = "arraybuffer";
-      this.socket.onopen = onopen;
-      this.socket.onclose = function() {
-        handleError("ws-close");
+      const socket = this.socket;
+      isSocketCloseHandled = false;
+      isSocketCloseSettled = true;
+      socket.binaryType = "arraybuffer";
+      socket.onopen = () => {
+        onopen(socket);
       };
-      ;
-      this.socket.onerror = function() {
-        handleError("ws-error");
+      socket.onclose = () => {
+        handleClose(socket);
       };
-      ;
-      this.socket.onmessage = (message) => {
+      socket.onerror = () => {
+        handleError(socket, "ws-error");
+      };
+      socket.onmessage = (message) => {
+        if (socket !== this.socket) {
+          return;
+        }
         if (message.data instanceof ArrayBuffer) {
           const data = new Uint8Array(message.data);
           if (this.awaitPong) {
@@ -4413,25 +4523,16 @@
               this.awaitPong = false;
               this.session.connected("ws");
             } else {
-              handleError("ws-pongdata");
+              handleError(socket, "ws-pongdata");
             }
           } else {
-            receiveData(data);
+            receiveData(socket, data);
           }
         }
       };
       if (callOnOpen) {
-        onopen();
+        onopen(socket);
       }
-      subscribe(
-        "model/lifecycle/event/state",
-        (m) => {
-          if (m.payload === "active") {
-            this.backoff = 0;
-          }
-        },
-        { wid: this.name() }
-      );
       return true;
     };
     function equalData(a, b) {
@@ -4446,7 +4547,7 @@
         return false;
       }
     }
-    const receiveData = (rcvd) => {
+    const receiveData = (socket, rcvd) => {
       if (this.data.length == 0) {
         this.data = rcvd;
       } else {
@@ -4460,9 +4561,9 @@
         }
         this.data = newdata;
       }
-      decodeReceivedData();
+      decodeReceivedData(socket);
     };
-    const decodeReceivedData = () => {
+    const decodeReceivedData = (socket) => {
       let ok = true;
       while (ok && this.data.length > 0) {
         try {
@@ -4472,7 +4573,7 @@
           this.session.receiveMessage(result[0]);
         } catch (e) {
           if (e != "incomplete_packet") {
-            handleError(e);
+            handleError(socket, e);
           }
           ok = false;
         }
@@ -4502,6 +4603,7 @@
         this.remoteHost = remote;
       }
       this.remoteUrl = protocol + "://" + this.remoteHost + controller_path;
+      subscribeLifecycle();
       setTimeout(connect, connect_delay);
       setInterval(periodic, periodic_delay);
     };
@@ -4749,7 +4851,7 @@
     };
     this.keepAlive = () => {
       if (isStateWaitingPingResp()) {
-        closeConnections();
+        closeConnections(true);
       } else {
         this.isWaitPingResp = true;
         this.sendMessage({ type: "pingreq" });
@@ -5218,11 +5320,17 @@
         }, 0);
       }
     };
-    const closeConnections = () => {
-      for (const k in this.connection) {
-        this.connection[k].closeConnection();
+    const closeConnections = (reconnect = false) => {
+      for (const k in this.connections) {
+        if (reconnect) {
+          this.connections[k].closeReconnect();
+        } else {
+          this.connections[k].closeConnection();
+        }
       }
-      this.connection = {};
+      if (!reconnect) {
+        this.connections = {};
+      }
       this.isWaitPingResp = false;
       this.isSentConnect = false;
       this.isWaitConnack = false;
