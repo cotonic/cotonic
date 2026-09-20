@@ -1,0 +1,35 @@
+{
+  "name": "@cotonic/cotonic",
+  "version": "1.8.2",
+  "description": "Build web apps with truly isolated components using Web Workers and pub/sub messaging",
+  "main": "cotonic.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cotonic/cotonic.git"
+  },
+  "keywords": [
+    "web-workers",
+    "mqtt",
+    "pubsub",
+    "components",
+    "isolation",
+    "microservices",
+    "browser"
+  ],
+  "author": "Cotonic Authors (https://github.com/cotonic/cotonic/graphs/contributors)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/cotonic/cotonic/issues"
+  },
+  "homepage": "https://cotonic.org",
+  "files": [
+    "src/**/*",
+    "cotonic.js",
+    "cotonic-worker.js",
+    "README.md",
+    "LICENSE"
+  ]
+}
