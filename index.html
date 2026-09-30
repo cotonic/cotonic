@@ -359,6 +359,17 @@ pre {
                     <li> - <a href="#model.sessionStorage.event.ping">event/ping</a>
                 </ul>
 
+                <a class="toc_title" href="#model.sessionId">
+                    model/sessionId
+                </a>
+                <ul class="toc_section">
+                    <li> - <a href="#model.sessionId.get">get</a>
+                    <li> - <a href="#model.sessionId.post.reset">post/reset</a>
+                    <li> - <a href="#model.sessionId.delete">delete</a>
+                    <li> - <a href="#model.sessionId.event">event</a>
+                    <li> - <a href="#model.sessionId.event.ping">event/ping</a>
+                </ul>
+
                 <a class="toc_title" href="#model.dedup">
                     model/dedup
                 </a>
@@ -2464,6 +2475,97 @@ cotonic.broker.subscribe("model/sessionStorage/event/+key",
         ...
     });
 => When the storage is ready a pong message will be available</pre>
+
+            <!-- sessionId model -->
+            <h3 id="model.sessionId">model/sessionId</h3>
+            <p>
+            The sessionId model manages a browser identifier stored as JSON under
+            <tt>cotonic-sid</tt> in localStorage. It is shared by pages on the same
+            origin and survives page reloads and browser restarts until it is reset,
+            deleted, or the browser storage is cleared. It is not limited to a tab
+            or to a sessionStorage session.
+            </p>
+            <p>
+            On initialization the model reuses a non-empty stored identifier or
+            generates a new one. It also writes a <tt>cotonic-sid</tt> cookie through
+            the <a href="#model.document">document model</a>, using
+            <tt>SameSite=Strict</tt>. A newly generated identifier gets a four-day
+            cookie; reusing an identifier on initialization refreshes the cookie
+            for fourteen days. Cookie expiry does not remove the localStorage value.
+            </p>
+            <p>
+            The identifier has a UUID-like shape and is generated using
+            <tt>Math.random()</tt>. It is not an authentication token or a
+            cryptographically secure identifier.
+            </p>
+
+            <p id="model.sessionId.get">
+            <strong class="header">get</strong><br>
+            Call <tt>model/sessionId/get</tt> to retrieve the stored identifier as
+            the response payload. If the localStorage value is missing or cannot
+            be parsed as JSON, a new identifier is generated. The request must have
+            a response topic; use <tt>cotonic.broker.call</tt> or a worker's
+            <tt>self.call</tt>.
+            </p>
+            <pre>
+cotonic.broker.call("model/sessionId/get").then(function(msg) {
+    console.log("Browser identifier:", msg.payload);
+});</pre>
+
+            <p id="model.sessionId.post.reset">
+            <strong class="header">post/reset</strong><br>
+            Generate and store a new identifier, update the cookie, and publish
+            the new identifier on <tt>model/sessionId/event</tt>. When called with
+            a response topic, return the new identifier as the response payload.
+            The request payload is not used.
+            </p>
+            <pre>
+cotonic.broker.call("model/sessionId/post/reset").then(function(msg) {
+    console.log("New browser identifier:", msg.payload);
+});</pre>
+
+            <p id="model.sessionId.delete">
+            <strong class="header">delete</strong><br>
+            Remove the localStorage value, expire the cookie, and publish
+            <tt>null</tt> on <tt>model/sessionId/event</tt>. If the request has a
+            response topic, its response payload is also <tt>null</tt>. A later
+            <tt>get</tt> call or model initialization generates a new identifier.
+            </p>
+            <pre>
+cotonic.broker.publish("model/sessionId/delete");</pre>
+
+            <p id="model.sessionId.event">
+            <strong class="header">event</strong><br>
+            Identifier generation and reset publish the new string; deletion
+            publishes <tt>null</tt>. These messages are not retained. Reusing an
+            existing identifier on initialization does not publish this event;
+            call <tt>get</tt> to read the current value.
+            </p>
+            <p>
+            Changes from other tabs are forwarded from
+            <tt>model/localStorage/event/cotonic-sid</tt>. The current implementation
+            forwards the complete storage message as the event payload, so the
+            identifier for these forwarded events is in <tt>msg.payload.payload</tt>.
+            </p>
+            <pre>
+cotonic.broker.subscribe("model/sessionId/event", function(msg) {
+    const value = msg.payload;
+    const id = value !== null &amp;&amp; typeof value === "object"
+        ? value.payload
+        : value;
+    console.log("Browser identifier changed:", id);
+});</pre>
+
+            <p id="model.sessionId.event.ping">
+            <strong class="header">event/ping</strong><br>
+            After initialization the model publishes the retained payload
+            <tt>"pong"</tt> on <tt>model/sessionId/event/ping</tt>. Subscribe to this
+            topic to detect that the model is available.
+            </p>
+            <pre>
+cotonic.broker.subscribe("model/sessionId/event/ping", function(msg) {
+    console.log("sessionId model is available:", msg.payload);
+});</pre>
 
             <h3 id="model.dedup">model.dedup</h3>
             <p>The dedup model implements message deduplication. It works by sending a message to the dedup
