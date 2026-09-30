@@ -254,8 +254,8 @@ pre {
                     model/document
                 </a>
                 <ul class="toc_section">
-                    <li> - <a href="#model.window.get.all">get/all</a>
-                    <li> - <a href="#model.window.get.intl">get/intl</a>
+                    <li> - <a href="#model.document.get.all">get/all</a>
+                    <li> - <a href="#model.document.get.intl">get/intl</a>
                 </ul>
 
                 <a class="toc_title" href="#model.location">
@@ -293,13 +293,12 @@ pre {
                     <li> - <a href="#model.ui.insert.key">insert/+key</a>
                     <li> - <a href="#model.ui.update.key">update/+key</a>
                     <li> - <a href="#model.ui.delete.key">delete/+key</a>
-                    <li> - <a href="#model.ui.get.key">get/+key</a>
 
                     <li> - <a href="#model.ui.render">render</a>
                     <li> - <a href="#model.ui.render.key">render/+key</a>
                     <li> - <a href="#model.ui.render-template.key">render-template/+key</a>
 
-                    <li> - <a href="#model.ui.replace">replace/+key</a>
+                    <li> - <a href="#model.ui.replace.key">replace/+key</a>
 
                     <li> - <a href="#model.ui.event.recent-activity">event/recent-activity</a>
                     <li> - <a href="#model.ui.event.dom-updated">event/dom-updated/+key</a>
@@ -355,7 +354,6 @@ pre {
                     <li> - <a href="#model.sessionStorage.delete.key">delete/+key</a>
                     <li> - <a href="#model.sessionStorage.delete.key.subkey">delete/+key/+subkey</a>
                     <li> - <a href="#model.sessionStorage.event.key">event/+key</a>
-                    <li> - <a href="#model.sessionStorage.event.key.subkey">event/+key/+subkey</a>
                     <li> - <a href="#model.sessionStorage.event.ping">event/ping</a>
                 </ul>
 
@@ -391,9 +389,7 @@ pre {
 
         <section id="documentation">
 
-            <p id="introduction">
-               <h1 class="logo">COTONIC</h1>
-            </p>
+            <h1 id="introduction" class="logo">COTONIC</h1>
 
             <p>
             <a href="https://github.com/cotonic/cotonic">Cotonic</a> is a Javascript
@@ -412,7 +408,7 @@ pre {
             The project is hosted on <a href="https://github.com/cotonic/cotonic">Github</a>.
             You can report bugs and discuss features on the
             <a href="https://github.com/cotonic/cotonic/issues">issues page</a>.
-            <p>
+            </p>
 
             <p>
             Cotonic is an open-source component of <a href="http://zotonic.org">Zotonic</a>.
@@ -561,12 +557,12 @@ cotonic.receive(function(message, worker_id) {
             <em class="header">Configuration</em>
             <br>
             The page function has one configuration option.
+            </p>
             <dl>
                 <dt><tt>base_worker_src</tt></dt>
                 <dd>The url for the base worker runtime for cotonic. This runtime provides
                     the required communication primitives.</dd>
             </dl>
-            </p>
             <pre>
 &lt;script&gt;
     window.cotonic = window.cotonic || {};
@@ -631,16 +627,16 @@ cotonic.broker.match("boat/02/speed");
             <strong class="header">publish</strong> <code>cotonic.broker.publish(topic, payload, [options])</code>
             <br>
             Publish the message <tt>payload</tt> on a topic. The possible <tt>options</tt> are:
+            </p>
             <dl>
                 <dt><tt>qos</tt></dt>
                 <dd>Quality of service. Can be 0, 1, or 2. 0 means at most once, 1 at least once, and 2 exactly once.</dd>
                 <dt><tt>retain</tt></dt>
                 <dd>When retain is true, the last message sent will be stored, and delivered immediately when
                 a new client subscribes to the topic.</dd>
-                <dt><dt>properties</dt></dt>
+                <dt><tt>properties</tt></dt>
                 <dd>Extra properties which can be attached to the message</dd>
             </dl>
-            </p>
             <pre>
 cotonic.broker.publish("truck/001/temperature", 88);
 => All subscribers receive the message 88 on the topic.
@@ -659,6 +655,7 @@ cotonic.broker.publish("truck/001/speed", 74, {retain: true});
             the returned information object returned by <a href="#cotonic.mqtt.extract">extract</a>.
             This makes it possible to easily extract information from the topic.
             Parameter <tt>options</tt> can be
+            </p>
             <dl>
                 <dt><tt>wid</tt></dt>
                 <dd>The worker if used for making the scription. Can be used to differentiate
@@ -679,7 +676,6 @@ cotonic.broker.publish("truck/001/speed", 74, {retain: true});
                 <dt><tt>properties</tt></dt>
                 <dd>[todo]</dd>
             </dl>
-            </p>
             <pre>
 cotonic.broker.subscribe("truck/+truck_id/speed",
     function(msg, info) {
@@ -695,12 +691,11 @@ cotonic.broker.subscribe("truck/+truck_id/speed",
             Unsubscribe from the topics. The parameter <tt>topics</tt> can be a single topic as a string,
             or a list of topics. The optional parameter <tt>options</tt> is an object which has the following
             properties.
+            </p>
             <dl>
                 <dt>wid</dt>
                 <dd>The worker id from which to unsubscribe from. Defaults to: <tt>0</tt></dd>
             </dl>
-
-            </p>
             <pre>
 cotonic.broker.unsubscribe("truck/+truck_id/speed",
                            {wid: "example"});
@@ -718,15 +713,15 @@ cotonic.broker.unsubscribe("truck/+truck_id/speed",
             reply topic, the returned promise will be resolved. When no answer is received, the promise will
             be rejected with a reason.
             The option parameter can have the following extra options:
+            </p>
             <dl>
                 <dt><tt>timeout</tt></dt>
-                <dl>
+                <dd>
                     The timeout in milliseconds to use before rejecting
                     the returned promise.  Default: <tt>15000</tt>, or
                     15 seconds.
-                </dl>
+                </dd>
             </dl>
-            </p>
             <pre>
 cotonic.broker.call("model/localStorage/get/username", {}, {timeout: 1000})
 .then(function(username) {
@@ -778,7 +773,7 @@ cotonic.mqtt.fill("truck/+truck_id/speed", {truck_id: 100});
             <br>
             Extract values from <tt>topic</tt> into an object. The pattern <tt>+&lt;key&gt;</tt> matches
             a single level of the topic path. It places an attribute <tt>key</tt> with as value the
-            found element in the path in the returned object. The pattern <tt>#&ltkey&gt;</tt>
+            found element in the path in the returned object. The pattern <tt>#&lt;key&gt;</tt>
             matches a multi level path. When it is matched it places that part of the path into a list.
             Returns an object with the found elements.
             </p>
@@ -832,6 +827,7 @@ cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
             will be published locally. This makes it possible to connect and communicate with
             all clients connected to remote mqtt brokers.
             <em>Note: It is possible to connect to multiple brokers.</em>
+            </p>
             <dl>
                 <dt><tt>protocol</tt></dt>
                 <dd>The protocol to use to connect to the mqtt broker. Defaults to "ws" when the page is
@@ -856,7 +852,6 @@ cotonic.mqtt.remove_named_wildcards("truck/#truck_info");
                 <dt><tt>mqtt_session</tt></dt>
                 <dd>The mqtt_session module which should be used. Default: cotonic.mqtt_session.</dd>
             </dl>
-            </p>
 
             <pre>
 cotonic.mqtt_bridge.newBridge("test.mosquitto.org:8081",
@@ -922,7 +917,7 @@ cotonic.mqtt_bridge.deleteBridge("test.mosquitto.org:8081");</pre>
             Insert a new html snippet into the user interface composer. The snippet will be stored under the given
             targetId. The element will not be placed in the dom-tree immediately. This will happen when one of the
             render functions is called. Parameter <tt>mode</tt> supports the following options:
-
+            </p>
             <dl>
                 <dt><tt>inner</tt> or <tt>true</tt></dt>
                 <dd>The html-snippets update the innerHTML of the element.</dd>
@@ -941,6 +936,7 @@ cotonic.mqtt_bridge.deleteBridge("test.mosquitto.org:8081");</pre>
                 <dd>Like "shadow-open", with the difference that the shadow dom will be initialised in "closed" mode.</dd>
             </dl>
 
+            <p>
             The optional priority parameter indicates the render order of the elements.
             Elements with a high priority are rendedered before lower priorities. This makes it possible to nest
             elements.
@@ -1080,41 +1076,41 @@ document.addEvenListener("click", function(e) {
             <br>
             Transforms a string with html tags into a list of tokens. The tokens are
             objects of the form: <tt>{type: "type", [args]}</tt>, with type being one of:
+            </p>
             <dl>
-                <dt><tt>open</tt><dt>
+                <dt><tt>open</tt></dt>
                 <dd>Represents an open tag. Contains the attribute <tt>tag</tt> which is
                 set to the tagname of the element, and the attribute <tt>attributes</tt>
                 which is a list of attributes of the element.
                 </dd>
 
-                <dt><tt>close</tt><dt>
+                <dt><tt>close</tt></dt>
                 <dd>Represents a close tag. Contains the attribute <tt>tag</tt> which is
                 set to the tagname of the close element.</dd>
 
-                <dt><tt>void</tt><dt>
+                <dt><tt>void</tt></dt>
                 <dd>Represents a void element. The attribute <tt>tag</tt> is set to the
                 tagname of the void element.</dd>
 
-                <dt><tt>text</tt><dt>
+                <dt><tt>text</tt></dt>
                 <dd>Represents a test element. The attribute <tt>data</tt> is set to the
                 text data.</dd>
 
-                <dt><tt>doctype</tt><dt>
+                <dt><tt>doctype</tt></dt>
                 <dd>Represents a doctype element. The attribute <tt>attributes</tt> is
                 set to the attributes of the element.</dd>
 
-                <dt><tt>pi</tt><dt>
+                <dt><tt>pi</tt></dt>
                 <dd>Represents a processing instruction element. The attribute <tt>tag</tt>
                 is set to the tagname of the processing instruction. The attribute
                 <tt>arguments</tt> contains the list of attributes.</dd>
 
-                <dt><tt>comment</tt><dt>
+                <dt><tt>comment</tt></dt>
                 <dd>Represents a comment element. The attribute <tt>data</tt> contains
                 the text in the comment element.</dd>
             </dl>
-            </p>
             <pre>
-cotonic.tokenizer.tokens("&lt;div class='example'&gt;Tokenizing&lt;br /&gt; is cool&lt/div&gt;");
+cotonic.tokenizer.tokens("&lt;div class='example'&gt;Tokenizing&lt;br /&gt; is cool&lt;/div&gt;");
 => [{type: "open", tag: "div", attributes: ["class", "example"]},
     {type: "text", data: "Tokenizing"},
     {type: "void", tag: "br", attributes: []},
@@ -1177,7 +1173,7 @@ self.on_init = function(n, id) {
             have become available.
 
             Parameter <tt>connectOptions</tt> supports the following options:
-
+            </p>
             <dl>
                 <dt><tt>name</tt></dt>
                 <dd>The name of the worker.</dd>
@@ -1190,8 +1186,6 @@ self.on_init = function(n, id) {
                 <dd>A list of dependencies which is provided by this worker. The are published after
                 the worker is connected.</dd>
             </dl>
-
-            </p>
             <pre>
 self.connect().then(
     function() {
@@ -1340,7 +1334,7 @@ self.call("model/document/get/all")
             <p>
             The convention is that models provide their services via the following topic
             tree.
-
+            </p>
             <dl>
                 <dt><tt>model/+modelName/get/+</tt></dt>
                 <dd>Call topics. When the model receives a publish, it returns the answer
@@ -1356,8 +1350,6 @@ self.call("model/document/get/all")
                 <dd>Topics which the model publishes events on.</dd>
             </dl>
 
-            </p>
-
             <!-- model window -->
             <h3 id="model.window">model/window</h3>
             <p>
@@ -1370,7 +1362,7 @@ self.call("model/document/get/all")
             <br>
 
             Open a window. The payload of the message can be set t
-
+            </p>
             <dl>
                 <dt><tt>href</tt></dt>
                 <dd>The url of the window. See below.</dd>
@@ -1418,7 +1410,6 @@ self.call("model/document/get/all")
                 <dt><tt>left</tt></dt>
                 <dd>The left position of the window.</dd>
             </dl>
-            </p>
             <pre>
 &lt;a href="https://example.com/logon"
    class="btn btn-social"
@@ -1602,8 +1593,6 @@ cotonic.broker.publish("model/location/post/redirect", {url: "https://cotonic.or
 cotonic.broker.publish("model/location/post/redirect/back", {url: "/home"})
 => // Go back, when there is no page in the history, move to "/home".</pre>
 
-<p>
-
 <pre>
 &lt;a data-onclick-topic="model/location/post/redirect/back" href="/home"&gt;Go Back&lt;/a&gt;
 </pre>
@@ -1637,7 +1626,7 @@ When the xyz model on the server responds, the page will be reloaded
             <tt>{ "key": value }</tt> keys. The browsers location is modified using <tt>replaceState</tt>
             and the new arguments are posted to <tt>model/location/event/q</tt> and <tt>model/location/event/qlist</tt>
             </p>
-            <p>If you need to have multiple keys with the same name, or the order of the keys is significant then use <a href="model.location.post.qlist">post/qlist</a>.</p>
+            <p>If you need to have multiple keys with the same name, or the order of the keys is significant then use <a href="#model.location.post.qlist">post/qlist</a>.</p>
             <pre>
 cotonic.broker.call("model/location/post/q", {"a":"1", "b":"2"} ])
 => // The browser location will be updated, the page is not reloaded
@@ -1843,26 +1832,25 @@ cotonic.broker.subscribe("model/location/event/qlist",
             <strong class="header"><em>Configuration</em></strong>
             <br>
             The location has one configuration option.
+            </p>
             <dl>
                 <dt><tt>pathname_search</tt></dt>
                 <dd>Set to the current search parameters of the page. Alternatively this setting
                 can can be done as <tt>data-cotonic-pathname-search</tt> attribute on the body tag.</dd>
             </dl>
 
-            </p>
-
             <pre>
-&ltscript&gt;
+&lt;script&gt;
     window.cotonic = window.cotonic || {};
     window.cotonic.config = {
         start_service_worker: true,
         pathname_search: "q=110&amp;j=yes"
     };
 &lt;/script&gt;
-&ltscript src="cotonic.js"&gt;&lt;/script&gt;
+&lt;script src="cotonic.js"&gt;&lt;/script&gt;
 </pre>
             <pre>
-&lt;body data-cotonic-pathname-search="q=110&amp;j=yes"&gt;
+&lt;body data-cotonic-pathname-search="q=110&amp;amp;j=yes"&gt;
 ...
 &lt;/body&gt;
 </pre>
@@ -1882,7 +1870,7 @@ cotonic.broker.subscribe("model/location/event/qlist",
             <br>
             Insert a new ui snippet named <tt>key</tt> into the user interface composer.
             Expects a message with the following properties.
-
+            </p>
             <dl>
                 <dt><tt>initialData</tt></dt>
                 <dd>The initial data to place in the dom tree.</dd>
@@ -1897,8 +1885,6 @@ cotonic.broker.subscribe("model/location/event/qlist",
                 <!-- needs example -->
                 </dd>
             </dl>
-
-            </p>
             <pre>
 self.publish("model/ui/insert/root", {
     initialData: "&lt;div class='loading'&gt;Loading&lt;/div&gt;",
@@ -1917,9 +1903,9 @@ self.publish("model/ui/insert/root", {
             </p>
             <pre>
 self.publish("model/ui/update/root",
-    "<div class="main-app>" +
+    "&lt;div class='main-app'&gt;" +
         "..." +
-    "</div>");
+    "&lt;/div&gt;");
 => The root element is updated.</pre>
 
             <p id="model.ui.delete.key">
@@ -1947,7 +1933,6 @@ self.publish("model/ui/render");</pre>
             </p>
             <pre>
 self.publish("model/ui/render.root");</pre>
-            </pre>
 
             <p id="model.ui.render-template.key">
             <strong class="header">render-template/+key</strong>
@@ -1955,9 +1940,10 @@ self.publish("model/ui/render.root");</pre>
             Request rendering a template with parameters. A rendering engine must be
             available to respond to the render requests. The render result will update
             <tt>key</tt> element. Note: The element must first be inserted with
-            <a href="#cotonic.ui.insert">cotonic.ui.insert</tt></a> or
+            <a href="#cotonic.ui.insert"><tt>cotonic.ui.insert</tt></a> or
             <a href="#model.ui.insert.key"><tt>model/ui/insert/+key</tt></a>.
             The payload of the render request should be:
+            </p>
             <dl>
                 <dt><tt>topic</tt></dt>
                 <dd>The topic on which the render engine is subscribed. Can be a local or a remote topic.
@@ -1970,7 +1956,6 @@ self.publish("model/ui/render.root");</pre>
                 <dd>Send the render request via a MQTT QoS 1 message. This means that we can
                 get multiple responses. Dedup makes sure the result will be rendered only once.</dd>
             </dl>
-            </p>
             <pre>
 self.publish("model/ui/render-template/root",
              {topic: "bridge/origin/model/template/get/render/hello.tpl",
@@ -1988,7 +1973,7 @@ self.publish("model/ui/render-template/root",
             The replacement is done once and no further updates are registered.
             </p>
             <pre>
-self.publish("model/ui/replace/eltid", "Hello <b>and here we are</b>");
+self.publish("model/ui/replace/eltid", "Hello &lt;b&gt;and here we are&lt;/b&gt;");
             </pre>
 
             <p id="model.ui.event.recent-activity">
@@ -2036,13 +2021,13 @@ cotonic.broker.subscribe("model/ui/event/dom-updated/message-container",
             the document. This can be used to signal the state of cotonic workers or models to
             other ui libraries like <a href="https://elm-lang.org">Elm</a> or
             <a href="https://reactjs.org">React</a>. The payload of the message:
+            </p>
             <dl>
                 <dt><tt>status</tt></dt>
                 <dd>Object with model statuses. Will be set as data attributes.</dd>
                 <dt><tt>classes</tt></dt>
                 <dd>List with model statuses. Will be set as classes.</dd>
             </dl>
-            </p>
             <pre>
 self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
                                              classes: ["anonymous"]});
@@ -2055,11 +2040,11 @@ self.publish("model/auth/event/ui-status",  {status: {"auth": "anonymous"},
             <strong class="header">event/new-shadow-root/+key</strong>
             <br>
             Init the topic event listener when new shadow roots are added.
+            </p>
             <dl>
                 <dt><tt>id</tt></dt>
                 <dd>Element id</dd>
             </dl>
-            </p>
             <pre>
 cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
     function(m) {
@@ -2083,7 +2068,7 @@ cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
             information in an orderly fashion. There are individual events like: <tt>load</tt>,
             <tt>unload</tt>, and <tt>visibilitychange</tt>. The lifecycle model publishes the
             different states a page can be in.
-
+            </p>
             <dl>
                 <dt><tt>active</tt></dt>
                 <dd>
@@ -2122,6 +2107,7 @@ cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
                 </dd>
             </dl>
 
+            <p>
             The lifecycle model publishes the state the page is at on the
             <tt>model/lifecycle/event/state</tt> topic as a retained message. This makes
             it possible to get the current state at any moment, and be notified of changes
@@ -2132,7 +2118,7 @@ cotonic.broker.subscribe("model/ui/event/new-shadow-root/data-list",
             State changes are always done in an orderly way. When a page goes from state
             <tt>active</tt> to state <tt>hidden</tt> it is made sure that the <tt>passive</tt>
             state is also published.
-            <p>
+            </p>
 
             <p>
             State transition diagram: <br /><br />
@@ -2285,20 +2271,19 @@ cotonic.broker.subscribe("model/serviceWorker/event/ping",
             <strong class="header"><em>Configuration</em></strong>
             <br>
             The service worker model has two configuration options.
+            </p>
             <dl>
                 <dt><tt>start_service_worker</tt></dt>
                 <dd>When set to <tt>false</tt>, the service worker will not start.
                     <br /><strong>default</strong> <tt>true</tt></dd>
                 <dt><tt>service_worker_src</tt></dt>
                 <dd>The url of the service worker which should be started.
-                    <br/ ><strong>default</strong>
+                    <br /><strong>default</strong>
                     <tt>/cotonic-service-worker.js</tt></dd>
             </dl>
 
-            </p>
-
             <pre>
-&ltscript&gt;
+&lt;script&gt;
     window.cotonic = window.cotonic || {};
     window.cotonic.config = {
         start_service_worker: true,
@@ -2661,106 +2646,107 @@ cotonic.broker.subscribe("model/dedup/event/+key",
             <p id="1.9.0">
             <strong class="header">1.9.0</strong> &mdash; <small><i>Sep 1, 2026</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.8.0...1.9.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.9.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.9.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.9.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>Added data-cotonic-preserve attribute which is useful for embedding externally managed DOM subtrees</li>
             </ul>
-            </p>
 
             <p id="1.8.0">
             <strong class="header">1.8.0</strong> &mdash; <small><i>?</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.7.0...1.8.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.8.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.8.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.8.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>Not documented</li>
             </ul>
-            </p>
 
             <p id="1.7.0">
             <strong class="header">1.7.0</strong> &mdash; <small><i>?</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.6.1...1.7.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.7.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.7.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.7.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>Not documented</li>
             </ul>
-            </p>
 
             <p id="1.6.1">
             <strong class="header">1.6.1</strong> &mdash; <small><i>Dec 1, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.6.0...1.6.1">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.6.1/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.6.1/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.6.1.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>Added documentation for model/location/post/redirect/post</li>
                 <li>Added default url to redirect/post, when no navigation occurs.</li>
             </ul>
-            </p>
 
             <p id="1.6.0">
             <strong class="header">1.6.0</strong> &mdash; <small><i>Nov 28, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.5.1...1.6.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.6.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.6.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.6.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>Add onvisible-topic, model/ui/replace and model/location push and replace by @mworrell</li>
                 <li>Add simple bridge to opener window by @mworrell</li>
             </ul>
-            </p>
 
 
             <p id="1.5.1">
             <strong class="header">1.5.1</strong> &mdash; <small><i>Nov 8, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.5.0...1.5.1">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.5.1/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.5.1/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.5.1.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>Add onvisible-topic</li>
                 <li>model/ui/replace, and</li>
                 <li>model/location push and replace </li>
             </ul>
-            </p>
 
             <p id="1.5.0">
             <strong class="header">1.5.0</strong> &mdash; <small><i>Nov 6, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.4.1...1.5.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.5.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.5.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.5.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Add model/ui/post/qlist with replaceState support.
                 </li>
             </ul>
-            </p>
 
             <p id="1.4.1">
             <strong class="header">1.4.1</strong> &mdash; <small><i>Sep 7, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.4.0...1.4.1">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.4.1/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.4.1/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.4.1.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Removed usage of unload event for modern browsers.
                 </li>
             </ul>
-            </p>
 
             <p id="1.4.0">
             <strong class="header">1.4.0</strong> &mdash; <small><i>Aug 4, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.3.1...1.4.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.4.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.4.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.4.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Use esbuild instead of cat to make releases.
@@ -2769,125 +2755,125 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     Moved modules to separate es modules for better adaptability.
                 </li>
             </ul>
-            </p>
 
             <p id="1.3.1">
             <strong class="header">1.3.1</strong> &mdash; <small><i>Jun 23, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.3.0...1.3.1">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.3.1/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.3.1/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.3.1.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Fixes a problem where the remote client topic was accidentally set to the 
                     remote routing topic.
                 </li>
             </ul>
-            </p>
 
             <p id="1.3.0">
             <strong class="header">1.3.0</strong> &mdash; <small><i>May 26, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.2.2...1.3.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.3.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.3.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.3.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added skip node functionality to be able to integrate dom-tree changing external
                     libraries.
                 </li>
             </ul>
-            </p>
 
             <p id="1.2.2">
             <strong class="header">1.2.2</strong> &mdash; <small><i>Apr 21, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.2.1...1.2.2">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.2.2/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.2.2/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.2.2.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Fix an issue with renaming response topics.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.2.1">
             <strong class="header">1.2.1</strong> &mdash; <small><i>Apr 17, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.2.0...1.2.1">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.2.1/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.2.1/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.2.1.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Fix a bug with queued messages where the routing-id was not known yet, or was
                     changed.
                 </li>
             </ul>
-            </p>
 
             <p id="1.2.0">
             <strong class="header">1.2.0</strong> &mdash; <small><i>Apr 4, 2023</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.9...1.2.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.2.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.2.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.2.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     The service worker now supports displaying web push notifications.
                 </li>
             </ul>
-            </p>
 
             <p id="1.1.9">
             <strong class="header">1.1.9</strong> &mdash; <small><i>Dec 19, 2022</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.8...1.1.9">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.9/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.9/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.9.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added events which allows seeing when a websocket connection is openend and closed.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.1.8">
             <strong class="header">1.1.8</strong> &mdash; <small><i>Oct 12, 2022</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.7...1.1.8">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.8/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.8/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.8.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Small bugfixes.
                 </li>
             </ul>
-            </p>
 
             <p id="1.1.7">
             <strong class="header">1.1.7</strong> &mdash; <small><i>Jul 29, 2022</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.6...1.1.7">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.7/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.7/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.7.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     If a window close is requested and there is no window.opener then optionally redirect
                     to the supplied url. 
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.1.6">
             <strong class="header">1.1.6</strong> &mdash; <small><i>Jul 26, 2022</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.5...1.1.6">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.6/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.6/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.6.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added a redirect-local in order to safely redirect to a local url.
@@ -2896,14 +2882,14 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     Documentation and site fixes.
                 </li>
             </ul>
-            </p>
 
             <p id="1.1.5">
             <strong class="header">1.1.5</strong> &mdash; <small><i>May 31, 2022</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.1...1.1.5">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.5/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.5/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.5.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Don't de-dup subscriptions from unspecified worker ids (wid).
@@ -2918,6 +2904,8 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     Fix a typo in the specification of the page lifecycle state-machine.
                 </li>
             </ul>
+
+            <p>
             Special thanks go to <a href="https://github.com/williamthome">@williamthome</a> for fixing the
             python dev environment.
             </p>
@@ -2925,9 +2913,10 @@ cotonic.broker.subscribe("model/dedup/event/+key",
             <p id="1.1.2">
             <strong class="header">1.1.2</strong> &mdash; <small><i>Jan 22, 2022</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.1...1.1.2">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.2/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.2/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.2.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Changed the way onclick and and onsubmit topics are handled. When such an event
@@ -2936,57 +2925,57 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     of the elements between the target and the element on which the topic was found.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.1.1">
             <strong class="header">1.1.1</strong> &mdash; <small><i>Dec 6, 2021</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.1.0...1.1.1">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.1/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.1/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.1.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Cleaned up another couple of IE11 workarounds, and added extra tests.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.1.0">
             <strong class="header">1.1.0</strong> &mdash; <small><i>Oct 27, 2021</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.8...1.1.0">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.0/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.1.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.1.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Because IE11 is no longer supported, all lazy polyfill loading code has been removed.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.0.8">
             <strong class="header">1.0.8</strong> &mdash; <small><i>Aug 25, 2021</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.7...1.0.8">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.8/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.8/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.8.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added <tt>model/location/post/reload</tt> model post.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.0.7">
             <strong class="header">1.0.7</strong> &mdash; <small><i>Jul 8, 2021</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.6...1.0.7">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.7/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.7/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.7.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added <tt>model/lifecycle/event/state</tt> and <tt>model/lifecycle/event/online</tt>
@@ -2996,15 +2985,15 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     Various small fixes.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.0.6">
             <strong class="header">1.0.6</strong> &mdash; <small><i>Mar 15, 2021</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.5...1.0.6">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.6/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.6/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.6.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added <tt>model/ui/event/node-created/+key</tt> and <tt>model/ui/event/node-deleted/+key</tt>
@@ -3018,14 +3007,14 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     Small fixes.
                 </li>
             </ul>
-            </p>
 
             <p id="1.0.5">
             <strong class="header">1.0.5</strong> &mdash; <small><i>Mar 14, 2021</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.4...1.0.5">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.5/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.5/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.5.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     More documentation.
@@ -3048,15 +3037,15 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     And a lot of little fixes.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.0.4">
             <strong class="header">1.0.4</strong> &mdash; <small><i>Nov 2, 2020</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.3...1.0.4">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.4/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.4/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.4.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     More documentation.
@@ -3068,14 +3057,14 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     And a lot of little fixes.
                 </li>
             </ul>
-            </p>
 
             <p id="1.0.3">
             <strong class="header">1.0.3</strong> &mdash; <small><i>Mar 1, 2020</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.2...1.0.3">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.3/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.3/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.3.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added more documentation and an example.
@@ -3091,15 +3080,15 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     Mostly for IE11.
                 </li>
             </ul>
-            </p>
 
 
             <p id="1.0.2">
             <strong class="header">1.0.2</strong> &mdash; <small><i>Feb 10, 2020</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.1...1.0.2">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.2/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.2/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.2.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Added documentation, and
@@ -3108,14 +3097,14 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     made it possible to use the bridge to connect to mqtt servers
                 </li>
             </ul>
-            </p>
 
             <p id="1.0.1">
             <strong class="header">1.0.1</strong> &mdash; <small><i>Jan 30, 2020</i></small> &mdash;
             <a href="https://github.com/cotonic/cotonic/compare/1.0.0...1.0.1">Diff</a> &mdash;
-            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.1/index.html"l>Docs</a> &mdash;
+            <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.1/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.1.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     Fixed all the tests, and
@@ -3124,19 +3113,18 @@ cotonic.broker.subscribe("model/dedup/event/+key",
                     made the documentation more readable on mobile.
                 </li>
             </ul>
-            </p>
 
             <p id="1.0.0">
             <strong class="header">1.0.0</strong> &mdash; <small><i>Jan 23, 2020</i></small> &mdash;
             <a href="https://ghcdn.rawgit.org/cotonic/cotonic/1.0.0/index.html">Docs</a> &mdash;
             <a href="https://github.com/cotonic/cotonic/archive/1.0.0.tar.gz" download>Download</a>
             <br />
+            </p>
             <ul>
                 <li>
                     First Release!
                 </li>
             </ul>
-            </p>
 
         </section>
 
